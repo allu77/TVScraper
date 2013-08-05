@@ -1,0 +1,66 @@
+#!/bin/bash
+
+show_usage() {
+	echo "Usage: $0 [OPTIONS] <ACTION> [param1] [value1] [param2] [value2] ..." >&2
+	echo "" >&2
+	echo "Valid OPTIONS" >&2
+	echo "  -b HTTP_BASE_URL" >&2
+	echo "  -u HTTP_USER" >&2
+	echo "  -p HTTP_PASSWORD">&2
+	echo "" >&2
+	echo "HTTP parameters can either be provided as cmd line options or inside" >&2
+	echo "configuration files:" >&2
+	echo "  /etc/tvscraper" >&2
+	echo "  ~/.tvscraperrc" >&2
+	echo "" >&2
+	echo "Valid ACTION" >&2
+	grep -F "/* method */" api.php | sed "s-.*/\* method \*/ '-    -" | sed "s-'.*--" | sort
+}
+
+HTTP_USER=""
+HTTP_PASSWORD=""
+HTTP_BASE_URL="http://localhost/TVScraper"
+
+[ -e /etc/tvscraper ] && source /etc/tvscraper
+[ -e ~/.tvscraperrc ] && source ~/.tvscraperrc
+
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-u) shift ; HTTP_USER="$1" ;; 
+		-p) shift ; HTTP_PASSWORD="$1" ;; 
+		-b) shift ; HTTP_BASE_URL="$1" ;; 
+		-*) 
+		    echo "Unknown option $1" >&2
+			show_usage
+		    exit 1
+		    ;;
+		*)  break;;	# terminate while loop
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	echo "No action provided" >&2
+	show_usage
+	exit 1	
+fi
+
+action=$1
+shift
+
+paramstring=""
+
+while [ $# -gt 1 ]; do
+	param=$1
+	shift
+	value="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$1")"
+	shift
+
+	paramstring="$paramstring&$param=$value"
+done
+
+auth=""
+[ -z "$HTTP_USER" ] || auth="--digest -u $HTTP_USER:$HTTP_PASSWORD"
+
+curl --data "format=txt&action=$action$paramstring" $auth $HTTP_BASE_URL/api.php

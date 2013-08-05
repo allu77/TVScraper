@@ -1,0 +1,215 @@
+#!/bin/bash
+
+show_usage() {
+	echo "Usage: $0 [OPTIONS] <ACTION> ..." >&2
+	echo "" >&2
+	echo "Valid OPTIONS" >&2
+	echo "  -b HTTP_BASE_URL" >&2
+	echo "  -u HTTP_USER" >&2
+	echo "  -p HTTP_PASSWORD">&2
+	echo "" >&2
+	echo "HTTP parameters can either be provided as cmd line options or inside" >&2
+	echo "configuration files:" >&2
+	echo "  /etc/tvscraper" >&2
+	echo "  ~/.tvscraperrc" >&2
+	echo "" >&2
+	echo "Valid ACTION" >&2
+	echo "  update [only_season|only_show]" >&2
+	echo "  notify" >&2
+}
+
+
+api() { 
+	action=$1
+	shift
+
+	paramstring=""
+
+	while [ $# -gt 1 ]; do
+		param=$1
+		shift
+		value="$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$1")"
+		shift
+
+		paramstring="$paramstring&$param=$value"
+	done
+
+
+	auth=""
+	[ -z "$HTTP_USER" ] || auth="--digest -u $HTTP_USER:$HTTP_PASSWORD"
+
+	result=$(curl -s --data "format=txt&action=$action$paramstring" $auth $HTTP_BASE_URL/api.php|awk '
+
+		doRead=="status" { status=$2; doRead="nothing" };
+		doRead=="errmsg" { for (i=2; i<=NF; i++) printf(" %s", $i); printf("\n"); doPrint="nothing"; }
+		doRead=="result" && /^  / { print $0; }
+
+		/^  \["status"\]/ { doRead="status"; }
+		/^  \["errmsg"\]/ { doRead="errmsg"; }
+		/^  \["result"\]/ { doRead="result"; }
+
+		END {
+			if (status=="\"error\"") {
+				exit 1;
+			} else {
+				exit 0;
+			}
+		}
+
+	')
+
+	if [ $? -gt 0 ]; then
+		echo "Error calling TV api: $result" >&2
+		return 1
+	else 
+		echo "$result"
+		return 0
+	fi
+	
+	
+}
+
+do_update() {
+	filter="$1"
+	scraperList=$(api getActiveScrapers | awk '
+		doRead=="id" { id=$2; doRead="nothing"; }
+		doRead=="uri" { uri=$2; doRead="nothing"; }
+		doRead=="season" { season=$2; doRead="nothing"; }
+		/^      \["id"\]/ { doRead="id"; }
+		/^      \["uri"\]/ { doRead="uri"; }
+		/^      \["season"\]/ { doRead="season"; }
+		/^    \}/ { printf "%s,%s,%s\n", id, uri, season; }
+	')
+
+	oldIFS=$IFS
+	IFS=$'\n'
+
+	if [ $? -eq 0 ]; then
+		IFS=$oldIFS
+		for scraperData in $scraperList; do
+			scraperId=$(echo $scraperData | cut -d , -f 1 | sed s/\"//g)
+			scraperUri=$(echo $scraperData | cut -d , -f 2 | sed s/\"//g)
+			scraperSeason=$(echo $scraperData | cut -d , -f 3 | sed s/\"//g)
+			[ "$filter" == "only_season" ] && [ -z "$scraperSeason" ] && continue
+			[ "$filter" == "only_show" ] && ! [ -z "$scraperSeason" ] && continue
+			echo -n "Running scraper $scraperId ($scraperUri) ..."
+			scraperOutput=$(api runScraper scraperId $scraperId)
+			if [ $? -eq 0 ]; then
+				echo "OK."
+			else
+				echo "Failed!"
+			fi
+		done
+	fi
+
+	IFS=$oldIFS
+}
+
+do_notify() {
+
+	tbnList=$(api getScrapedSeasonsTBN | awk '
+		doRead=="source" { source=$2; doRead="nothing"; }
+		doRead=="scraper" { scraper=$2; doRead="tvshow"; }
+		doRead=="n" { n=$2; doRead="nothing"; }
+		doRead=="uri" { uri=$2; doRead="nothing"; }
+		doRead=="id" { id=$2; doRead="nothing"; }
+		/^      \["source"\]/ { doRead="source"; }
+		/^      \["scraper"\]/ { doRead="scraper"; }
+		/^      \["n"\]/ { doRead="n"; }
+		/^      \["uri"\]/ { doRead="uri"; }
+		/^      \["id"\]/ { doRead="id"; }
+		/^    \}/ { printf "%s,%s,%s,%s,%s\n", source, scraper, n, uri, id; }
+	')
+
+	oldIFS=$IFS
+	IFS=$'\n'
+
+	for scrapedSeason in $tbnList; do
+		IFS=$oldIFS
+		sSource=$(echo $scrapedSeason | cut -d , -f 1 | sed s/\"//g)
+		sScraper=$(echo $scrapedSeason | cut -d , -f 2 | sed s/\"//g)
+		sN=$(echo $scrapedSeason | cut -d , -f 3 | sed s/\"//g)
+		sURI=$(echo $scrapedSeason | cut -d , -f 4 | sed s/\"//g)
+		sId=$(echo $scrapedSeason | cut -d , -f 5 | sed s/\"//g)
+
+		sScraperData=$(api getScraper scraperId $sScraper | awk '
+			doRead=="tvshow" { tvshow=$2; doRead="nothing"; }
+			/^    \["tvshow"\]/ { doRead="tvshow"; }
+			/^  \}/ { printf "%s\n", tvshow; }
+		')
+		sShowId=$(echo $sScraperData | cut -d , -f 1 | sed s/\"//g)
+
+		showData=$(api getTVShow showId $sShowId | awk '
+		doRead=="title" { for(i=2;i<=NF;i++){title=title" "$i}; doRead="nothing"; }
+		/^    \["title"\]/ { doRead="title"; }
+		/^  \}/ { printf "%s\n", title; }
+		')
+		sTitle=$(echo $showData | cut -d , -f 1 | sed s/\"//g)
+
+		# /usr/local/share/autodl/mailscript.sh
+
+		echo "
+		Found new scraper for season $sN for $sTitle on $sSource: 
+
+		$sURI
+		" |  /usr/local/share/autodl/mailscript.sh -s "New Season Scraped! $sTitle - $sN"
+
+		api setScrapedSeason scrapedSeasonId $sId tbn _REMOVE_ > /dev/null
+
+
+	done
+	
+	IFS=$oldIFS
+}
+
+HTTP_USER=""
+HTTP_PASSWORD=""
+HTTP_BASE_URL="http://localhost/TVScraper"
+
+[ -e /etc/tvscraper ] && source /etc/tvscraper
+[ -e ~/.tvscraperrc ] && source ~/.tvscraperrc
+
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-u) shift ; HTTP_USER="$1" ;; 
+		-p) shift ; HTTP_PASSWORD="$1" ;; 
+		-b) shift ; HTTP_BASE_URL="$1" ;; 
+		-*) 
+		    echo "Unknown option $1" >&2
+			show_usage
+		    exit 1
+		    ;;
+		*)  break;;	# terminate while loop
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	echo "Action not privded"
+	show_usage
+	exit 1;
+fi
+
+action=$1
+
+case "$action" in
+
+"update")
+	do_update "$2"
+	;;
+
+"notify")
+	do_notify
+	;;
+
+*)
+	echo "Unknown action $action"
+	show_usage
+	exit 1;
+	;;
+esac
+
+
+
+

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
+
+
+
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+
+                    <!--<a class="brand" href="#">Project name</a>-->
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Add TV Show <b class="caret"></b></a>
+                                <div class="dropdown-menu">
+									<form class="navbar-form pull-right" id="addNewShowForm">
+										<div class="input-append">
+											<input id="newShowTitle" class="span4" name="newShowTitle" type="text" placeholder="New show title" required/>
+											<input id="addNewShowButton" type="submit" class="btn" value="Add"/>
+										</div>
+									</form>
+                                </div>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Sort by <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" id="sortByTitle">Title</a></li>
+                                    <li><a href="#" id="sortByLastUpdate">Last update</a></li>
+                                    <li><a href="#" id="sortByLastAirDate">Latest Air Date</a></li>
+                                    <li><a href="#" id="sortByNextAirDate">Next Air Date</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Show/Hide<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" id="toggleHiddenScrapedSeasons">Hidden Scraped Seasons</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+
+
+			<section id="showList">
+			</section>
+
+            <hr/>
+
+            <footer>
+                <p>&copy; iuk 2013</p>
+            </footer>
+
+			<section id="dialogs">
+			
+				<div id="progressDialog" class="modal hide">
+					<div class="modal-body">
+						<p>Please be patient...</p>
+					</div>
+				</div>
+
+				<div id="seasonEditDialog" class="modal hide fade">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3>Edit Season</h3>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal">
+							<input type="hidden" id="editSeasonId" />
+							<div class="control-group">
+								<label class="control-label" for="editSeasonN">N</label>
+								<div class="controls">
+									<input type="number" id="editSeasonN" placeholder="N"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editSeasonStatus">Status</label>
+								<div class="controls">
+									<select id="editSeasonStatus">
+										<option id="editSeasonStatus-watched" value="watched" selected>watched</option>
+										<option id="editSeasonStatus-complete" value="complete">complete</option>
+										<option id="editSeasonStatus-ignored" value="ignored">ignored</option>
+									</select>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<a href="#" class="btn close" data-dismiss="modal" aria-hidden="true">Cancel</a>
+						<a href="#" class="btn btn-primary" id="editSeasonSave">Save changes</a>
+					</div>
+				</div>
+
+
+				<div id="showScraperEditDialog" class="modal hide fade">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3>Edit TV Show Scraper</h3>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal">
+							<input type="hidden" id="editTVShowScraperId" />
+							<div class="control-group">
+								<label class="control-label" for="editTVShowScraperSource">Source</label>
+								<div class="controls">
+									<select id="editTVShowScraperSource">
+										<option value="DDU">DDUniverse</option>
+										<option value="TVU">TV underground</option>
+										<option value="RSS">Generic RSS</option>
+										<option value="wikipedia">Wikipedia.it</option>
+									</select>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editTVShowScraperURI">URI</label>
+								<div class="controls">
+									<input type="url" id="editTVShowScraperURI" placeholder="http://www.example.com/"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editTVShowScraperAutoAdd">Auto Add</label>
+								<div class="controls">
+									<input type="checkbox" id="editTVShowScraperAutoAdd" value="1"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editTVShowScraperNotify">Notify</label>
+								<div class="controls">
+									<input type="checkbox" id="editTVShowScraperNotify" value="1"/>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<a href="#" class="btn close" data-dismiss="modal" aria-hidden="true">Cancel</a>
+						<a href="#" class="btn btn-primary" id="editTVShowScraperSave">Save changes</a>
+					</div>
+				</div>
+
+
+
+				<div id="seasonScraperEditDialog" class="modal hide fade">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3>Edit Season Scraper</h3>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal">
+							<input type="hidden" id="editSeasonScraperId" />
+							<div class="control-group">
+								<label class="control-label" for="editSeasonScraperPreference">Preference</label>
+								<div class="controls">
+									<input type="number" id="editSeasonScraperPreference"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editSeasonScraperSource">Source</label>
+								<div class="controls">
+									<select id="editSeasonScraperSource">
+										<option value="DDU" selected>DDUniverse</option>
+										<option value="TVU">TV Underground</option>
+										<option value="RSS">Generic RSS</option>
+										<option value="wikipedia">Wikipedia.it</option>
+									</select>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editSeasonScraperURI">URI</label>
+								<div class="controls">
+									<input type="url" id="editSeasonScraperURI" placeholder="http://www.example.com/"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="editSeasonScraperDelay">Delay</label>
+								<div class="controls">
+									<input type="number" id="editSeasonScraperDelay"/>
+								</div>
+							</div>
+							
+							
+						</form>
+					</div>
+					<div class="modal-footer">
+						<a href="#" class="btn close" data-dismiss="modal" aria-hidden="true">Cancel</a>
+						<a href="#" class="btn btn-primary" id="editSeasonScraperSave">Save changes</a>
+					</div>
+				</div>
+
+
+			</section>
+
+
+			<section id="guiSkeleton">
+
+
+
+				<table>
+					<tr class="episode">
+						<td class="episodeN"></td>
+						<td class="episodeAirDate"></td>
+						<td><a class="bestUri bestUriText" href="#"></a></td>
+					</tr>
+				</table>
+
+				<table>
+					<tr class="seasonScraper">
+						<td class="scraperPreference"></td>
+						<td class="scraperSource"></td>
+						<td><a class="scraperUri" href="#"><span class="hidden-phone scraperUriText"></span><span class="visible-phone">URI</span></a></td>
+						<td class="scraperDelay"></td>
+						<td>
+							<a href="#" class="runScraper">O</a>
+							<a href="#" class="removeScraper">&times;</a>
+							<a href="#" class="editScraper">Edit</a>
+						</td>
+					</tr>
+				</table>
+
+				<table>
+					<tr class="scrapedSeason">
+						<td class="scrapedSeasonN"></td>
+						<td class="scrapedSeasonSource"></td>
+						<td><a class="scrapedSeasonUri" href="#"><span class="hidden-phone scrapedSeasonUriText"></span><span class="visible-phone">URI</span></a></td>
+						<td>
+							<a class="toggleScrapedSeason" href="#">Toggle</a>
+							<a class="removeScrapedSeason" href="#">&times;</a>
+							<a class="addScrapedSeason" href="#">+</a>
+						</td>
+					</tr>
+				</table>
+
+				<table>
+					<tr class="showScraper">
+						<td class="scraperSource"></td>
+						<td><a class="scraperUri" href="#"><span class="hidden-phone scraperUriText"></span><span class="visible-phone">URI</span></a></td>
+						<td><input type="checkbox" class="scraperAutoAdd" disabled/></td>
+						<td><input type="checkbox" class="scraperNotify" disabled/></td>
+						<td>
+							<a href="#" class="runScraper">O</a>
+							<a href="#" class="removeScraper">&times;</a>
+							<a href="#" class="editScraper">Edit</a>
+						</td>
+					</tr>
+				</table>
+
+				<article class="show row-fluid"> 
+					<header class="row-fluid">
+						<h1 class="showTitle span6"></h1>
+						<div class="span5"> 
+							<p>Airing:Latest <span class="lastAirDateStr">unknown</span>, Next <span class="nextAirDateStr">unknown</span></p>
+							<p>Latest Update: <span class="lastPubDateStr">unknown</span></p>
+							<p class="hidden lastAirDate"></p>
+							<p class="hidden nextAirDate"></p>
+							<p class="hidden lastPubDate"></p>
+						</div>
+						<a class="removeShow span1" href="#">&times;</a>
+					</header>
+					<section class="showContent row-fluid">
+						<section class="showScrapers">
+							<h2>Scrapers <a href="#" class="addTVShowScraper">+</a></h2>
+							<table class="table table-striped table-hover">
+								<thead>
+									<tr>
+										<th>Source</th>
+										<th>URI</th>
+										<th>Auto Add</th>
+										<th>Notify</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody class="scraperList">
+								</tbody>
+							</table>
+
+							<section class="scrapedSeasonsSection">
+								<h2>Scraped Seasons</h2>
+								<table class="table table-striped table-hover">
+									<thead>
+										<tr>
+											<th>N</th>
+											<th>Source</th>
+											<th>URI</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody class="scrapedSeasonsList">
+									</tbody>
+								</table>
+							</section>
+
+							<section class="hiddenScrapedSeasonsSection">
+								<h2>Hidden Scraped Seasons</h2>
+								<table class="table table-striped table-hover">
+									<thead>
+										<tr>
+											<th>N</th>
+											<th>Source</th>
+											<th>URI</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody class="hiddenScrapedSeasonsList">
+									</tbody>
+								</table>
+							</section>
+						</section>
+						<section class="seasons">
+						<h2>Seasons</h2>
+						</section>
+						<form class="addNewSeason">
+							<input name="newSeasonN" type="number" placeholder="N" required/>
+							<input type="submit" value="Add"/>
+						</form>
+					</section>
+				</article>
+
+				<article class="season">
+					<header>
+						<h3 class="seasonTitle">Season <span class="seasonN"></span> - <span class="seasonStatus"></span></h3>
+						<a class="editSeason" href="#">Edit</a>
+						<a class="removeSeason" href="#">&times;</a>
+					</header>
+					<section class="scrapers">
+						<h4>Scrapers</h4>
+						<table class="table table-striped table-hover">
+							<thead>
+								<tr>
+									<th>Preference</th>
+									<th>Source</th>
+									<th>URI</th>
+									<th>Delay</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody class="scraperList">
+							</tbody>
+						</table>
+						<form class="addNewScraper">
+							<select name="newScraperSource">
+								<option value="DDU">DDUniverse</option>
+								<option value="wikipedia">Wikipedia</option>
+								<option value="TVU">TV Underground</option>
+								<option value="RSS">Generic RSS</option>
+							</select>
+							<input name="newScraperURI" type="url" placeholder="http://www.example.com/" required/>
+							<input type="submit" value="Add"/>
+						</form>
+					</section>
+					<section class="episodes">
+						<h4>Episodes</h4>
+						<table class="table table-striped table-hover">
+							<thead>
+								<tr>
+									<th>N</th>
+									<th>Air Date</th>
+									<th>Best URI</th>
+								</tr>
+							</thead>
+							<tbody class="episodeList">
+							</tbody>
+						</table>
+					</section>
+				</article>
+			</section>
+
+
+
+
+        </div> <!-- /container -->
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+
+        <script src="js/vendor/bootstrap.min.js"></script>
+
+        <script src="js/jquery.sort.js"></script>
+        <script src="js/main.js"></script>
+
+    </body>
+</html>

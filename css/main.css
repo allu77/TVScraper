@@ -1,0 +1,21 @@
+#guiSkeleton,
+.showContent,
+.episodes,
+.showLastUpdate,
+.hiddenScrapedSeasonsSection,
+.scrapers {
+	display: none;
+}
+
+.seasonTitle {
+	display: inline;
+	cursor: pointer;
+}
+
+.showTitle {
+	cursor: pointer;
+}
+
+.show:nth-child(even) {
+	background: #f5f5f5;
+}

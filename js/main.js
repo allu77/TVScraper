@@ -71,39 +71,12 @@ function tvShowSort() {
 	$('#showList .show').sortElements(sorter, function() { return $(this).get(0); });
 }
 
-function addTVShow(showObj) {
-	var newTVShowElement = $('#guiSkeleton .show').clone(true);
-	setTVShow(showObj, newTVShowElement);
-	$('#showList').append(newTVShowElement);
-	tvShowSort();
-}
-
-function setTVShow(showObj, showElem) {
-	if (showObj.id != undefined) showElem.attr('id', 'show' + showObj.id);
-	if (showObj.title != undefined) showElem.find('.showTitle').text(showObj.title);
-	if (showObj.lastAirDate != undefined) {
-		showElem.find('.lastAirDate').text(showObj.lastAirDate);
-		var d = new Date(Number(showObj.lastAirDate * 1000));
-		showElem.find('.lastAirDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
-	}
-	if (showObj.nextAirDate != undefined) {
-		showElem.find('.nextAirDate').text(showObj.nextAirDate);
-		var d = new Date(Number(showObj.nextAirDate * 1000));
-		showElem.find('.nextAirDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
-	}
-	if (showObj.lastPubDate != undefined) {
-		showElem.find('.lastPubDate').text(showObj.lastPubDate);
-		var d = new Date(Number(showObj.lastPubDate * 1000));
-		showElem.find('.lastPubDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
-	}
-}
-
 function getAllTVShows() {
 	runAPI(
 		{ action:"getAllTVShows" },
 		function(data) {
 			for (var i = 0; i < data.result.length; i++) {
-				addTVShow(data.result[i]);
+				TVShow.add(data.result[i]);
 			}
 		}
 	);
@@ -134,7 +107,7 @@ function addNewShowSubmit(e) {
 			title:showTitle 
 		}, 
 		function(data) {
-			addTVShow({
+			TVShow.add({
 				id:data.result,
 				title:showTitle
 			});
@@ -162,7 +135,7 @@ function refreshTVShow(showEelement) {
 		showId:showEelement.attr('id').substr(4)
 	},
 	function(data) {
-		setTVShow(data.result, showEelement);
+		TVShow.set(data.result, showEelement);
 		tvShowSort();
 	});
 }

@@ -126,11 +126,11 @@ class TVShowScraperDB  {
 		}
 		
 		if (! $this->setTVShow($newId, $p)) {
-			$this->remoteTVShow($newId);
+			$this->removeTVShow($newId);
 			return FALSE;
 		}
 
-		return $newId;
+		return $this->getTVShow($newId);
 	}
 	
 	public function removeTVShow($id) {
@@ -160,7 +160,7 @@ class TVShowScraperDB  {
 		foreach ($p as $k => $v) {
 			switch ($k) {
 			case 'title':
-			case 'originalTitle':
+			case 'alternateTitle':
 			case 'lang':
 			case 'nativeLang':
 			case 'res':

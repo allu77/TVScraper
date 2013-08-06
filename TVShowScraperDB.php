@@ -634,6 +634,13 @@ class TVShowScraperDB  {
 		}
 		return $res;
 	}
+
+	private static function sortByPreference($a, $b) {
+			if (!isset($b['preference']) && !isset($a['preference'])) return 0;
+			else if (!isset($a['preference'])) return -1;
+			else if (!isset($b['preference'])) return 1;
+			else return $a['preference'] - $b['preference'];
+	}
 	
 	public function getBestFileForEpisode($id) {
 		$this->log("Checking best file for episode $id");
@@ -644,20 +651,14 @@ class TVShowScraperDB  {
 		$scrapers = $this->getSeasonScrapers($episode['season']);
 		if ($scrapers === FALSE) return FALSE;
 
-		/*$scrapersData = array();
-		foreach ($scrapers as $scraperId) {
-			$s = $this->getScraper($scraperId);
-			if ($s === FALSE) return FALSE;
-			$scrapersData[] = $s;
-		}*/
-
-		//usort($scrapersData, function ($a, $b) {
-		usort($scrapers, function ($a, $b) {
+		/*usort($scrapers, function ($a, $b) {
 			if (!isset($b['preference']) && !isset($a['preference'])) return 0;
 			else if (!isset($a['preference'])) return -1;
 			else if (!isset($b['preference'])) return 1;
 			else return $a['preference'] - $b['preference'];
-		});
+		});*/
+
+		usort($scrapers, array('self', 'sortByPreference'));
 
 		$best = NULL;
 		$lastPref = NULL;
@@ -717,19 +718,16 @@ class TVShowScraperDB  {
 		$scrapers = $this->getSeasonScrapers($id);
 		if ($scrapers === FALSE) return FALSE;
 
-		/*$scrapersData = array();
-		foreach ($scrapers as $scraperId) {
-			$s = $this->getScraper($scraperId);
-			if ($s === FALSE) return FALSE;
-			$scrapersData[] = $s;
-		}*/
-
+		/*
 		usort($scrapers, function ($a, $b) {
 			if (!isset($b['preference']) && !isset($a['preference'])) return 0;
 			else if (!isset($a['preference'])) return -1;
 			else if (!isset($b['preference'])) return 1;
 			else return $a['preference'] - $b['preference'];
 		});
+		*/
+
+		usort($scrapers, array('self', 'sortByPreference'));
 
 		$best = array();
 		$lastPref = array();

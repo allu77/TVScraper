@@ -160,6 +160,10 @@ class TVShowScraperDB  {
 		foreach ($p as $k => $v) {
 			switch ($k) {
 			case 'title':
+			case 'originalTitle':
+			case 'lang':
+			case 'nativeLang':
+			case 'res':
 				$this->setElementTextAttribute($tvShow, $k, $v);
 				break;
 			default:

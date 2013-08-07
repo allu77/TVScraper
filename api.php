@@ -106,7 +106,8 @@ $simpleMethods = array(
 /* method */ 'getSeason' 				=> array( 'save' => FALSE,	'params' => array( 'seasonId' )),
 /* method */ 'setSeason' 				=> array( 'save' => TRUE,	'params' => array( 'seasonId', '_other' )),
 /* method */ 'setScrapedSeason'			=> array( 'save' => TRUE,	'params' => array( 'scrapedSeasonId', '_other' )),
-/* method */ 'setScraper' 				=> array( 'save' => TRUE,	'params' => array( 'scraperId', '_other' ))
+/* method */ 'setScraper' 				=> array( 'save' => TRUE,	'params' => array( 'scraperId', '_other' )),
+/* method */ 'setTVShow' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '_other' ))
 );
 
 

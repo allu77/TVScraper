@@ -39,17 +39,17 @@ TVShow.add = function(showObj) {
 	tvShowSort();
 }
 
-TVShow.showEditDialog = function(onClick, id, title, alternateTitle, language, nativeLanguage, res ) {
+TVShow.showEditDialog = function(onClick, showObj ) {
 	if (TVShow.dialog == undefined) {
 		TVShow.dialog = $("#showEditDialog").first();
 	}
 
-	var isNewDialog = (id == undefined);
-	TVShow.dialog.find('#editTVShowTitle').val(isNewDialog ? "" : title);
-	TVShow.dialog.find('#editTVShowAlternateTitle').val(isNewDialog ? "" : alternateTitle);
-	TVShow.dialog.find('#editTVShowLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'ita' : language)); });
-	TVShow.dialog.find('#editTVShowNativeLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'eng' : nativeLanguage)); });
-	TVShow.dialog.find('#editTVShowResolution option').each(function() { this.selected = (this.value == (isNewDialog ? 'any' : res)); });
+	var isNewDialog = (showObj == undefined);
+	TVShow.dialog.find('#editTVShowTitle').val(isNewDialog ? "" : showObj.title);
+	TVShow.dialog.find('#editTVShowAlternateTitle').val(isNewDialog ? "" : showObj.alternateTitle);
+	TVShow.dialog.find('#editTVShowLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'ita' : showObj.lang)); });
+	TVShow.dialog.find('#editTVShowNativeLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'eng' : showObj.nativeLang)); });
+	TVShow.dialog.find('#editTVShowResolution option').each(function() { this.selected = (this.value == (isNewDialog ? 'any' : showObj.res)); });
 
 	
 	TVShow.dialog.find('.submitButton').unbind('click');
@@ -71,16 +71,71 @@ TVShow.create = function(e) {
 			res:TVShow.dialog.find('#editTVShowResolution').find(':selected').first().val()
 		}, function(data) {
 			TVShow.add(data.result);
+			TVShow.sort();
 			TVShow.dialog.modal('hide');
 		});
 	});
 };
 
-TVShow.edit = function(e) {
+TVShow.parse = function(showElement) {
+	return {
+		id:showElement.attr('id').substr(4),
+		title:showElement.find('.showTitle').text(),
+		alternateTitle:showElement.find('.alternateTitle').text(),
+		lang:showElement.find('.language').text(),
+		nativeLang:showElement.find('.nativeLanguage').text(),
+		res:showElement.find('.resolution').text()
+	};
+}
+
+TVShow.edit = function(e, showElement) {
 	e.preventDefault();
-	alert("NOT SUPPORTED YET");
+	showObj = TVShow.parse(showElement);
+	TVShow.showEditDialog(function(e) {
+		runAPI({
+			action:"setTVShow",
+			showId:showObj.id,
+			title:TVShow.dialog.find('#editTVShowTitle').val(),
+			alternateTitle:TVShow.dialog.find('#editTVShowAlternateTitle').val(),
+			lang:TVShow.dialog.find('#editTVShowLanguage').find(':selected').first().val(),
+			nativeLang:TVShow.dialog.find('#editTVShowNativeLanguage').find(':selected').first().val(),
+			res:TVShow.dialog.find('#editTVShowResolution').find(':selected').first().val()
+		}, function(data) {
+			TVShow.set(data.result, showElement);
+			TVShow.sort();
+			TVShow.dialog.modal('hide');
+		});
+	}, showObj);
+}
+
+TVShow.sort = function() {
+	var sorter;
+	switch (showSortBy) {
+		case 'lastPubDate':
+			sorter = function(a,b) { return Number($(b).find('.lastPubDate').text()) - Number($(a).find('.lastPubDate').text()); };
+			break;
+		case 'lastAirDate':
+			sorter = function(a,b) { return Number($(b).find('.lastAirDate').text()) - Number($(a).find('.lastAirDate').text()); };
+			break;
+		case 'nextAirDate':
+			sorter = function(a,b) { 
+				var textA = $(a).find('.nextAirDate').text();
+				var textB = $(b).find('.nextAirDate').text();
+
+				if (textA == "" && textB == "") { return 0; }
+				else if (textA == "") { return 1; }
+				else if (textB == "") { return -1; }
+				else { return Number(textA) - Number(textB) };
+			}
+			break;
+		case 'title':
+			sorter = function(a,b) { return $(a).find('.showTitle').text().localeCompare($(b).find('.showTitle').text()); };
+			break;
+	}
+	
+	$('#showList .show').sortElements(sorter, function() { return $(this).get(0); });
 }
 
 
 $(".createTVShow").click(function(e) { TVShow.create(e); });
-$(".editTVShow").click(function(e) { TVShow.edit(e); });
+$(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });

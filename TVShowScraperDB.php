@@ -124,13 +124,15 @@ class TVShowScraperDB  {
 			$this->error("Can't create tvshow element");
 			return FALSE; 
 		}
-		
-		if (! $this->setTVShow($newId, $p)) {
+
+		$newShow = $this->setTVShow($newId, $p);
+
+		if (! $newShow) {
 			$this->removeTVShow($newId);
 			return FALSE;
 		}
-
-		return $this->getTVShow($newId);
+		
+		return $newShow;
 	}
 	
 	public function removeTVShow($id) {
@@ -172,7 +174,7 @@ class TVShowScraperDB  {
 			}
 		}
 
-		return TRUE;
+		return $this->getTVShow($id);
 	}
 
 	public function getTVShow($id) {

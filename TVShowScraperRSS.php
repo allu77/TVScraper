@@ -130,7 +130,7 @@ class TVShowScraperRSS extends TVShowScraper {
 		$this->log("Looking for $showTitle");
 		
 		$dom = new DOMDocument();
-		if (!@$dom->loadXML($page)) return $this->error('Cannot load HTML page');
+		if (!@$dom->loadXML($page)) return $this->error('Cannot load feed');
 
 		$xpath = new DOMXPath($dom);
 		if (! $xpath) return $this->error('Cannot create XPATH handler');

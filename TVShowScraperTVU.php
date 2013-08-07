@@ -45,6 +45,14 @@ class TVShowScraperTVU extends TVShowScraperRSS {
 					$n = $m[2];
 				}
 
+				if (isset($showData['res']) && preg_match('/\(([^\)]+)\)\s*$/', $title, $m)) {
+					$this->log("Candidate resolution = " . $m[1]);
+					if (! checkResolution($showData['res'], $m[1])) {
+						$this->log("Undesired resolution, skipping...");
+						continue;
+					}
+				}
+
 				$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
 
 				$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;

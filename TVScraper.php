@@ -1,19 +1,12 @@
 <?php
 require_once('config.php');
-require_once('vendor/autoload.php');
 require_once('TVShowScraperDB.php');
 
-$loader = new Twig_Loader_Filesystem('templates');
-$twig = new Twig_Environment($loader, array(
-    'auto_reload' => TRUE,
-    'cache' => 'cache'
-));
 
+function sortByPubDate($a, $b) { return $b['pubDate'] - $a['pubDate']; }
 
 $log_file = LOG_DIR . '/index.log';
 $log_level = LOGGER_DEBUG;
-
-
 
 
 $logger = new Logger($log_file, $log_level);
@@ -82,7 +75,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'latest') {
 			$res[] = $file;
 		}
 	}
-	usort($res, function ($a, $b) { return $b['pubDate'] - $a['pubDate'];});
+	usort($res, sortByPubDate);
 	$resCount = 0;
 	foreach ($res as $r) {
 		if (isset($_GET['max']) && ++$resCount > $_GET['max']) break;

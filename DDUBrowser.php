@@ -81,6 +81,12 @@ class DDUBrowser extends SimpleBrowser {
 		$params = $this->getLoginParams($loginXpath);
 		
 		$page = $this->post(DDU_LOGINURL, $params);
+
+		if (! file_exists($this->cookiesFile)) {
+			$this->log("Cookies file " . $this->cookiesFile . " does not exists. Can't log in.", LOGGER_ERROR);
+			return false;
+		}
+
 		$this->log("User " . md5($this->username) . " login", LOGGER_INFO);
 
 		$newXpath = $this->getXpath($page);
@@ -104,7 +110,8 @@ class DDUBrowser extends SimpleBrowser {
 
 			$this->resetCacheForURL($url);
 			if (!$this->login($xpath)) {
-				// TODO: login failed, need to handle this.
+				$this->log("Couldn't log in", LOGGER_ERROR);
+				return false;
 			} else {
 
 				$page = parent::get($url);
@@ -113,8 +120,9 @@ class DDUBrowser extends SimpleBrowser {
 				if (! $this->needsLogin($xpath)) {
 					return $page;
 				} else {
-					// TODO: login failed, need to handle this.
 					$this->resetCacheForURL($url);
+					$this->log("Unauthenticated page received after login. Severe error", LOGGER_ERROR);
+					return false;
 				}
 			}
 		}

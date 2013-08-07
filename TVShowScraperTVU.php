@@ -9,6 +9,8 @@ require_once('TVShowUtils.php');
 class TVShowScraperTVU extends TVShowScraperRSS {
 	
 	public function runScraperTVShow($scraper, $showOnlyNew = false, $saveResults = false) {
+
+
 		$this->log("Parsing TVU page " . $scraper['uri']);
 		
 		$browser = new SimpleBrowser();
@@ -21,7 +23,11 @@ class TVShowScraperTVU extends TVShowScraperRSS {
 		$xpath = new DOMXPath($dom);
 		if (! $xpath) return $this->error('Cannot create XPATH handler');
 
-		$x = $xpath->query("//table[@class='seriestable']//text()[contains(.,'Dub')]/ancestor::td[descendant::img[contains(@alt,'ita')]]/ancestor::table[@class='seriestable']//a[contains(@href, 'sid=')]");
+		$showData = $this->tvdb->getTVShow($scraper['tvshow']);
+		$lang = isset($showData['lang']) ? $showData['lang'] : 'ita';
+
+
+		$x = $xpath->query("//table[@class='seriestable']//text()[contains(.,'Dub')]/ancestor::td[descendant::img[contains(@alt,'$lang')]]/ancestor::table[@class='seriestable']//a[contains(@href, 'sid=')]");
 
 		$res = array();
 

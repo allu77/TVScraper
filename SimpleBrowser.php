@@ -172,8 +172,8 @@ class SimpleBrowser {
 	}
 
 	public function setCookiesFileDir($dir) {
-		$this->cookiesFileDir = $dir;
-		$this->cookiesFile = $dir . '/' . $this->cookiesFileName;
+		$this->cookiesFileDir = realpath($dir); // Some libcurl need absolute path
+		$this->cookiesFile = $this->cookiesFileDir . '/' . $this->cookiesFileName;
 	}
 
 	public function setCookiesFile($fileName) {
@@ -187,6 +187,7 @@ class SimpleBrowser {
 		$cr->curlInit($url);
 		$cr->setOption(MYCURLOPT_RETURNTRANSFER, true);
 		if ($this->useCookies) {
+			$this->log("Setting curl cookies file/jar to " . $this->cookiesFile);
 			$cr->setOption(MYCURLOPT_COOKIEJAR, $this->cookiesFile);
 			$cr->setOption(MYCURLOPT_COOKIEFILE, $this->cookiesFile);
 		}

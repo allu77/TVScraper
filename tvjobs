@@ -59,7 +59,7 @@ api() {
 	')
 
 	if [ $? -gt 0 ]; then
-		echo "Error calling TV api: $result" >&2
+		echo -n "Error calling TV api: $result " >&2
 		return 1
 	else 
 		echo "$result"

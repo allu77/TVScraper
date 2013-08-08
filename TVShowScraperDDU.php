@@ -51,9 +51,21 @@ class TVShowScraperDDU extends TVShowScraper {
 
 			foreach ($topics as $t) {
 				$m = array();
-				$this->log("Evaluating " . $t['title']);
+				$this->log("Evaluating " . $t['title'] . " / " . $t['description']);
+
+
+
+
+
+
+
+
+
+
 				if (preg_match('/(.*\S)\s*-\s*stagione\s*(\d+)/i', $t['title'], $m)) {
 					$this->log("Found TV show title $m[1], season $m[2]");
+
+
 					$n = $m[2];
 					$candidateTitle = $m[1];
 					$candidateTitle = preg_replace('/[!\?\.\']/', '', $m[1]);
@@ -63,6 +75,59 @@ class TVShowScraperDDU extends TVShowScraper {
 
 						$uri = $t['link'];
 						$this->log("Title matches! $uri");
+
+						$tags = explode(',', $t['description']);
+						if (
+							(
+								(isset($showData['res']) && $showData['res'] != 'any' && $showData['res'] != '') || 
+								(isset($showData['lang']) && $showData['lang'] != '')  
+							)  
+							&& sizeof($tags) > 4) {
+
+							$this->log("Parsing tags " . $t['description']);
+							
+							$source = trim($tags[0]);
+							$type = trim($tags[1]);
+							
+							$tags[2] = trim($tags[2]);
+							$resolution = ($tags[2] == '720p' || $tags[2] == '1080i' || $tags[2] == '1080p') ? $tags[2] : 'sd';
+							$tagIndex = $resolution == 'sd' ? 2 : 3;
+	
+							$videoCodec = trim($tags[$tagIndex++]);
+
+							$lm = array();
+							$langs = array();
+							$subs = array();
+							while (preg_match("/^\s*([A-Za-z0-9\/]+)\s+([A-Za-z\-]+)\s*?/", $tags[$tagIndex++], $lm)) {
+								$this->log("Found audio or sub - $lm[1], $lm[2]");
+								$foundLang = explode('-', $lm[2]);
+								if ($lm[1] == 'SUB') {
+									foreach($foundLang as $l) $subs[] = strtolower($l);
+								} else {
+									foreach($foundLang as $l) $langs[] = strtolower($l);
+								}
+							}
+
+							$containter = trim($tags[$tagIndex]);
+							$targetSize = $tagIndex > sizeof($tags) ? '' : trim($tags[$tagIndex + 1]);
+
+							$this->log("S: $source, T: $type, R: $resolution, V: $videoCodec, L: ". join('/', $langs) .", S: ".join('/', $subs).", C: $containter, T: $targetSize");
+
+							if (! checkResolution($showData['res'], $resolution)) {
+								$this->log("Resolution $resolution doesn't match requirements. Skipping...");
+								continue;
+							} 
+							if (sizeof($langs) > 0) {
+								if (isset($showData['lang']) && $showData['lang'] != '' && ! in_array($showData['lang'], $langs)) {
+									$this->log("Languages " . join('/', $langs) . " don't match requirements (".$showData['lang']."). Skipping...");
+									continue;
+								}
+
+							} else {
+								$this->log("No Language found... Considering valid anyway...");
+							}
+
+						}
 
 						$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
 

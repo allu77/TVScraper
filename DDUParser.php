@@ -149,8 +149,17 @@ class DDUParser {
 
 					$p['title'] = utf8_encode($text);
 					$p['link'] = $href;
+
+
+					$desc = $xpath->query('./ancestor::tr[1]/following-sibling::tr[1]/td[1]', $link->item(0));
+					if ($desc->length > 0 ) {
+						$p['description'] = trim($desc->item(0)->textContent);
+					} else {
+						$p['description'] = '';
+					}
 				}
-				//TODO: This has changed
+				
+				/* This has changed on ddunlimited.net
 				$br = $xpath->query('br', $dt);
 				if ($br->length > 0) {
 					$desc = trim($br->item(0)->nextSibling->textContent);
@@ -158,7 +167,8 @@ class DDUParser {
 				} else {
 					$p['description'] = '';
 				}
-				//TODO: This has changed
+				*/
+
 				$author = $xpath->query('span[contains(@class, "username-coloured")]', $dt);
 				$matched = array();
 				if (preg_match('/\S+\s+\S+\s+\d+,?\s+\d+\s+\d+:\d+\s+\S+/', $dt->lastChild->textContent, $matches)) {

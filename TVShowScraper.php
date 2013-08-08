@@ -34,7 +34,12 @@ abstract class TVShowScraper {
 	public function runScraper($scraperId, $showOnlyNew = false, $saveResults = false) {
 		$scraper = $this->tvdb->getScraper($scraperId);
 		if (isset($scraper['season'])) {
-			return $this->runScraperSeason($scraper, $showOnlyNew, $saveResults);
+			$ret = $this->runScraperSeason($scraper, $showOnlyNew, $saveResults);
+			if ($ret != FALSE && sizeof($ret) > 0 && $saveResults) {
+				$this->tvdb->resetBestFilesForSeason($scraper['season']);
+			}
+			return $ret;
+
 		} else if (isset($scraper['tvshow'])) {
 			return $this->runScraperTVShow($scraper, $showOnlyNew, $saveResults);
 		}

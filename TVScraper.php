@@ -17,52 +17,15 @@ $d = ob_get_clean();
 $logger->log($d);
 
 
+$fp = fopen(LIB_FILE, 'r');
+flock($fp, LOCK_EX);
 $tv = new TVShowScraperDB(LIB_FILE);
 $tv->setLogger($logger);
 
 $shows = array();
 
-/*
-$shows = $tv->getAllTVShows();
-
-for ($i = 0; $i < sizeof($shows); $i++) {
-
-
-	if (isset($shows[$i]['lastAirDate'])) $shows[$i]['lastAirDateStr'] = date('d/m/Y', $shows[$i]['lastAirDate']);
-	if (isset($shows[$i]['nextAirDate'])) $shows[$i]['nextAirDateStr'] = date('d/m/Y', $shows[$i]['nextAirDate']);
-
-	$shows[$i]['seasons'] = array();
-	$seasons = $tv->getTVShowSeasons($shows[$i]['id']);
-	foreach ($seasons as $season) {
-		$season['scrapers'] = array();
-
-		$scrapers = $tv->getSeasonScrapers($season['id']);
-
-		foreach ($scrapers as $scraper) {
-			$season['scrapers'][] = $tv->getScraper($scraper);
-		}
-
-		if (isset($season['lastFilePubDate']) && (! isset($shows[$i]['lastFilePubDate']) || $shows[$i]['lastFilePubDate'] < $season['lastFilePubDate'])) {
-			$shows[$i]['lastFilePubDate'] = $season['lastFilePubDate'];
-			$shows[$i]['lastFilePubDateStr'] = date('d/m/Y', $season['lastFilePubDate']);
-		}
-
-
-		$shows[$i]['seasons'][] = $season;
-	}
-	ob_start();
-	var_dump($shows[$i]);
-	$d = ob_get_clean();
-	$logger->log($d);
-
-}
-ob_start();
-var_dump($shows);
-$d = ob_get_clean();
-$logger->log($d);
-*/
-
 if (isset($_GET['action']) && $_GET['action'] == 'latest') {
+	/*
 	$res = Array();
 	$seasons = $tv->getAllWatchedSeasons();
 	foreach ($seasons as $season) {
@@ -75,17 +38,29 @@ if (isset($_GET['action']) && $_GET['action'] == 'latest') {
 			$res[] = $file;
 		}
 	}
+	*/
+
+	$res = Array();
+	$files = $tv->getAllWatchedBestFiles();
+	foreach ($files as $file) {
+		if (isset($_GET['laterthan']) && $file['pubDate'] <= $_GET['laterthan']) continue;
+
+		if (!(isset($_GET['torrent']) && $_GET['torrent'] == 1) && isset($file['type']) && $file['type'] == 'torrent') continue;
+		if (!(isset($_GET['ed2k']) && $_GET['ed2k'] == 1) && (!isset($file['type']) || $file['type'] == 'ed2k')) continue;
+		$res[] = $file;
+	}
 	usort($res, sortByPubDate);
 	$resCount = 0;
 	foreach ($res as $r) {
 		if (isset($_GET['max']) && ++$resCount > $_GET['max']) break;
 		echo $r['uri'] . "\n";
 	}
-	
-	
-	
-} else {
-	echo $twig->render('index-bootstrap.html', array('shows' => $shows));
 }
+
+
+$tv->save(LIB_FILE);
+
+flock($fp, LOCK_UN);
+fclose($fp);	
 
 ?>

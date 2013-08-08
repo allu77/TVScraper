@@ -378,6 +378,7 @@ class TVShowScraperDB  {
 			case 'n' :
 			case 'airDate' :
 			case 'title':
+			case 'bestFile':
 				$this->setElementTextAttribute($episode, $k, $v);
 				break;
 			default:
@@ -456,13 +457,16 @@ class TVShowScraperDB  {
 			$this->error("Could not find unique scraper $id");
 			return FALSE;
 		}
-			
+
+
+		$resetBest = FALSE;	
 		foreach ($p as $k => $v) {
 			switch ($k) {
-			case 'uri':
-			case 'source':
 			case 'preference':
 			case 'delay':
+				$resetBest = TRUE;
+			case 'uri':
+			case 'source':
 			case 'autoAdd':
 			case 'notify':				
 				$this->setElementTextAttribute($scraper, $k, $v);
@@ -472,8 +476,22 @@ class TVShowScraperDB  {
 				return FALSE;
 			}
 		}
+
+
+		if ($resetBest && $scraper->parentNode->nodeName == 'season') {
+			$this->resetBestFilesForSeason($scraper->parentNode->getAttribute('id'));
+		}
 	
 		return TRUE;
+	}
+
+	public function resetBestFilesForSeason($id) {
+		$episodes = $this->getSeasonEpisodes($id);
+		foreach ($episodes as $e) {
+			if (isset($e['bestFile'])) {
+				$this->setEpisode($e['id'], array( 'bestFile' => '_REMOVE_'));
+			}
+		}
 	}
 	
 	public function getScraper($id) {
@@ -580,9 +598,10 @@ class TVShowScraperDB  {
 			
 		foreach ($p as $k => $v) {
 			switch ($k) {
+			case 'episode':
+				$this->setEpisode($v, array('bestFile', '_REMOVE_'));
 			case 'uri':
 			case 'season':
-			case 'episode':
 			case 'scraper':
 			case 'pubDate':
 			case 'type':
@@ -650,22 +669,24 @@ class TVShowScraperDB  {
 		$episode = $this->getEpisode($id);
 		if ($episode === FALSE) return FALSE;
 
+		if (isset($episode['bestFile'])) {
+			$best = $this->getFile($episode['bestFile']);
+			if ($best === FALSE) {
+				// Something strange happened. Reset bestFile.
+				$this->setEpisode($id, array( 'bestFile' => '_REMOVE_'));
+			} else {
+				return $best;
+			}
+		}
+
 		$scrapers = $this->getSeasonScrapers($episode['season']);
 		if ($scrapers === FALSE) return FALSE;
-
-		/*usort($scrapers, function ($a, $b) {
-			if (!isset($b['preference']) && !isset($a['preference'])) return 0;
-			else if (!isset($a['preference'])) return -1;
-			else if (!isset($b['preference'])) return 1;
-			else return $a['preference'] - $b['preference'];
-		});*/
 
 		usort($scrapers, array('self', 'sortByPreference'));
 
 		$best = NULL;
 		$lastPref = NULL;
 
-		//foreach ($scrapersData as $s) {
 		foreach ($scrapers as $s) {
 			$this->log("Checking files for scraper " . $s['id']);
 
@@ -676,43 +697,78 @@ class TVShowScraperDB  {
 				}
 				else $lastPref = $s['preference'];
 			}
-
+			
+			$sDelay = 0;
 			$q = "/tvscraper/tvshow/season/file[@episode='$id' and @scraper='". $s['id']. "'";
-		    if (isset($s['delay'])) $q .= " and @pubDate <= '" . (time() - $s['delay']) . "'";
+		    if (isset($s['delay'])) {
+				$sDelay = $s['delay'];
+				$q .= " and @pubDate <= '" . (time() - $sDelay) . "'";
+			}
+
 			$q .= "]";
 			
 			$x = $this->xPath->query($q);
 
 			for ($i = 0; $i < $x->length; $i++) {
-				
-				// TODO how do we handle subtitiles??
-				
-				$linkData = parseED2KURI($x->item($i)->getAttribute('uri'));
-				if ($linkData === FALSE) {
-					$this->log("Invalid file " . $x->item($i)->getAttribute('id'));
+
+				$file = $x->item($i);		
+				if (strlen($file->getAttribute('type')) == 0 || $file->getAttribute('type') == 'ed2k') {
+					$linkData = parseED2KURI($file->getAttribute('uri'));
+					if ($linkData === FALSE) {
+						$this->log("Invalid file " . $file->getAttribute('id'));
+						continue;
+					} else if (preg_match('/\.srt$/', $linkData['fileName'])) {
+						$this->log("File " . $file->getAttribute('id') . " is a subtitle, skipping...");
+						continue;
+					}
+				}
+				$episodeId = $file->getAttribute('episode');
+						
+				if ($best == NULL || $file->getAttribute('pubDate') + $sDelay < $best->getAttribute('pubDate')) {
+					$best = $file;
+					$this->log("Found elder file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
 				} else {
-					if (preg_match('/\.srt$/', $linkData['fileName'])) {
-						$this->log("File " . $x->item($i)->getAttribute('id') . " is a subtitle, skipping...");
+					$this->log("Found more recent file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
+					if ($best->getAttribute('scraper') == $file->getAttribute('scraper')) {
+						$this->log("Files are from the same scaper. Keeping latest.");
+						$best = $file;
 					} else {
-						if ($best === NULL || ($x->item($i)->getAttribute('pubDate') < $best->getAttribute('pubDate'))) {
-							$best = $x->item($i);
-							$this->log("Found elder file " . $x->item($i)->getAttribute('id'));
-						} else {
-							$this->log("Found more recent file " . $best->getAttribute('id'));
-						}
+						$this->log("Files are from different scaper. Keeping oldest.");
 					}
 				}
 			}
 		}
 		
 		// TODO: Check orphan files (files with no scraper or with removed scraper) ?
-		
-		return $best === NULL ? NULL : $this->getFile($best->getAttribute('id'));
+		if ($best === NULL) {
+			return NULL;
+		} else {
+			$this->setEpisode($id, array('bestFile' => $best->getAttribute('id')));	
+			return $this->getFile($best->getAttribute('id'));
+		}
 		
 	}	
+
+	public function getAllWatchedBestFiles() {
+		$x = $this->xPath->query("/tvscraper/tvshow/season[@status='watched']/episode");
+		$res = array();
+		for ($i = 0; $i < $x->length; $i++) {
+			$file = $this->getBestFileForEpisode($x->item($i)->getAttribute('id'));
+			if ($file != NULL) $res[] = $file;
+		}
+		return $res;
+	}
 	
 	public function getBestFilesForSeason($id) {
 		$this->log("Checking best file for season $id");
+
+		$res = array();
+		$episodes = $this->getSeasonEpisodes($id);
+		foreach ($episodes as $e) {
+			$file = $this->getBestFileForEpisode($e['id']);
+			if ($file != NULL) $res[] = $file;
+		}
+		return $res;
 
 		$season = $this->getSeason($id);
 		if ($season === FALSE) return FALSE;

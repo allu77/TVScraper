@@ -685,6 +685,7 @@ class TVShowScraperDB  {
 		usort($scrapers, array('self', 'sortByPreference'));
 
 		$best = NULL;
+		$bestDelay = 0;
 		$lastPref = NULL;
 
 		foreach ($scrapers as $s) {
@@ -724,14 +725,16 @@ class TVShowScraperDB  {
 				}
 				$episodeId = $file->getAttribute('episode');
 						
-				if ($best == NULL || $file->getAttribute('pubDate') + $sDelay < $best->getAttribute('pubDate')) {
+				if ($best == NULL || $file->getAttribute('pubDate') + $sDelay < $best->getAttribute('pubDate') + $bestDelay) {
 					$best = $file;
+					$bestDelay = $sDelay;
 					$this->log("Found elder file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
 				} else {
 					$this->log("Found more recent file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
 					if ($best->getAttribute('scraper') == $file->getAttribute('scraper')) {
 						$this->log("Files are from the same scaper. Keeping latest.");
 						$best = $file;
+					$bestDelay = $sDelay;
 					} else {
 						$this->log("Files are from different scaper. Keeping oldest.");
 					}

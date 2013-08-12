@@ -37,51 +37,54 @@ class TVShowScraperTVU extends TVShowScraperRSS {
 			$this->log("Found season link $href, title $title");
 			$m = array();
 			if (preg_match('/[&\?]sid=(\d+)/', $href, $m)) {
-				$uri = 'http://tvunderground.org.ru/rss.php?se_id=' . $m[1];
-				$this->log("Candidate URI $uri");
+				$sid = $m[1];
+				foreach (array('rss.php', 'rsst.php') as $q) {
+					$uri = "http://tvunderground.org.ru/$q?se_id=$sid";
+					$this->log("Candidate URI $uri");
 
-				$n = '';
-				if (preg_match('/(stagione|season)\s+(\d+)/i', $title, $m)) {
-					$n = $m[2];
-				}
-
-				if (isset($showData['res']) && preg_match('/\(([^\)]+)\)\s*$/', $title, $m)) {
-					$this->log("Candidate resolution = " . $m[1]);
-					if (! checkResolution($showData['res'], $m[1])) {
-						$this->log("Undesired resolution, skipping...");
-						continue;
+					$n = '';
+					if (preg_match('/(stagione|season)\s+(\d+)/i', $title, $m)) {
+						$n = $m[2];
 					}
-				}
 
-				$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
-
-				$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
-
-				if ((!$showOnlyNew) || $previouslyScraped == NULL) {
-					if ($saveResults && $previouslyScraped == NULL) {
-						$this->log("New season, adding...");
-						$p = array(
-								'uri' => $uri,
-								'n' => $n
-						);
-						if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
-						$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
-						
-						if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
-							$this->tvdb->createSeasonScraperFromScraped($newId);
+					if (isset($showData['res']) && preg_match('/\(([^\)]+)\)\s*$/', $title, $m)) {
+						$this->log("Candidate resolution = " . $m[1]);
+						if (! checkResolution($showData['res'], $m[1])) {
+							$this->log("Undesired resolution, skipping...");
+							continue;
 						}
-							
-						
 					}
-					$res[] = Array(
-						'n'		=> $n,
-						'uri'	=> $uri
-					);
+
+					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
+
+					$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
+
+					if ((!$showOnlyNew) || $previouslyScraped == NULL) {
+						if ($saveResults && $previouslyScraped == NULL) {
+							$this->log("New season, adding...");
+							$p = array(
+									'uri' => $uri,
+									'n' => $n
+							);
+							if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
+							$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
+							
+							if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
+								$this->tvdb->createSeasonScraperFromScraped($newId);
+							}
+								
+							
+						}
+						$res[] = array(
+							'n'		=> $n,
+							'uri'	=> $uri
+						);
+					}
 				}
 			}
 		}
 
-		return array();
+		return $res;
 	}
 
 	protected function parseHttpDescription($browser, $url) {
@@ -105,6 +108,18 @@ class TVShowScraperTVU extends TVShowScraperRSS {
 
 		return $res;
 				
+	}
+
+	protected function getPage($browser, $uri) {
+		$page = $browser->get($uri);
+
+		// FIX for buggy empty feed
+		if (!preg_match("/<channel\s*\\/>/", $page) && !preg_match("/<channel[^>]*>.*<\\/channel>*/s", $page)) {
+			$this->log("Malformed feed from TVU. Replacing with empty feed.");
+			return "<?xml version=\"1.0\" encoding=\"utf-8\"?><rss version=\"2.0\"><channel/></rss>";
+		} else {
+			return $page;
+		}
 	}
 }
 

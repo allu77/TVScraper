@@ -109,6 +109,16 @@ class TVShowScraperRSS extends TVShowScraper {
 
 		return $res;
 	}
+
+	protected function getPage($browser, $uri) {
+		return $browser->get($uri);
+	}
+
+	protected function getDOM($page) {
+		$dom = new DOMDocument();
+		if (!@$dom->loadXML($page)) return $this->error('Cannot load feed');
+		return $dom;
+	}
 	
 	public function runScraperSeason($scraper, $showOnlyNew = false, $saveResults = false) {
 		
@@ -121,7 +131,7 @@ class TVShowScraperRSS extends TVShowScraper {
 		
 		$browser = new SimpleBrowser();
 		$browser->setLogger($this->logger);
-		$page = $browser->get($uri);
+		$page = $this->getPage($browser, $uri);
 
 		$showTitle = strtolower($showData['title']);
 		$showTitle = preg_replace('/\s+/', '\s+', $showTitle);
@@ -129,8 +139,8 @@ class TVShowScraperRSS extends TVShowScraper {
 
 		$this->log("Looking for $showTitle");
 		
-		$dom = new DOMDocument();
-		if (!@$dom->loadXML($page)) return $this->error('Cannot load feed');
+		$dom = $this->getDOM($page);
+		if ($dom == NULL) return NULL;
 
 		$xpath = new DOMXPath($dom);
 		if (! $xpath) return $this->error('Cannot create XPATH handler');

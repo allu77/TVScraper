@@ -959,6 +959,7 @@ class TVShowScraperDB  {
 		$scrapedSeason = $this->getElement("/tvscraper/tvshow/scraper[@id='$scraperId']/scrapedSeason[@uri='$uri']");
 		if ($scrapedSeason === FALSE) {
 			// $this->error("Could not find unique scraped season with URI $uri for scraper $id");
+			$this->log("Scraped season with URI $uri and scraperId $scraperId not found");
 			return NULL;
 		}
 	

@@ -65,49 +65,16 @@ class TVShowScraperRSS extends TVShowScraper {
 				if ($fileData === FALSE) {
 					$this->log("Can't guess episode season, skipping...");
 				} else {
-
 					$n = $fileData['season'];
 
-					$previouslyScraped = FALSE;
-
-					$this->log("Fetching previously scraped for show " . $scraper['tvshow']);
-					$scrapedSeasons = $this->tvdb->getScrapedSeasons($scraper['tvshow']);
-					foreach ($scrapedSeasons as $s) {
-						$this->log("Checking against " . $s['n'] . '-' . $s['scraper'] . '-' . $s['uri']);
-						if ($s['scraper'] == $scraper['id'] && $s['n'] == $n && $s['uri'] == $scraper['uri']) {
-							$previouslyScraped = TRUE;
-							break;
-						}
-					}
-
-					$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
-
-					if ((!$showOnlyNew) || $previouslyScraped == NULL) {
-						if ($saveResults && $previouslyScraped == NULL) {
-							$this->log("New season, adding...");
-							$p = array(
-									'uri' => $uri,
-									'n' => $n
-							);
-							if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
-							$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
-							
-							if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
-								$this->tvdb->createSeasonScraperFromScraped($newId);
-							}
-								
-							
-						}
-						$res[] = Array(
-							'n'		=> $n,
-							'uri'	=> $uri
-						);
-					}
+					$res[] = array(
+						'n'	=> $n,
+						'uri' => $uri
+					);
 				}
 			}
 		}
-
-		return $res;
+		return $this->submitSeasonCandidates($scraper, $res, $showOnlyNew, $saveResults);
 	}
 
 	protected function getPage($browser, $uri) {

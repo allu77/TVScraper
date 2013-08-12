@@ -10,8 +10,6 @@ class TVShowScraperDDU extends TVShowScraper {
 	protected $pass;
 
 
-	
-	
 	public function __construct($tvdb, $user, $pass) {
 		$this->user = $user;
 		$this->pass = $pass;
@@ -52,14 +50,6 @@ class TVShowScraperDDU extends TVShowScraper {
 			foreach ($topics as $t) {
 				$m = array();
 				$this->log("Evaluating " . $t['title'] . " / " . $t['description']);
-
-
-
-
-
-
-
-
 
 
 				if (preg_match('/(.*\S)\s*-\s*stagione\s*(\d+)/i', $t['title'], $m)) {
@@ -113,60 +103,35 @@ class TVShowScraperDDU extends TVShowScraper {
 
 							$this->log("S: $source, T: $type, R: $resolution, V: $videoCodec, L: ". join('/', $langs) .", S: ".join('/', $subs).", C: $containter, T: $targetSize");
 
-							if (! checkResolution($showData['res'], $resolution)) {
-								$this->log("Resolution $resolution doesn't match requirements. Skipping...");
-								continue;
-							} 
-							if (sizeof($langs) > 0) {
-								if (isset($showData['lang']) && $showData['lang'] != '' && ! in_array($showData['lang'], $langs)) {
-									$this->log("Languages " . join('/', $langs) . " don't match requirements (".$showData['lang']."). Skipping...");
-									continue;
-								}
 
-							} else {
-								$this->log("No Language found... Considering valid anyway...");
-							}
-
+							$res[] = array(
+								'n'		=> $n,
+								'uri'	=> $uri,
+								'res'	=> $resolution,
+								'lang'	=> $langs
+							);
+						} else {
+							$this->log("Couldn't parse post tags");
+							$res[] = array(
+								'n'		=> $n,
+								'uri'	=> $uri,
+							);
 						}
+
 
 						$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
 
 						$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
-
-						if ((!$showOnlyNew) || $previouslyScraped == NULL) {
-							if ($saveResults && $previouslyScraped == NULL) {
-								$this->log("New season, adding...");
-								$p = array(
-										'uri' => $uri,
-										'n' => $n
-								);
-								if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
-								$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
-								
-								if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
-									$this->tvdb->createSeasonScraperFromScraped($newId);
-								}
-									
-								
-							}
-							$res[] = Array(
-								'n'		=> $n,
-								'uri'	=> $uri
-							);
-						}
 					}
 				}
 			}
 		}
 
-		return $res;
+		return $this->submitSeasonCandidates($scraper, $res, $showOnlyNew, $saveResults);
 
-		//return $this->error("TVShow Scraper not defined for DDU");
 	}
 	
 	protected function runScraperSeason($scraperData, $showOnlyNew = false, $saveResults = false) {
-		
-//		$seasonData = $this->tvdb->getSeason($scraperData['season']);
 		
 		$uri = $scraperData['uri'];
 		

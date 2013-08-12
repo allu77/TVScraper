@@ -44,6 +44,73 @@ abstract class TVShowScraper {
 			return $this->runScraperTVShow($scraper, $showOnlyNew, $saveResults);
 		}
 	}
+
+	protected function submitSeasonCandidates($scraperData, $candidateLinks, $showOnlyNew = false, $saveResults = false) {
+		$showData = $this->tvdb->getTVShow($scraperData['tvshow']);
+		$showSeasons = $this->tvdb->getTVShowSeasons($scraperData['tvshow']);
+		$latestComplete = NULL;
+		foreach ($showSeasons as $s) {
+			if (isset($s['status']) && $s['status'] == 'complete' && ($latestComplete == NULL || $latestComplete < $s['n'])) {
+				$latestComplete = $s['n'];
+				$this->log("Found complete season $latestComplete");
+			}
+		}
+
+		$res = array();
+		
+		foreach ($candidateLinks as $link) {
+			$this->log("Evaulating link " . $link['uri']);
+			if (! $showOnlyNew) {
+				$res[] = $link;
+			} else {
+				$keepCandidate = TRUE;
+				if ($latestComplete != NULL && isset($link['n']) && $link['n'] != "") {
+					if ($link['n'] <= $latestComplete) {
+						$this->log("Season is older than latest complete. Skipping.");
+						$keepCandidate = FALSE;
+					}
+				}
+
+
+				if ($keepCandidate && isset($showData['res']) && $showData['res'] != 'any' && isset($link['res'])) {
+					$this->log("Candidate resolution = " . $link['res']);
+					if (! checkResolution($showData['res'], $link['res'])) {
+						$this->log("Undesired resolution, skipping...");
+						$keepCandidate = FALSE;
+					}
+				}
+
+				if ($keepCandidate && isset($showData['lang']) && isset($link['lang']) && sizeof($link['lang'] > 0)) {
+					$this->log("Candidate language = " . $link['lang']);
+					$keepCandidate = in_array($showData['lang'], $link['lang']);
+				}
+
+				if ($keepCandidate) {
+					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraperData['id'], $link['uri']);
+					$keepCandidate = $previouslyScraped == NULL ? TRUE : FALSE;
+				}
+
+				if ($keepCandidate) {
+					if ($saveResults) {
+						$this->log("New season, adding...");
+						$p = array(
+								'uri' => $link['uri'],
+								'n' => $link['n']
+						);
+						if (isset($scraperData['notify']) && $scraperData['notify'] == "1") $p['tbn'] = '1';
+						$newId = $this->tvdb->addScrapedSeason($scraperData['id'], $p);
+							
+						if (isset($scraperData['autoAdd']) && $scraperData['autoAdd'] == "1"  && $n > 0) {
+							$this->tvdb->createSeasonScraperFromScraped($newId);
+						}
+					}
+					$res[] = $link;
+				}
+			}
+		}
+
+		return $res;
+	}
 	
 	protected function submitEpisodeCandidates($scraperData, $candidateLinks, $showOnlyNew = false, $saveResults = false) {
 		$seasonData = $this->tvdb->getSeason($scraperData['season']);

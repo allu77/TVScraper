@@ -38,53 +38,30 @@ class TVShowScraperTVU extends TVShowScraperRSS {
 			$m = array();
 			if (preg_match('/[&\?]sid=(\d+)/', $href, $m)) {
 				$sid = $m[1];
+
+				$n = '';
+				if (preg_match('/(stagione|season)\s+(\d+)/i', $title, $m)) {
+					$n = $m[2];
+				}
+
+				$resolution = NULL;
+				if (preg_match('/\(([^\)]+)\)\s*$/', $title, $m)) {
+					$this->log("Candidate resolution = " . $m[1]);
+					$resolution = $m[1];
+				}
+
 				foreach (array('rss.php', 'rsst.php') as $q) {
-					$uri = "http://tvunderground.org.ru/$q?se_id=$sid";
-					$this->log("Candidate URI $uri");
-
-					$n = '';
-					if (preg_match('/(stagione|season)\s+(\d+)/i', $title, $m)) {
-						$n = $m[2];
-					}
-
-					if (isset($showData['res']) && preg_match('/\(([^\)]+)\)\s*$/', $title, $m)) {
-						$this->log("Candidate resolution = " . $m[1]);
-						if (! checkResolution($showData['res'], $m[1])) {
-							$this->log("Undesired resolution, skipping...");
-							continue;
-						}
-					}
-
-					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
-
-					$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
-
-					if ((!$showOnlyNew) || $previouslyScraped == NULL) {
-						if ($saveResults && $previouslyScraped == NULL) {
-							$this->log("New season, adding...");
-							$p = array(
-									'uri' => $uri,
-									'n' => $n
-							);
-							if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
-							$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
-							
-							if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
-								$this->tvdb->createSeasonScraperFromScraped($newId);
-							}
-								
-							
-						}
-						$res[] = array(
-							'n'		=> $n,
-							'uri'	=> $uri
-						);
-					}
+					$res[] = array(
+						'uri' => "http://tvunderground.org.ru/$q?se_id=$sid",
+						'n' => $n,
+						'res' => $resolution,
+						'lang' => array($lang)
+					);
 				}
 			}
 		}
 
-		return $res;
+		return $this->submitSeasonCandidates($scraper, $res, $showOnlyNew, $saveResults);
 	}
 
 	protected function parseHttpDescription($browser, $url) {

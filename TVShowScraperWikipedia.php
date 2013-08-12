@@ -48,35 +48,14 @@ class TVShowScraperWikipedia extends TVShowScraper {
 					$title = $l;
 					$uri = "http://it.wikipedia.org/wiki/" . rawurlencode($l);
 					$this->log("Found season $n: $uri");
-					
-					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
 
-					$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
-
-					if ((!$showOnlyNew) || $previouslyScraped == NULL) {
-						if ($saveResults && $previouslyScraped == NULL) {
-							$this->log("New season, adding...");
-							$p = array(
-									'uri' => $uri,
-									'n' => $n
-							);
-							if (isset($scraper['notify']) && $scraper['notify'] == "1") $p['tbn'] = '1';
-							$newId = $this->tvdb->addScrapedSeason($scraper['id'], $p);
-							
-							if ($addNewSeasons && $previouslyScraped == NULL && $n > 0) {
-								$this->tvdb->createSeasonScraperFromScraped($newId);
-							}
-								
-							
-						}
-						$res[] = Array(
-							'n'		=> $n,
-							'uri'	=> $uri
-						);
-					}
+					$res[] = array(
+						'n'		=> $n,
+						'uri'	=> $uri
+					);
 				}
 			}
-			return $res;
+			return $this->submitSeasonCandidates($scraper, $res, $showOnlyNew, $saveResults);
 		} else {
 			$this->error("Invalid URI");
 			return FALSE;

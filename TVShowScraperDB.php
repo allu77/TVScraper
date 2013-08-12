@@ -599,7 +599,7 @@ class TVShowScraperDB  {
 		foreach ($p as $k => $v) {
 			switch ($k) {
 			case 'episode':
-				$this->setEpisode($v, array('bestFile', '_REMOVE_'));
+				$this->setEpisode($v, array('bestFile' => '_REMOVE_'));
 			case 'uri':
 			case 'season':
 			case 'scraper':

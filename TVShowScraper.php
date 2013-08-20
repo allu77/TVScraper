@@ -86,7 +86,7 @@ abstract class TVShowScraper {
 				}
 
 				if ($keepCandidate) {
-					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraperData['id'], $link['uri']);
+					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraperData['id'], $link['uri'], isset($link['n']) ? $link['n'] : NULL);
 					$keepCandidate = $previouslyScraped == NULL ? TRUE : FALSE;
 				}
 

@@ -1,4 +1,6 @@
-var TVShow = {};
+var TVShow = {
+	showOnlyPendingScapedSeasons:false
+};
 
 TVShow.set = function(showObj, showElem) {
 	if (showObj.id != undefined) showElem.attr('id', 'show' + showObj.id);
@@ -29,6 +31,11 @@ TVShow.set = function(showObj, showElem) {
 	}
 	if (showObj.res != undefined) {
 		showElem.find('.resolution').text(showObj.res);
+	}
+	if (showObj.pendingScrapedSeasons != undefined && showObj.pendingScrapedSeasons == '1') {
+		showElem.addClass('pendingScrapedSeasons');
+	} else {
+		showElem.removeClass('pendingScrapedSeasons');
 	}
 }
 
@@ -136,6 +143,21 @@ TVShow.sort = function() {
 	$('#showList .show').sortElements(sorter, function() { return $(this).get(0); });
 }
 
+TVShow.filter = function() {
+	$('.show').each(function() {
+		if (! TVShow.showOnlyPendingScapedSeasons || $(this).hasClass('pendingScrapedSeasons')) {
+			$(this).show();
+		} else {
+			$(this).hide();
+		}
+	});
+}
+
 
 $(".createTVShow").click(function(e) { TVShow.create(e); });
 $(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });
+$("#togglePendingScrapedSeasons").click(function(e) { 
+		e.preventDefault(); 
+		TVShow.showOnlyPendingScapedSeasons = ! TVShow.showOnlyPendingScapedSeasons;
+		TVShow.filter();
+});

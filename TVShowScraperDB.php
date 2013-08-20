@@ -208,6 +208,9 @@ class TVShowScraperDB  {
 			}
 		}
 
+		$pending = $this->xPath->query("/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']");
+		if ($pending->length > 0) $res['pendingScrapedSeasons'] = 1;
+
 		return $res;
 	}
 	
@@ -955,8 +958,9 @@ class TVShowScraperDB  {
 	}
 	
 	
-	public function getScrapedSeasonFromUri($scraperId, $uri) {
-		$scrapedSeason = $this->getElement("/tvscraper/tvshow/scraper[@id='$scraperId']/scrapedSeason[@uri='$uri']");
+	public function getScrapedSeasonFromUri($scraperId, $uri, $n = NULL) {
+		$query = "/tvscraper/tvshow/scraper[@id='$scraperId']/scrapedSeason[@uri='$uri'".($n == NULL ? "" : " and @n='$n'") ."]";
+		$scrapedSeason = $this->getElement($query);
 		if ($scrapedSeason === FALSE) {
 			// $this->error("Could not find unique scraped season with URI $uri for scraper $id");
 			$this->log("Scraped season with URI $uri and scraperId $scraperId not found");

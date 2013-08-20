@@ -109,7 +109,7 @@ do_notify() {
 
 	tbnList=$(api getScrapedSeasonsTBN | awk '
 		doRead=="source" { source=$2; doRead="nothing"; }
-		doRead=="scraper" { scraper=$2; doRead="tvshow"; }
+		doRead=="scraper" { scraper=$2; doRead="nothing"; }
 		doRead=="n" { n=$2; doRead="nothing"; }
 		doRead=="uri" { uri=$2; doRead="nothing"; }
 		doRead=="id" { id=$2; doRead="nothing"; }
@@ -162,6 +162,94 @@ do_notify() {
 	IFS=$oldIFS
 }
 
+do_cleanup_complete_seasons() {
+
+	showList=$(api getAllTVShows | awk '
+		doRead=="id" { id=$2; doRead="nothing"; }
+		doRead=="title" { title=$2; for(i=3;i<=NF;i++){title=title" "$i}; doRead="nothing"; }
+		/^      \["id"\]/ { doRead="id"; }
+		/^      \["title"\]/ { doRead="title"; }
+		/^    \}/ { printf "%s,%s\n", id, title; }
+	')
+
+	oldIFS=$IFS
+	IFS=$'\n'
+
+	for show in $showList; do
+		IFS=$oldIFS
+		showId=$(echo $show | cut -d , -f 1 | sed s/\"//g)
+		showTitle=$(echo $show | cut -d , -f 2 | sed s/\"//g)
+
+		echo "Cleaning up seasons for show $showId ($showTitle)..."
+
+		seasonList=$(api getTVShowSeasons showId $showId| awk '
+			doRead=="id" { id=$2; doRead="nothing"; }
+			doRead=="n" { n=$2; doRead="nothing"; }
+			doRead=="status" { status=$2; doRead="nothing"; }
+			/^      \["id"\]/ { doRead="id"; }
+			/^      \["n"\]/ { doRead="n"; }
+			/^      \["status"\]/ { doRead="status"; }
+			/^    \}/ { printf "%s,%s,%s\n", id, n, status; }
+		')
+
+		lastCompleteIndex=0
+		IFS=$'\n'
+		for season in $seasonList; do
+			IFS=$oldIFS
+			seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+			seasonN=$(echo $season | cut -d , -f 2 | sed s/\"//g)
+			seasonStatus=$(echo $season | cut -d , -f 3 | sed s/\"//g)
+			[ "$seasonStatus" == "complete" ] && [ "$seasonN" -gt $lastCompleteIndex ] && lastCompleteIndex=$seasonN
+		done
+		IFS=$oldIFS
+
+		if [ $lastCompleteIndex -gt 0 ]; then
+			echo "Last complete season: $lastCompleteIndex."
+
+			IFS=$'\n'
+			for season in $seasonList; do
+				IFS=$oldIFS
+				seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+				seasonN=$(echo $season | cut -d , -f 2 | sed s/\"//g)
+				seasonStatus=$(echo $season | cut -d , -f 3 | sed s/\"//g)
+				if [ "$seasonStatus" == "complete" ] && [ "$seasonN" -lt $lastCompleteIndex ]; then
+					echo -n "Removing season $seasonId ($seasonN)... "
+					if api removeSeason seasonId $seasonId > /dev/null; then
+						echo "Done."
+					else
+						echo "Failed!"
+					fi
+				fi 
+			done
+			IFS=$oldIFS
+
+			seasonList=$(api getScrapedSeasons showId $showId| awk '
+				doRead=="id" { id=$2; doRead="nothing"; }
+				doRead=="n" { n=$2; doRead="nothing"; }
+				/^      \["id"\]/ { doRead="id"; }
+				/^      \["n"\]/ { doRead="n"; }
+				/^    \}/ { printf "%s,%s\n", id, n; }
+			')
+			IFS=$'\n'
+			for season in $seasonList; do
+				IFS=$oldIFS
+				seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+				seasonN=$(echo $season | cut -d , -f 2 | sed s/\"//g)
+				if ! [ -z "$seasonN" ] && [ "$seasonN" -le $lastCompleteIndex ]; then
+					echo -n "Removing scraped season $seasonId... "
+					if api removeScrapedSeason scrapedSeasonId $seasonId > /dev/null; then
+						echo "Done."
+					else
+						echo "Failed!"
+					fi
+				fi
+				
+			done
+			IFS=$oldIFS
+		fi
+	done
+	IFS=$oldIFS
+}
 HTTP_USER=""
 HTTP_PASSWORD=""
 HTTP_BASE_URL="http://localhost/TVScraper"
@@ -201,6 +289,10 @@ case "$action" in
 
 "notify")
 	do_notify
+	;;
+
+"cleanup")
+	do_cleanup_complete_seasons
 	;;
 
 *)

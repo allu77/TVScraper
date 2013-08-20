@@ -117,11 +117,6 @@ class TVShowScraperDDU extends TVShowScraper {
 								'uri'	=> $uri,
 							);
 						}
-
-
-						$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraper['id'], $uri);
-
-						$addNewSeasons = isset($scraper['autoAdd']) && $scraper['autoAdd'] == "1" ? TRUE : FALSE;
 					}
 				}
 			}

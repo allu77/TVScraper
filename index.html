@@ -18,6 +18,7 @@
             }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/flags.css">
         <link rel="stylesheet" href="css/main.css">
 
         <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
@@ -26,8 +27,6 @@
         <!--[if lt IE 7]>
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
-
-        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
 
 
 
@@ -297,9 +296,11 @@
 						<td><a class="scraperUri" href="#"><span class="hidden-phone scraperUriText"></span><span class="visible-phone">URI</span></a></td>
 						<td class="scraperDelay"></td>
 						<td>
-							<a href="#" class="runScraper">O</a>
-							<a href="#" class="removeScraper">&times;</a>
-							<a href="#" class="editScraper">Edit</a>
+							<div class="text-right">
+								<a href="#" class="runScraper"><i class="icon-refresh"></i></a>
+								<a href="#" class="removeScraper"><i class="icon-trash"></i></a>
+								<a href="#" class="editScraper"><i class="icon-pencil"></i></a>
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -310,9 +311,11 @@
 						<td class="scrapedSeasonSource"></td>
 						<td><a class="scrapedSeasonUri" href="#"><span class="hidden-phone scrapedSeasonUriText"></span><span class="visible-phone">URI</span></a></td>
 						<td>
-							<a class="toggleScrapedSeason" href="#">Toggle</a>
-							<a class="removeScrapedSeason" href="#">&times;</a>
-							<a class="addScrapedSeason" href="#">+</a>
+							<div class="text-right">
+								<a class="toggleScrapedSeason" href="#"><i class="icon-thumbs-down"></i></a>
+								<a class="removeScrapedSeason" href="#"><i class="icon-trash"></i></a>
+								<a class="addScrapedSeason" href="#"><i class="icon-plus-sign"></i></a>
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -324,39 +327,62 @@
 						<td><input type="checkbox" class="scraperAutoAdd" disabled/></td>
 						<td><input type="checkbox" class="scraperNotify" disabled/></td>
 						<td>
-							<a href="#" class="runScraper">O</a>
-							<a href="#" class="removeScraper">&times;</a>
-							<a href="#" class="editScraper">Edit</a>
+							<div class="text-right">
+								<a href="#" class="runScraper"><i class="icon-refresh"></i></a>
+								<a href="#" class="removeScraper"><i class="icon-trash"></i></a>
+								<a href="#" class="editScraper"><i class="icon-pencil"></i></a>
+							</div>
 						</td>
 					</tr>
 				</table>
 
 				<article class="show row-fluid"> 
 					<header class="row-fluid">
-						<h1 class="showTitle span6"></h1>
-						<div class="span5"> 
-							<p>Airing:Latest <span class="lastAirDateStr">unknown</span>, Next <span class="nextAirDateStr">unknown</span></p>
-							<p>Latest Update: <span class="lastPubDateStr">unknown</span></p>
+						<div class="span11">
+							<h1 class="showTitle"></h1>
+							<section class="showDetails">
+									<span class="languageContainer">
+										<img src="img/blank.gif"/>
+									</span>
+									<span class="nativeLanguageContainer">
+										|
+										<img src="img/blank.gif"/>
+									</span>
+									<span class="resolutionContainer">
+										|
+										<span class="resolution"></span>
+									</span>
+									<span class="alternateTitleContainer">
+										|
+										AKA: <span class="alternateTitle"></span>
+									</span>
+									<span class="nextAirDateContainer">
+										|
+										Next <span class="nextAirDateStr">unknown</span>
+									</span>
+									<span class="lastAirDateContainer">
+										|
+										Latest <span class="lastAirDateStr">unknown</span>
+									</span>
+									<span class="lastPubDateContainer">
+										|
+										Updated <span class="lastPubDateStr">unknown</span>
+									</span>
+							</section>
 							<p class="hidden lastAirDate"></p>
 							<p class="hidden nextAirDate"></p>
 							<p class="hidden lastPubDate"></p>
+							<p class="hidden Language"></p>
+							<p class="hidden nativeLanguage"></p>
 						</div>
-						<a class="removeShow span1" href="#">&times;</a>
+						<div class="span1 text-right">
+							<a class="removeShow" href="#"><i class="icon-trash"></i></a>
+							<a class="editTVShow" href="#"><i class="icon-pencil"></i></a>
+						</div>
 					</header>
 					<section class="showContent row-fluid">
-						<section class="showDetails">
-							<a href="#" class="editTVShow">Edit</a>
-							|
-							Altenate Title: <span class="alternateTitle"></span>
-							|
-							Download Language: <span class="language"></span>
-							|
-							Native Language: <span class="nativeLanguage"></span>
-							|
-							Resolution: <span class="resolution"></span>
-						</section>
 						<section class="showScrapers">
-							<h2>Scrapers <a href="#" class="addTVShowScraper">+</a></h2>
+							<h2 class="scrapersSectionTitle">TV Show Scrapers <a href="#" class="addTVShowScraper"><i class="icon-plus-sign"></i></a></h2>
 							<table class="table table-striped table-hover">
 								<thead>
 									<tr>
@@ -420,7 +446,7 @@
 						<a class="removeSeason" href="#">&times;</a>
 					</header>
 					<section class="scrapers">
-						<h4>Scrapers</h4>
+						<h4>Season Scrapers</h4>
 						<table class="table table-striped table-hover">
 							<thead>
 								<tr>

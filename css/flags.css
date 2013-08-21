@@ -1,0 +1,8 @@
+.flag {
+	width: 16px;
+	height: 11px;
+	background:url(../img/flags.png) no-repeat
+}
+
+.flag.flag-ita {background-position: -16px 0}
+.flag.flag-eng {background-position: 0 -11px}

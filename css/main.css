@@ -19,3 +19,7 @@
 .show:nth-child(even) {
 	background: #f5f5f5;
 }
+
+.scrapersSectionTitle .icon-plus-sign {
+	vertical-align:middle;
+}

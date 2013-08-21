@@ -9,29 +9,51 @@ TVShow.set = function(showObj, showElem) {
 		showElem.find('.lastAirDate').text(showObj.lastAirDate);
 		var d = new Date(Number(showObj.lastAirDate * 1000));
 		showElem.find('.lastAirDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
+		showElem.find('.lastAirDateContainer').removeClass('hidden');
+	} else {
+		showElem.find('.lastAirDateContainer').addClass('hidden');
 	}
 	if (showObj.nextAirDate != undefined) {
 		showElem.find('.nextAirDate').text(showObj.nextAirDate);
 		var d = new Date(Number(showObj.nextAirDate * 1000));
 		showElem.find('.nextAirDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
+		showElem.find('.nextAirDateContainer').removeClass('hidden');
+	} else {
+		showElem.find('.nextAirDateContainer').addClass('hidden');
 	}
 	if (showObj.lastPubDate != undefined) {
 		showElem.find('.lastPubDate').text(showObj.lastPubDate);
 		var d = new Date(Number(showObj.lastPubDate * 1000));
 		showElem.find('.lastPubDateStr').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
+		showElem.find('.lastPubDateContainer').removeClass('hidden');
+	} else {
+		showElem.find('.lastPubDateContainer').addClass('hidden');
 	}
 	if (showObj.alternateTitle != undefined) {
 		showElem.find('.alternateTitle').text(showObj.alternateTitle);
 	}
+	if (showObj.alternateTitle != undefined && showObj.alternateTitle != "") {
+		showElem.find('.alternateTitleContainer').removeClass('hidden');
+	} else {
+		showElem.find('.alternateTitleContainer').addClass('hidden');
+	}
 	if (showObj.lang != undefined) {
 		showElem.find('.language').text(showObj.lang);
+		showElem.find('.languageContainer img').attr('class', 'flag flag-' + showObj.lang);
 	}
 	if (showObj.nativeLang != undefined) {
 		showElem.find('.nativeLanguage').text(showObj.nativeLang);
+		showElem.find('.nativeLanguageContainer img').attr('class', 'flag flag-' + showObj.nativeLang);
 	}
 	if (showObj.res != undefined) {
 		showElem.find('.resolution').text(showObj.res);
 	}
+	if (showObj.res != undefined && showObj.res != "any") {
+		showElem.find('.resolutionContainer').removeClass('hidden');
+	} else {
+		showElem.find('.resolutionContainer').addClass('hidden');
+	}
+
 	if (showObj.pendingScrapedSeasons != undefined && showObj.pendingScrapedSeasons == '1') {
 		showElem.addClass('pendingScrapedSeasons');
 	} else {

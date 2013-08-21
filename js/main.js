@@ -615,6 +615,11 @@ function setScrapedSeason(scrapedSeasonElem, scrapedSeasonObj) {
 		scrapedSeasonElem.find('.scrapedSeasonUri').attr('href', scrapedSeasonObj.uri);
 		scrapedSeasonElem.find('.scrapedSeasonUriText').text(scrapedSeasonObj.uri);
 	}
+	if (scrapedSeasonObj.hide == undefined || scrapedSeasonObj.hide == '0') {
+		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'icon-thumbs-down');
+	} else {
+		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'icon-thumbs-up');
+	}
 }
 
 function addScrapedSeasonToSeasons(e, scrapedSeasonElem) {

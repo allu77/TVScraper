@@ -446,6 +446,11 @@ class TVShowScraperDB  {
 	public function removeScraper($id) {
 		$this->log("Removing scraper $id...");
 		if ($this->removeElement("/tvscraper/tvshow//scraper[@id='$id']")) {
+		    
+            $q = $this->xPath->query("/tvscraper/tvshow/season/file[@scraper='$id']");
+            for ($i = 0; $i < $q->length; $i++) {
+                if ($this->setEpisode($q->item($i)->getAttribute('episode'), array('bestFile' => '_REMOVE_')) === FASE) return FALSE;
+            }
 			return TRUE;
 		} else {
 			$this->error("Can't remove scraper $id");

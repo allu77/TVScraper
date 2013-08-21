@@ -60,8 +60,8 @@ function tvShowSort() {
 				if (textA == "" && textB == "") { return 0; }
 				else if (textA == "") { return 1; }
 				else if (textB == "") { return -1; }
-				else { return Number(textA) - Number(textB) };
-			}
+				else { return Number(textA) - Number(textB); };
+			};
 			break;
 		case 'title':
 			sorter = function(a,b) { return $(a).find('.showTitle').text().localeCompare($(b).find('.showTitle').text()); };
@@ -295,7 +295,7 @@ function loadTVShowScrapers(showId) {
 		for (var i = 0; i < data.result.length; i++) {
 			addTVShowScraper(showId, data.result[i]);
 		}
-	})
+	});
 }
 
 function loadSeasonScrapers(seasonId) {
@@ -368,7 +368,13 @@ function deleteScraper(e, scraperElement) {
 			scraperId:scraperElement.attr('id').substr(7) 
 		}, 
 		function(data) {
+			var seasonElement = scraperElement.closest('.season');
 			scraperElement.remove();
+			if (seasonElement != undefined && seasonElement.length != 0) {
+				console.log("Refreshing"); 
+				refreshEpisodeList(seasonElement);
+				refreshSeason(seasonElement);
+			}
 		});
 }
 

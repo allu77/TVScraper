@@ -3,7 +3,8 @@
 .episodes,
 .showLastUpdate,
 .hiddenScrapedSeasonsSection,
-.scrapers {
+.scrapers,
+.bestFileId {
 	display: none;
 }
 
@@ -22,4 +23,15 @@
 
 .scrapersSectionTitle .icon-plus-sign {
 	vertical-align:middle;
+}
+
+.actionIcons {
+	white-space: nowrap;
+	text-align: right;
+}
+
+.fileURIContainer {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }

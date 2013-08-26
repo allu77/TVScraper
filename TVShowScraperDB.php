@@ -378,6 +378,8 @@ class TVShowScraperDB  {
 			
 		foreach ($p as $k => $v) {
 			switch ($k){
+			case 'bestSticky':
+				if ($v == '0' || $v == '_REMOVE_') $this->resetEpisodeBestFile($id, TRUE);
 			case 'n' :
 			case 'airDate' :
 			case 'title':
@@ -390,6 +392,21 @@ class TVShowScraperDB  {
 			}
 		}
 		return TRUE;
+	}
+
+	public function resetEpisodeBestFile($id, $force = FALSE) {
+		$this->log("Resetting bestFile for episode $id, force = $force");
+		$episode = $this->getElement("/tvscraper/tvshow/season/episode[@id='$id']");
+		if ($episode === FALSE) {
+			$this->error("Could not find unique episode $id");
+			return FALSE;
+		}
+
+		if ($force == TRUE || ! $episode->getAttribute('bestSticky')) {
+			return $this->setEpisode($id, array( 'bestFile' => '_REMOVE' ));
+		}
+		return TRUE;
+
 	}
 	
 	public function getEpisode($id) {
@@ -449,7 +466,7 @@ class TVShowScraperDB  {
 		    
             $q = $this->xPath->query("/tvscraper/tvshow/season/file[@scraper='$id']");
             for ($i = 0; $i < $q->length; $i++) {
-                if ($this->setEpisode($q->item($i)->getAttribute('episode'), array('bestFile' => '_REMOVE_')) === FASE) return FALSE;
+                if ($this->resetEpisodeBestFile($q->item($i)->getAttribute('episode')) === FALSE) return FALSE;
             }
 			return TRUE;
 		} else {
@@ -497,7 +514,7 @@ class TVShowScraperDB  {
 		$episodes = $this->getSeasonEpisodes($id);
 		foreach ($episodes as $e) {
 			if (isset($e['bestFile'])) {
-				$this->setEpisode($e['id'], array( 'bestFile' => '_REMOVE_'));
+				$this->resetEpisodeBestFile($e['id']);
 			}
 		}
 	}
@@ -603,11 +620,19 @@ class TVShowScraperDB  {
 			$this->error("Can't fine unique file $id");
 			return FALSE;
 		}
+
+		$oldEpisodeId = strlen($file->getAttribute('episode')) > 0 ? $file->getAttribute('episode') : NULL;
+		$newEpisodeId = NULL;
+		$reset = FALSE;
 			
 		foreach ($p as $k => $v) {
 			switch ($k) {
 			case 'episode':
-				$this->setEpisode($v, array('bestFile' => '_REMOVE_'));
+				$newEpisodeId = $v;
+			case 'discard':
+				$reset = TRUE;
+				$this->setElementTextAttribute($file, $k, $v);
+				break;
 			case 'uri':
 			case 'season':
 			case 'scraper':
@@ -619,7 +644,11 @@ class TVShowScraperDB  {
 				$this->error("Unknown file parameter $k");
 				return FALSE;
 			}
-				
+		}
+
+		if ($reset) {
+			if ($oldEpisodeId != NULL) $this->resetEpisodeBestFile($oldEpisodeId);
+			if ($newEpisodeId != NULL) $this->resetEpisodeBestFile($newEpisodeId);
 		}
 	
 		return TRUE;
@@ -681,7 +710,7 @@ class TVShowScraperDB  {
 			$best = $this->getFile($episode['bestFile']);
 			if ($best === FALSE) {
 				// Something strange happened. Reset bestFile.
-				$this->setEpisode($id, array( 'bestFile' => '_REMOVE_'));
+				$this->resetEpisodeBestFile($id, TRUE);
 			} else {
 				return $best;
 			}
@@ -721,6 +750,9 @@ class TVShowScraperDB  {
 			for ($i = 0; $i < $x->length; $i++) {
 
 				$file = $x->item($i);		
+
+				if ($file->getAttribute('discard') == 1) continue;
+
 				if (strlen($file->getAttribute('type')) == 0 || $file->getAttribute('type') == 'ed2k') {
 					$linkData = parseED2KURI($file->getAttribute('uri'));
 					if ($linkData === FALSE) {

@@ -329,7 +329,7 @@ function setTVShowScraper(scraperObj, scraperElem) {
 	if (scraperObj.id != undefined) scraperElem.attr('id', 'scraper' + scraperObj.id);
 	if (scraperObj.source != undefined) scraperElem.find('.scraperSource').text(scraperObj.source);
 	if (scraperObj.uri != undefined) {
-		scraperElem.find('.scraperUriText').text(scraperObj.uri);
+		scraperElem.find('.scraperUriText').text(scraperObj.uri.trunc(100));
 		scraperElem.find('.scraperUri').attr('href', scraperObj.uri);
 	}
 	scraperElem.find('.scraperAutoAdd').attr("checked", scraperObj.autoAdd == "1" ? true : false);
@@ -342,7 +342,7 @@ function setSeasonScraper(scraperObj, scraperElem) {
 	if (scraperObj.source != undefined) scraperElem.find('.scraperSource').text(scraperObj.source);
 	if (scraperObj.delay != undefined) scraperElem.find('.scraperDelay').text(scraperObj.delay);
 	if (scraperObj.uri != undefined) {
-		scraperElem.find('.scraperUriText').text(scraperObj.uri);
+		scraperElem.find('.scraperUriText').text(scraperObj.uri.trunc(100));
 		scraperElem.find('.scraperUri').attr('href', scraperObj.uri);
 	}
 }
@@ -356,6 +356,9 @@ function seasonScraperSort(seasonId) {
 		else return (aTxt - bTxt);
 	}, function() { 
 		return $(this).closest('.seasonScraper').get(0); 
+	});
+	$('#season' + seasonId + ' .seasonScraper').each(function(index) {
+		$(this).find('.scraperOrder').text('(' + (index + 1) + ')');
 	});
 }
 
@@ -721,6 +724,18 @@ function loadSeasonEpisodes(seasonId) {
 							newEp.find('.episodeLastPubDate').text("Not yet");
 						}
 
+						if (data.result[i].bestSticky) {
+							newEp.find('.removeFile').hide();
+							newEp.find('.discardFile').hide();
+							newEp.find('.lockFile').hide();
+							newEp.find('.unlockFile').show();
+						} else {
+							newEp.find('.removeFile').show();
+							newEp.find('.discardFile').show();
+							newEp.find('.lockFile').show();
+							newEp.find('.unlockFile').hide();
+						}
+
 						epList.append(newEp);
 					}
 
@@ -731,7 +746,9 @@ function loadSeasonEpisodes(seasonId) {
 							function(data) {
 								for (var j = 0; j < data.result.length; j++) {
 									$('#episode' + data.result[j].episode + ' .bestUri').attr('href', data.result[j].uri);
-									$('#episode' + data.result[j].episode + ' .bestUriText').text(data.result[j].uri);
+									$('#episode' + data.result[j].episode + ' .bestUriText').text(data.result[j].uri.trunc(100));
+									$('#episode' + data.result[j].episode + ' .bestFileId').text(data.result[j].id);
+									$('#episode' + data.result[j].episode + ' .bestFileSource').text($('#season' + seasonId + ' #scraper' + data.result[j].scraper + ' .scraperOrder').text());
 								}
 							});
 

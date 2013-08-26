@@ -285,18 +285,33 @@
 					<tr class="episode">
 						<td class="episodeN"></td>
 						<td class="episodeAirDate"></td>
-						<td><a class="bestUri bestUriText" href="#"></a></td>
+						<td>
+							<div class="fileURIContainer">
+								<span class="bestFileId"></span>
+								<a class="bestUri" href="#"><span class="visible-phone">URI</span><span class="hidden-phone bestUriText"></span></a>
+							</div>
+						</td>
+						<td class="bestFileSource"></td>
+						<td>
+							<div class="actionIcons">
+								<a href="#" class="removeFile"><i class="icon-trash"></i></a>
+								<a href="#" class="lockFile"><i class="icon-ok-circle"></i></a>
+								<a href="#" class="unlockFile"><i class="icon-ok-sign"></i></a>
+								<a href="#" class="discardFile"><i class="icon-ban-circle"></i></a>
+							</div>
+						</td>
 					</tr>
 				</table>
 
 				<table>
 					<tr class="seasonScraper">
+						<td class="scraperOrder"></td>
 						<td class="scraperPreference"></td>
 						<td class="scraperSource"></td>
 						<td><a class="scraperUri" href="#"><span class="hidden-phone scraperUriText"></span><span class="visible-phone">URI</span></a></td>
 						<td class="scraperDelay"></td>
 						<td>
-							<div class="text-right">
+							<div class="actionIcons">
 								<a href="#" class="runScraper"><i class="icon-refresh"></i></a>
 								<a href="#" class="removeScraper"><i class="icon-trash"></i></a>
 								<a href="#" class="editScraper"><i class="icon-pencil"></i></a>
@@ -311,7 +326,7 @@
 						<td class="scrapedSeasonSource"></td>
 						<td><a class="scrapedSeasonUri" href="#"><span class="hidden-phone scrapedSeasonUriText"></span><span class="visible-phone">URI</span></a></td>
 						<td>
-							<div class="text-right">
+							<div class="actionIcons">
 								<a class="toggleScrapedSeason" href="#"><i class="icon-thumbs-down"></i></a>
 								<a class="removeScrapedSeason" href="#"><i class="icon-trash"></i></a>
 								<a class="addScrapedSeason" href="#"><i class="icon-plus-sign"></i></a>
@@ -327,7 +342,7 @@
 						<td><input type="checkbox" class="scraperAutoAdd" disabled/></td>
 						<td><input type="checkbox" class="scraperNotify" disabled/></td>
 						<td>
-							<div class="text-right">
+							<div class="actionIcons">
 								<a href="#" class="runScraper"><i class="icon-refresh"></i></a>
 								<a href="#" class="removeScraper"><i class="icon-trash"></i></a>
 								<a href="#" class="editScraper"><i class="icon-pencil"></i></a>
@@ -375,7 +390,7 @@
 							<p class="hidden Language"></p>
 							<p class="hidden nativeLanguage"></p>
 						</div>
-						<div class="span1 text-right">
+						<div class="span1 actionIcons">
 							<a class="removeShow" href="#"><i class="icon-trash"></i></a>
 							<a class="editTVShow" href="#"><i class="icon-pencil"></i></a>
 						</div>
@@ -450,6 +465,7 @@
 						<table class="table table-striped table-hover">
 							<thead>
 								<tr>
+									<th></th>
 									<th>Preference</th>
 									<th>Source</th>
 									<th>URI</th>
@@ -480,6 +496,8 @@
 									<th>N</th>
 									<th>Air Date</th>
 									<th>Best URI</th>
+									<th>Source</th>
+									<th></th>
 								</tr>
 							</thead>
 							<tbody class="episodeList">
@@ -500,8 +518,10 @@
         <script src="js/vendor/bootstrap.min.js"></script>
 
         <script src="js/jquery.sort.js"></script>
+        <script src="js/Utils.js"></script>
         <script src="js/main.js"></script>
         <script src="js/TVShow.js"></script>
+        <script src="js/Episode.js"></script>
 
     </body>
 </html>

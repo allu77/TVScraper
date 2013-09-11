@@ -9,50 +9,15 @@ class TVShowScraperTVRage extends TVShowScraper {
 		$res = array();
 
 		$uri = $scraper['uri'];
-		
+	
 		$this->log("Parsing TV Rage page $uri");
 		
 		$browser = new SimpleBrowser();
 		$browser->setLogger($this->logger);
 		$page = $browser->get($uri);
 
-		$dom = new DOMDocument();
-		if (! @$dom->loadHTML($page)) return $this->error('Cannot load HTML page');
-
-		$xpath = new DOMXPath($dom);
-		if (! $xpath) return $this->error('Cannot create XPATH handler');
-
-		$q = $xpath->query("//a[starts-with(@href, '/edit/shows/')]");
-		$ids = array();
-		for ($i = 0; $i < $q->length; $i++) {
-			$m = array();
-			if (preg_match("/\\/edit\\/shows\\/(\d+)/", $q->item($i)->getAttribute('href'), $m)) {
-				$id = $m[1];
-				if (!isset($ids[$id])) {
-					$ids[$id] = 1;
-				} else {
-					$ids[$id]++;
-				}
-			}
-		}
-
-		$this->log("Found " . sizeof($ids) . " ids");
-		$id = NULL;
-		$idCount = 0;
-		foreach ($ids as $thisId => $count) {
-			if ($count > $idCount) {
-				$count = $idCount;
-				$id = $thisId;
-			}
-		}
-		$this->log("ID $id");
-
-		$xmlUri = "http://services.tvrage.com/feeds/episode_list.php?sid=$id";
-		$xmlPage = $browser->get($xmlUri);
-
-
 		$xml = new DOMDocument();
-		if (! @$xml->loadXML($xmlPage)) return $this->error('Cannot load XML page');
+		if (! @$xml->loadXML($page)) return $this->error('Cannot load XML page');
 
 		$xpath = new DOMXPath($xml);
 		if (! $xpath) return $this->error('Cannot create XPATH handler');
@@ -61,7 +26,7 @@ class TVShowScraperTVRage extends TVShowScraper {
 		for ($i = 0; $i < $s->length; $i++) {
 			$res[] = array(
 				'n'		=> $s->item($i)->getAttribute('no'),
-				'uri'	=> $xmlUri
+				'uri'	=> $uri
 			);
 		}
 

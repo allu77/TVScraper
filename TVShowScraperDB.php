@@ -186,26 +186,47 @@ class TVShowScraperDB  {
 
 		$res = $this->getElementAttributes($tvShow);
 
-		$episodes = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/episode[@airDate]");
+		$episodes = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/episode");
 		$t = intval((time() / 86400) - 1) * 86400;
+
+		$lastEpisodeIndex = 0;
+		$lastAiredEpisodeIndex = 0;
+		$airedEpisodesCount = 0;
+
 		for ($i = 0; $i < $episodes->length; $i++) {
+			$n = intval($episodes->item($i)->getAttribute('n'));
+			$lastEpisodeIndex = $lastEpisodeIndex < $n ? $n : $lastEpisodeIndex;
 			$air = $episodes->item($i)->getAttribute('airDate');
-			if ($air < $t) {
-				if (! isset($res['lastAirDate']) || $res['lastAirDate'] < $air) {
-					$res['lastAirDate'] = $air;
-				}
-			} else {
-				if (! isset($res['nextAirDate']) || $res['nextAirDate'] > $air) {
-					$res['nextAirDate'] = $air;
+			if (strlen($air) > 0) {
+				if ($air < $t) {
+					$airedEpisodesCount++;
+					$lastAiredEpisodeIndex = $lastAiredEpisodeIndex < $n ? $n : $lastAiredEpisodeIndex;
+					if (! isset($res['lastAirDate']) || $res['lastAirDate'] < $air) {
+						$res['lastAirDate'] = $air;
+					}
+				} else {
+					if (! isset($res['nextAirDate']) || $res['nextAirDate'] > $air) {
+						$res['nextAirDate'] = $air;
+					}
 				}
 			}
 		}
-		$files = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/file[@pubDate]");
+		$files = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/file[@pubDate and not(@discard)]");
+		$filesForEpisode = array();
 		for ($i = 0; $i < $files->length; $i++) {
 			$pubDate = $files->item($i)->getAttribute('pubDate');
+			$filesForEpisode[$files->item($i)->getAttribute('episode')] = 1;
 			if (!isset($res['lastPubDate']) || $res['lastPubDate'] < $pubDate) {
 				$res['lastPubDate'] = $pubDate;
 			}
+		}
+
+
+		if ($lastEpisodeIndex > 0) {
+			$res['lastEpisodeIndex'] = $lastEpisodeIndex;
+			$res['lastAiredEpisodeIndex'] = $lastAiredEpisodeIndex;
+			$res['airedEpisodesCount'] = $airedEpisodesCount;
+			$res['episodesWithFile'] = sizeof($filesForEpisode);
 		}
 
 		$pending = $this->xPath->query("/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']");
@@ -300,6 +321,11 @@ class TVShowScraperDB  {
 	
 		$res = $this->getElementAttributes($season);
 		$res['tvshow'] = $season->parentNode->getAttribute('id');
+
+//		if ($res['status'] == 'watched') {
+//			$episodes = $this->getSeasonEpisodes($id);
+//			$res['episodeCount'] = $episodes[sizeof($episodes) - 1]['n'];
+//		}
 	
 		return $res;
 	}
@@ -427,6 +453,13 @@ class TVShowScraperDB  {
 		if ($episode === FALSE) return FALSE;
 		return $this->getEpisode($episode->getAttribute('id'));
 	}
+
+	private static function sortByN($a, $b) {
+			if (!isset($b['n']) && !isset($a['n'])) return 0;
+			else if (!isset($a['n'])) return -1;
+			else if (!isset($b['n'])) return 1;
+			else return $a['n'] - $b['n'];
+	}
 	
 	public function getSeasonEpisodes($seasonId) {
 		$episodes = $this->xPath->query("/tvscraper/tvshow/season[@id='$seasonId']/episode");
@@ -435,6 +468,7 @@ class TVShowScraperDB  {
 		for ($i = 0; $i < $episodes->length; $i++) {
 			$res[] = $this->getEpisode($episodes->item($i)->getAttribute('id'));
 		}
+		usort($res, array('self', 'sortByN'));
 	
 		return $res;
 	}

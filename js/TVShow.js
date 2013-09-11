@@ -21,6 +21,15 @@ TVShow.set = function(showObj, showElem) {
 	} else {
 		showElem.find('.nextAirDateContainer').addClass('hidden');
 	}
+
+	if (showObj.lastEpisodeIndex != undefined) {
+		showElem.find('.episodeCounterContainter').removeClass('hidden');
+		showElem.find('.episodesWithFile').text(showObj.episodesWithFile);
+		showElem.find('.airedEpisodesCount').text(showObj.airedEpisodesCount);
+		showElem.find('.lastEpisodeIndex').text(showObj.lastEpisodeIndex);
+	} else {
+		showElem.find('.episodeCounterContainter').addClass('hidden');
+	}
 	if (showObj.lastPubDate != undefined) {
 		showElem.find('.lastPubDate').text(showObj.lastPubDate);
 		var d = new Date(Number(showObj.lastPubDate * 1000));

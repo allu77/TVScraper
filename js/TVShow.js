@@ -60,7 +60,7 @@ TVShow.set = function(showObj, showElem) {
 
 
 	if (showObj.pendingScrapedSeasons != undefined && showObj.pendingScrapedSeasons == '1') {
-		warningMsg = "New season scraped!";
+		warningMsg = "New season scraper found!";
 		warningClass = "good";
 		showElem.addClass('pendingScrapedSeasons');
 	} else {
@@ -81,6 +81,9 @@ TVShow.set = function(showObj, showElem) {
 
 			} else if (showObj.airedEpisodesCount == 0 && showObj.nextAirDate != undefined) {
 				warningMsg = "New season is coming!";
+				warningClass = "good";
+			} else if (showObj.lastAirDate != undefined && showObj.nextAirDate != undefined && showObj.nextAirDate - showObj.lastAirDate > 604800) {
+				warningMsg = "Show is returning after hiatus";
 				warningClass = "good";
 			}
 

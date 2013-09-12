@@ -145,14 +145,20 @@ class TVShowScraperWikipedia extends TVShowScraper {
 							}
 						}
 
-						if ($ep === FALSE || $strDate === FALSE) {
+						if ($ep === FALSE) {
 							$this->log("Some column missing, skipping row...");
 							continue;
 						}
 
 						$ep = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $ep));
-						$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
-						$strDate = (preg_replace('/[^a-z0-9 ]+/i', '', $strDate));
+						if (! preg_match('/^\d+$/', $ep)) {
+							$this->log("Not a valid episode index $ep, skipping row...");
+							continue;
+						}
+						if ($strDate != FALSE) {
+							$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
+							$strDate = (preg_replace('/[^a-z0-9 ]+/i', '', $strDate));
+						}
 
 						$this->log("Episode: $ep, prima TV Italia: $strDate");
 
@@ -169,7 +175,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 								$retVal = TRUE;
 							}
 						}
-						if ($episodeDB && strlen($strDate > 0)) {
+						if ($episodeDB && $strDate != FALSE && strlen($strDate > 0)) {
 							$dateItems = Array();
 							if (preg_match('/(\d+)\s+([A-Za-z]+)\s?(\d\d\d\d)\b/', $strDate, $dateItems)) {
 								switch(substr(strtolower($dateItems[2]), 0, 3)) {

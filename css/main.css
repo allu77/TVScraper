@@ -35,3 +35,11 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+.warningMsg.good {
+	color: green;
+}
+
+.warningMsg.bad {
+	color: red;
+}

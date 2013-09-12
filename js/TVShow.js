@@ -1,5 +1,5 @@
 var TVShow = {
-	showOnlyPendingScapedSeasons:false
+	showOnlyPendingScapedSeasons:false,
 };
 
 TVShow.set = function(showObj, showElem) {
@@ -22,14 +22,6 @@ TVShow.set = function(showObj, showElem) {
 		showElem.find('.nextAirDateContainer').addClass('hidden');
 	}
 
-	if (showObj.lastEpisodeIndex != undefined) {
-		showElem.find('.episodeCounterContainter').removeClass('hidden');
-		showElem.find('.episodesWithFile').text(showObj.episodesWithFile);
-		showElem.find('.airedEpisodesCount').text(showObj.airedEpisodesCount);
-		showElem.find('.lastEpisodeIndex').text(showObj.lastEpisodeIndex);
-	} else {
-		showElem.find('.episodeCounterContainter').addClass('hidden');
-	}
 	if (showObj.lastPubDate != undefined) {
 		showElem.find('.lastPubDate').text(showObj.lastPubDate);
 		var d = new Date(Number(showObj.lastPubDate * 1000));
@@ -63,11 +55,48 @@ TVShow.set = function(showObj, showElem) {
 		showElem.find('.resolutionContainer').addClass('hidden');
 	}
 
+	var warningMsg;
+	var warningClass;
+
+
 	if (showObj.pendingScrapedSeasons != undefined && showObj.pendingScrapedSeasons == '1') {
+		warningMsg = "New season scraped!";
+		warningClass = "good";
 		showElem.addClass('pendingScrapedSeasons');
 	} else {
 		showElem.removeClass('pendingScrapedSeasons');
 	}
+	if (showObj.lastEpisodeIndex != undefined) {
+		showElem.find('.episodeCounterContainer').removeClass('hidden');
+		showElem.find('.episodesWithFile').text(showObj.episodesWithFile);
+		showElem.find('.airedEpisodesCount').text(showObj.airedEpisodesCount);
+		showElem.find('.lastEpisodeIndex').text(showObj.lastEpisodeIndex);
+		if (! warningMsg) {
+			if (showObj.episodesWithFile < showObj.airedEpisodesCount) {
+				warningMsg = "File not found yet for " + (showObj.airedEpisodesCount - showObj.episodesWithFile) + " episode(s)";
+				warningClass = "bad";
+			} else if (showObj.episodesWithFile == showObj.airedEpisodesCount && showObj.airedEpisodesCount == showObj.lastEpisodeIndex) {
+				warningMsg = "Season could be set to complete";
+				warningClass = "good";
+
+			} else if (showObj.airedEpisodesCount == 0 && showObj.nextAirDate != undefined) {
+				warningMsg = "New season is coming!";
+				warningClass = "good";
+			}
+
+		}
+	} else {
+		showElem.find('.episodeCounterContainer').addClass('hidden');
+	}
+
+	if (warningMsg) {
+		showElem.find('.warningContainer').removeClass('hidden');
+		showElem.find('.warningMsg').text(warningMsg);
+		showElem.find('.warningMsg').attr('class', 'warningMsg ' + warningClass);
+	} else {
+		showElem.find('.warningContainer').addClass('hidden');
+	}
+
 }
 
 TVShow.add = function(showObj) {
@@ -176,10 +205,13 @@ TVShow.sort = function() {
 
 TVShow.filter = function() {
 	$('.show').each(function() {
-		if (! TVShow.showOnlyPendingScapedSeasons || $(this).hasClass('pendingScrapedSeasons')) {
-			$(this).show();
-		} else {
+
+		console.log($(this).find('.showTitle').text() + ": " + $(this).find('.airedEpisodesCount').text() + " - " + $(this).find('.episodesWithFile').text());
+
+		if (TVShow.showOnlyPendingScapedSeasons && !$(this).hasClass('pendingScrapedSeasons')) {
 			$(this).hide();
+		} else {
+			$(this).show();
 		}
 	});
 }

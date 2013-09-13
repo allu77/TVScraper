@@ -639,11 +639,13 @@ function addScrapedSeasonToSeasons(e, scrapedSeasonElem) {
 		action:"createSeasonScraperFromScraped",
 		scrapedSeasonId:scrapedSeasonId
 	}, function(data) {
-		var showId = scrapedSeasonElem.closest('.show').attr('id').substr(4);
+		var showElem = scrapedSeasonElem.closest('.show');
+		var showId = showElem.attr('id').substr(4);
 		$('#show' + showId + ' .scrapedSeason').remove();
 		$('#show' + showId + ' .scrapedSeasonsList').addClass('notFetched');
 		$('#show' + showId + ' .season').remove();
 		$('#show' + showId + ' .seasons').addClass('notFetched');
+		refreshTVShow(showElem);
 		loadTVShowSeasons(showId);
 		loadScrapedSeasons(showId);
 	});

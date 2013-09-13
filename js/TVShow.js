@@ -1,5 +1,6 @@
 var TVShow = {
-	showOnlyPendingScapedSeasons:false,
+	showOnlyGoodNews:false,
+	showOnlyBadNews:false
 };
 
 TVShow.set = function(showObj, showElem) {
@@ -62,19 +63,20 @@ TVShow.set = function(showObj, showElem) {
 	if (showObj.pendingScrapedSeasons != undefined && showObj.pendingScrapedSeasons == '1') {
 		warningMsg = "New season scraper found!";
 		warningClass = "good";
-		showElem.addClass('pendingScrapedSeasons');
-	} else {
-		showElem.removeClass('pendingScrapedSeasons');
 	}
 	if (showObj.lastEpisodeIndex != undefined) {
 		showElem.find('.episodeCounterContainer').removeClass('hidden');
 		showElem.find('.episodesWithFile').text(showObj.episodesWithFile);
 		showElem.find('.airedEpisodesCount').text(showObj.airedEpisodesCount);
 		showElem.find('.lastEpisodeIndex').text(showObj.lastEpisodeIndex);
-		if (! warningMsg) {
+		if (!warningMsg) {
 			if (showObj.episodesWithFile < showObj.airedEpisodesCount) {
-				warningMsg = "File not found yet for " + (showObj.airedEpisodesCount - showObj.episodesWithFile) + " episode(s)";
-				warningClass = "bad";
+				if (showObj.episodesWithFile == showObj.airedEpisodesCount - 1 && showObj.lastAiredEpisodeIndex  == showObj.latestMissingIndex) {
+					warningMsg = "File not found yet for latest episode";
+				} else {
+					warningMsg = "File not found yet for " + (showObj.airedEpisodesCount - showObj.episodesWithFile) + " episode(s)";
+					warningClass = "bad";
+				}
 			} else if (showObj.episodesWithFile == showObj.airedEpisodesCount && showObj.airedEpisodesCount == showObj.lastEpisodeIndex) {
 				warningMsg = "Season could be set to complete";
 				warningClass = "good";
@@ -95,10 +97,11 @@ TVShow.set = function(showObj, showElem) {
 	if (warningMsg) {
 		showElem.find('.warningContainer').removeClass('hidden');
 		showElem.find('.warningMsg').text(warningMsg);
-		showElem.find('.warningMsg').attr('class', 'warningMsg ' + warningClass);
 	} else {
 		showElem.find('.warningContainer').addClass('hidden');
 	}
+	//Out of if block to reset good/bad class when no warning are shown
+	showElem.find('.warningMsg').attr('class', 'warningMsg ' + warningClass);
 
 }
 
@@ -209,9 +212,8 @@ TVShow.sort = function() {
 TVShow.filter = function() {
 	$('.show').each(function() {
 
-		console.log($(this).find('.showTitle').text() + ": " + $(this).find('.airedEpisodesCount').text() + " - " + $(this).find('.episodesWithFile').text());
-
-		if (TVShow.showOnlyPendingScapedSeasons && !$(this).hasClass('pendingScrapedSeasons')) {
+		if ((TVShow.showOnlyGoodNews && !$(this).find('.warningMsg').hasClass('good')) ||
+		     TVShow.showOnlyBadNews && !$(this).find('.warningMsg').hasClass('bad')) {
 			$(this).hide();
 		} else {
 			$(this).show();
@@ -222,8 +224,5 @@ TVShow.filter = function() {
 
 $(".createTVShow").click(function(e) { TVShow.create(e); });
 $(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });
-$("#togglePendingScrapedSeasons").click(function(e) { 
-		e.preventDefault(); 
-		TVShow.showOnlyPendingScapedSeasons = ! TVShow.showOnlyPendingScapedSeasons;
-		TVShow.filter();
-});
+$("#toggleGoodNews").click(function(e) { e.preventDefault(); TVShow.showOnlyGoodNews = ! TVShow.showOnlyGoodNews; TVShow.filter(); });
+$("#toggleBadNews").click(function(e) { e.preventDefault(); TVShow.showOnlyBadNews = ! TVShow.showOnlyBadNews; TVShow.filter(); });

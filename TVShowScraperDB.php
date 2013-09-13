@@ -192,27 +192,11 @@ class TVShowScraperDB  {
 		$lastEpisodeIndex = 0;
 		$lastAiredEpisodeIndex = 0;
 		$airedEpisodesCount = 0;
-
-		for ($i = 0; $i < $episodes->length; $i++) {
-			$n = intval($episodes->item($i)->getAttribute('n'));
-			$lastEpisodeIndex = $lastEpisodeIndex < $n ? $n : $lastEpisodeIndex;
-			$air = $episodes->item($i)->getAttribute('airDate');
-			if (strlen($air) > 0) {
-				if ($air < $t) {
-					$airedEpisodesCount++;
-					$lastAiredEpisodeIndex = $lastAiredEpisodeIndex < $n ? $n : $lastAiredEpisodeIndex;
-					if (! isset($res['lastAirDate']) || $res['lastAirDate'] < $air) {
-						$res['lastAirDate'] = $air;
-					}
-				} else {
-					if (! isset($res['nextAirDate']) || $res['nextAirDate'] > $air) {
-						$res['nextAirDate'] = $air;
-					}
-				}
-			}
-		}
-		$files = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/file[@pubDate and not(@discard)]");
+		$latestMissingIndex = 0;
+		$firstMissingIndex = 65535;
 		$filesForEpisode = array();
+
+		$files = $this->xPath->query("/tvscraper/tvshow[@id='$id']/season[@status='watched']/file[@pubDate and not(@discard)]");
 		for ($i = 0; $i < $files->length; $i++) {
 			$pubDate = $files->item($i)->getAttribute('pubDate');
 			$filesForEpisode[$files->item($i)->getAttribute('episode')] = 1;
@@ -221,16 +205,38 @@ class TVShowScraperDB  {
 			}
 		}
 
+		for ($i = 0; $i < $episodes->length; $i++) {
+			$n = intval($episodes->item($i)->getAttribute('n'));
+			$lastEpisodeIndex = $lastEpisodeIndex < $n ? $n : $lastEpisodeIndex;
+			$air = $episodes->item($i)->getAttribute('airDate');
+			if (strlen($air) > 0) {
+				if ($air < $t) {
+					$id = $episodes->item($i)->getAttribute('id');
+					$airedEpisodesCount++;
+					if ($lastAiredEpisodeIndex < $n) $lastAiredEpisodeIndex = $n;
+					if (!isset($filesForEpisode[$id]) && $n > $latestMissingIndex) $latestMissingIndex = $n;
+					if (!isset($filesForEpisode[$id]) && $n < $firstMissingIndex) $firstMissingIndex = $n;
+					if (!isset($res['lastAirDate']) || $res['lastAirDate'] < $air) $res['lastAirDate'] = $air;
+				} else {
+					if (! isset($res['nextAirDate']) || $res['nextAirDate'] > $air) {
+						$res['nextAirDate'] = $air;
+					}
+				}
+			}
+		}
+
+		$pending = $this->xPath->query("/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']");
+		if ($pending->length > 0) $res['pendingScrapedSeasons'] = 1;
 
 		if ($lastEpisodeIndex > 0) {
 			$res['lastEpisodeIndex'] = $lastEpisodeIndex;
 			$res['lastAiredEpisodeIndex'] = $lastAiredEpisodeIndex;
 			$res['airedEpisodesCount'] = $airedEpisodesCount;
+			$res['latestMissingIndex'] = $latestMissingIndex;
+			$res['firstMissingIndex'] = $firstMissingIndex;
 			$res['episodesWithFile'] = sizeof($filesForEpisode);
 		}
 
-		$pending = $this->xPath->query("/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']");
-		if ($pending->length > 0) $res['pendingScrapedSeasons'] = 1;
 
 		return $res;
 	}

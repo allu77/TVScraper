@@ -157,7 +157,8 @@ class TVShowScraperWikipedia extends TVShowScraper {
 						}
 						if ($strDate != FALSE) {
 							$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
-							$strDate = (preg_replace('/[^a-z0-9 ]+/i', '', $strDate));
+							$strDate = preg_replace('/[^a-z0-9 ]+/i', '', $strDate);
+							$strDate = preg_replace('/\s+/', ' ', $strDate);
 						}
 
 						$this->log("Episode: $ep, prima TV Italia: $strDate");

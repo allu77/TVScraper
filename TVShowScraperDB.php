@@ -211,11 +211,11 @@ class TVShowScraperDB  {
 			$air = $episodes->item($i)->getAttribute('airDate');
 			if (strlen($air) > 0) {
 				if ($air < $t) {
-					$id = $episodes->item($i)->getAttribute('id');
+					$episodeId = $episodes->item($i)->getAttribute('id');
 					$airedEpisodesCount++;
 					if ($lastAiredEpisodeIndex < $n) $lastAiredEpisodeIndex = $n;
-					if (!isset($filesForEpisode[$id]) && $n > $latestMissingIndex) $latestMissingIndex = $n;
-					if (!isset($filesForEpisode[$id]) && $n < $firstMissingIndex) $firstMissingIndex = $n;
+					if (!isset($filesForEpisode[$episodeId]) && $n > $latestMissingIndex) $latestMissingIndex = $n;
+					if (!isset($filesForEpisode[$episodeId]) && $n < $firstMissingIndex) $firstMissingIndex = $n;
 					if (!isset($res['lastAirDate']) || $res['lastAirDate'] < $air) $res['lastAirDate'] = $air;
 				} else {
 					if (! isset($res['nextAirDate']) || $res['nextAirDate'] > $air) {
@@ -225,7 +225,9 @@ class TVShowScraperDB  {
 			}
 		}
 
-		$pending = $this->xPath->query("/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']");
+	
+		$q = "/tvscraper/tvshow[@id='$id']/scraper/scrapedSeason[not(@hide) or @hide='0']";
+		$pending = $this->xPath->query($q);
 		if ($pending->length > 0) $res['pendingScrapedSeasons'] = 1;
 
 		if ($lastEpisodeIndex > 0) {

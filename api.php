@@ -7,6 +7,7 @@ require_once('TVShowScraperDB.php');
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
+require_once('TVShowScraperTXT.php');
 require_once('TVShowScraperTVRage.php');
 require_once('TVShowScraperWikipedia.php');
 require_once('Logger.php');
@@ -86,6 +87,7 @@ $simpleMethods = array(
 /* method */ 'addTVShow' 				=> array( 'save' => TRUE,	'params' => array( '+title', '_other' )),
 /* method */ 'addSeason' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '+n', '_other' )),
 /* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', '+source', '+uri', '_other' )),
+/* method */ 'removeEpisode' 			=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
 /* method */ 'removeFile'	 			=> array( 'save' => TRUE,	'params' => array( 'fileId' )),
 /* method */ 'removeTVShow' 			=> array( 'save' => TRUE,	'params' => array( 'showId' )),
 /* method */ 'removeSeason' 			=> array( 'save' => TRUE,	'params' => array( 'seasonId' )),
@@ -209,11 +211,11 @@ if (isset($simpleMethods[$action])) {
 							$saveNeeded = TRUE;
 							break;
 						case 'TVU':
-							$rss = new TVShowScraperTVU($tv);
-							$rss->setLogger($logger);
+							$tvu = new TVShowScraperTVU($tv);
+							$tvu->setLogger($logger);
 
 							$res['status'] = 'ok';
-							$res['result'] = $rss->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$res['result'] = $tvu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
 							break;
 						case 'RSS':
@@ -222,6 +224,14 @@ if (isset($simpleMethods[$action])) {
 
 							$res['status'] = 'ok';
 							$res['result'] = $rss->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'txt':
+							$txt = new TVShowScraperTXT($tv);
+							$txt->setLogger($logger);
+
+							$res['status'] = 'ok';
+							$res['result'] = $txt->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
 							break;
 						case 'wikipedia':

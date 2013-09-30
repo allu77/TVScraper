@@ -14,6 +14,7 @@ function parseED2KURI($uri) {
 }
 
 function parseEpisodeFileName($fileName) {
+	$fileName = preg_replace('/%20/', ' ', $fileName);
 	$m = Array();
 	if (preg_match('/\b(\d+)x(\d+)\b/i', $fileName, $m) || preg_match('/\bs(\d+)e(\d+)\b/i', $fileName, $m)) {
 		$m[1] = preg_replace('/^0+/', '', $m[1]);

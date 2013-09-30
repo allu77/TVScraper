@@ -25,21 +25,33 @@ class TVShowScraperTXT extends TVShowScraper {
 		$showTitle = preg_replace('/\s+/', '\s+', $showTitle);
 		$showTitle = preg_replace('/[!\?\.\']/', '', $showTitle);
 
-		$this->log("Looking for $showTitle");
+		$showAlt = isset($showData['alternateTitle']) ? strtolower($showData['alternateTitle']) : '';
+		$showAlt = preg_replace('/\s+/', '\s+', $showAlt);
+		$showAlt = preg_replace('/[!\?\.\']/', '', $showAlt);
+
+		$this->log("Looking for $showTitle or $showAlt");
 
 		$rows = preg_split('/\n\r?/', $page, -1, PREG_SPLIT_NO_EMPTY);
 		
 		foreach ($rows as $r) {
-			$fileData = parseEpisodeFileName($r);	
-			if ($fileData === FALSE) {
-				$this->log("Can't guess episode season, skipping...");
+			$this->log("Evaluating $r");
+			$uriData = parseED2KURI($r);
+			if ($uriData === FALSE) {
+				$this->log("Can't guess episode filename, skipping...");
 			} else {
-				$n = $fileData['season'];
+				$fileData = parseEpisodeFileName($uriData['fileName']);	
+				$fileNameClean = preg_replace('/([\.\-_]|%20)/', ' ', $uriData['fileName']);
+				if ($fileData === FALSE) {
+					$this->log("Can't guess episode season, skipping...");
+				} else if (preg_match("/$showTitle/i", $fileNameClean) || (strlen($showAlt) > 0 && preg_match("/$showAlt/i", $fileNameClean)))  {
+					$n = $fileData['season'];
+					$this->log("Adding as candidate for season $n...");
 
-				$res[] = array(
-					'n'	=> $n,
-					'uri' => $uri
-				);
+					$res[] = array(
+						'n'	=> $n,
+						'uri' => $uri
+					);
+				}
 			}
 		}
 		return $this->submitSeasonCandidates($scraper, $res, $showOnlyNew, $saveResults);
@@ -62,7 +74,11 @@ class TVShowScraperTXT extends TVShowScraper {
 		$showTitle = preg_replace('/\s+/', '\s+', $showTitle);
 		$showTitle = preg_replace('/[!\?\.\']/', '', $showTitle);
 
-		$this->log("Looking for $showTitle");
+		$showAlt = isset($showData['alternateTitle']) ? strtolower($showData['alternateTitle']) : '';
+		$showAlt = preg_replace('/\s+/', '\s+', $showAlt);
+		$showAlt = preg_replace('/[!\?\.\']/', '', $showAlt);
+
+		$this->log("Looking for $showTitle or $showAlt");
 		
 		$candidates = array();
 		
@@ -71,7 +87,17 @@ class TVShowScraperTXT extends TVShowScraper {
 		$candidates = array();
 		$t = time();
 		for ($j = 0; $j < sizeof($rows); $j++) {
-			$candidates[] = array('link' => $rows[$j], 'pubDate' => $t);
+			$uriData = parseED2KURI($rows[$j]);
+			if ($uriData === FALSE) {
+				$this->log("Can't guess episode filename, skipping...");
+			} else {
+				$fileData = parseEpisodeFileName($uriData['fileName']);
+				$fileNameClean = preg_replace('/([\.\-_]|%20)/', ' ', $uriData['fileName']);
+
+				if (preg_match("/$showTitle/i", $fileNameClean) || (strlen($showAlt) > 0 && preg_match("/$showAlt/i", $fileNameClean)))  {
+					$candidates[] = array('link' => $rows[$j], 'pubDate' => $t);
+				}
+			}
 		}
 		
 		return $this->submitEpisodeCandidates($scraper, $candidates, $showOnlyNew, $saveResults);

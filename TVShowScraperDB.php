@@ -437,7 +437,7 @@ class TVShowScraperDB  {
 		}
 
 		if ($force == TRUE || ! $episode->getAttribute('bestSticky')) {
-			return $this->setEpisode($id, array( 'bestFile' => '_REMOVE' ));
+			return $this->setEpisode($id, array( 'bestFile' => '_REMOVE_' ));
 		}
 		return TRUE;
 

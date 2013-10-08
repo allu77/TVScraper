@@ -146,13 +146,11 @@ do_notify() {
 		')
 		sTitle=$(echo $showData | cut -d , -f 1 | sed s/\"//g)
 
-		# /usr/local/share/autodl/mailscript.sh
-
 		echo "
 		Found new scraper for season $sN for $sTitle on $sSource: 
 
 		$sURI
-		" |  /usr/local/share/autodl/mailscript.sh -s "New Season Scraped! $sTitle - $sN"
+		" |  mail -s "New Season Scraped! $sTitle - $sN"
 
 		api setScrapedSeason scrapedSeasonId $sId tbn _REMOVE_ > /dev/null
 

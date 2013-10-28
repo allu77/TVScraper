@@ -84,7 +84,7 @@ TVShow.set = function(showObj, showElem) {
 			} else if (showObj.airedEpisodesCount == 0 && showObj.nextAirDate != undefined) {
 				warningMsg = "New season is coming!";
 				warningClass = "good";
-			} else if (showObj.lastAirDate != undefined && showObj.nextAirDate != undefined && showObj.nextAirDate - showObj.lastAirDate > 604800) {
+			} else if (showObj.lastAirDate != undefined && showObj.nextAirDate != undefined && showObj.nextAirDate - showObj.lastAirDate > 612000) { // 604800 (one week) + 7200 (two hours) to handle DST changes
 				warningMsg = "Show is returning after hiatus";
 				warningClass = "good";
 			}

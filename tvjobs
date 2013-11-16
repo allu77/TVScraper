@@ -107,6 +107,13 @@ do_update() {
 
 do_notify() {
 
+	mail_to="$1"
+	if [ -z "$mail_to" ]; then
+		echo "No mail recipient provided!" >&2
+		return 1
+	fi
+	
+
 	tbnList=$(api getScrapedSeasonsTBN | awk '
 		doRead=="source" { source=$2; doRead="nothing"; }
 		doRead=="scraper" { scraper=$2; doRead="nothing"; }
@@ -150,7 +157,7 @@ do_notify() {
 		Found new scraper for season $sN for $sTitle on $sSource: 
 
 		$sURI
-		" |  mail -s "New Season Scraped! $sTitle - $sN"
+		" |  mail -s "New Season Scraped! $sTitle - $sN" "$mail_to"
 
 		api setScrapedSeason scrapedSeasonId $sId tbn _REMOVE_ > /dev/null
 
@@ -158,6 +165,7 @@ do_notify() {
 	done
 	
 	IFS=$oldIFS
+	return 0;
 }
 
 do_cleanup_complete_seasons() {
@@ -286,7 +294,7 @@ case "$action" in
 	;;
 
 "notify")
-	do_notify
+	if ! do_notify "$2"; then exit 1; fi
 	;;
 
 "cleanup")

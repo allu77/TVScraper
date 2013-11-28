@@ -7,8 +7,8 @@ and links for their episodes.
 TVScraper is both a web and a shell application. Web server is not provided and so you need to have some minimal 
 knowledge regarding configuration of a web server of your choice (e.g. apache or lighttpd).
 
-Show schedules can be fetched from http://www.tvrage.com/ for US schedule and from http://it.wikipedia.org/ for Italian
-schedule. Episode download link can be fectched from http://www.ddunlimited.net/, http://tvunderground.org.ru/, or from
+Show schedules can be fetched from <http://www.tvrage.com/> for US schedule and from <http://it.wikipedia.org/> for Italian
+schedule. Episode download link can be fectched from <http://www.ddunlimited.net/>, <http://tvunderground.org.ru/>, or from
 an RSS or a TXT file.
 
 ## Step by step install ##
@@ -18,7 +18,7 @@ an RSS or a TXT file.
 3.  Rename config-sample.php to config.php
 4.  Open config.php with any editor and configure DDU\_LOGIN and DDU\_PASSWORD
 5.  Make sure that cache, lib and log folder are writable by your http server (e.g. chgrp to www-data and chmod to g+w)
-6.  Point your browser to the installed location (e.g. http://localhost/TVScraper/) and you're ready to go!
+6.  Point your browser to the installed location (e.g. <http://localhost/TVScraper/>) and you're ready to go!
 
 You could also consider installing svn or git and download sources from the repository.
 
@@ -31,10 +31,10 @@ you can have TVScraper search the web for new seasons. You do this by configurin
 on the plus icon and configure the source you want to use. You can add more than one TV Show Scaper for each TV Show. 
 Supported sources for TV Show Scapers are:
 
-- Wikipedia.it (italian show schedule): use the URL of the TV Show page from wikipedia Italy (e.g. http://it.wikipedia.org/wiki/Big\_Bang\_Theory)
-- TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. http://services.tvrage.com/feeds/episode\_list.php?sid=5098) 
+- Wikipedia.it (italian show schedule): use the URL of the TV Show page from wikipedia Italy (e.g. <http://it.wikipedia.org/wiki/Big_Bang_Theory>)
+- TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://services.tvrage.com/feeds/episode_list.php?sid=5098>) 
 - DDUnlinmited: use the URL of the messaging board where new season of the show will be posted
-- TV Undeground: use the URL of the show page (e.g. http://tvunderground.org.ru/index.php?show=season&sid=2832)
+- TV Undeground: use the URL of the show page (e.g. <http://tvunderground.org.ru/index.php?show=season&sid=2832>)
 - RSS: use the URL of a RSS containing links for new episodes
 - TXT: use the URL of a text file containing links for new episodes
 

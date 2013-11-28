@@ -26,7 +26,8 @@ You could also consider installing svn or git and download sources from the repo
 
 ### Configuring TV Shows ###
 
-You can add new TV Shows by clicking on the "plus" at the top of the page. Once a TV Show is created, 
+You can add new TV Shows by clicking on the "plus" at the top of the page. Click on the TV Show title to open 
+or close TV Show details. Once a TV Show is created, 
 you can have TVScraper search the web for new seasons. You do this by configuring one or more "TV Show Scraper". Click 
 on the plus icon and configure the source you want to use. You can add more than one TV Show Scaper for each TV Show. 
 Supported sources for TV Show Scapers are:
@@ -46,12 +47,43 @@ Scraped Season is the URI of a source for information for a specific season of t
 on the "thumbs up" icon, TV Scraper will create a new season for you (if that season hadn't already been created) and
 and the found source to the Season Scrapers for that season (see later).
 
-If for any reason the scraped season is an invalid or useless link, you can hide hit by clicking on the thumbs down icon.
+Note: if a TV Show includes at least one season in complete status (see below), only scraped seasons later that the
+latest complete season will appear in this section.
+
+If for any reason the scraped season is an invalid or useless link, you can hide it by clicking on the thumbs down icon.
 
 Note: if you click on the trash icon, the Scraped Season will be deleted from the database, but will re-appear if
 scraped once more, while having it hidden with thumbs down button, will prevent this link to re-appear.
 
 ### Configuring Seasons ###
+
+You either add a new seasons using the TV Show Scraper feature, as described above, or manually by inserting the season
+index in the text box and pressing the Add button. Once a new season has been created, you can change its status by 
+clicking on the Edit link. Available statuses are:
+
+- Watched: episode details are scraped using the season scrapers (see below) and results appear when episode links are
+queried (see below)
+- Complete: all episodes have already been downloaded. Season scrapers won't run anymore and results won't appear anymore 
+when episode links are queried
+- Ignored: Similar to complete status, but has no effect on TV Show scrapers.
+
+Click on the season title to open or close details. You can, and by the way you should, add season scrapers to each
+season you want to follow. Season scrapers are either created by the TV Show Scrapers, or, alternatively, you can add
+a season scraper manually by selecting the scraper type from the drop down list, typing an appropriate URL and finally
+clicking the Add button. Supported sources for season scrapers are:
+
+- Wikipedia.it (italian show schedule): use the URL of the season page from wikipedia Italy (e.g. <http://it.wikipedia.org/wiki/Episodi_di_Big_Bang_Theory_(sesta_stagione)>)
+- TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://services.tvrage.com/feeds/episode_list.php?sid=5098>) . The season scraper will look only for episodes of this season.
+- DDUnlinmited: use the URL of the first page of the thread where new episodes of this season will be posted
+- TV Undeground: use the URL of the RSS of the season you want to download (e.g. <http://tvunderground.org.ru/rss.php?se_id=60938>)
+- RSS: use the URL of a RSS containing links for new episodes. The scraper will parse the filename or the item title and look only
+for episodes of this season.
+- TXT: use the URL of a text file containing links for new episodes. The scraper will parse the filename and look only for episodes of this season.
+
+Once one or more TV Show Scrapers are configured, you can run them manually by clicking on the refresh icon on the right
+or schedule the scrapers to run via command line (see later). 
+
+
 
 ### Managing Episodes ###
 

@@ -80,11 +80,31 @@ clicking the Add button. Supported sources for season scrapers are:
 for episodes of this season.
 - TXT: use the URL of a text file containing links for new episodes. The scraper will parse the filename and look only for episodes of this season.
 
-Once one or more TV Show Scrapers are configured, you can run them manually by clicking on the refresh icon on the right
-or schedule the scrapers to run via command line (see later). 
+Once one or more Season Scrapers are configured, you can run them manually by clicking on the refresh icon on the right
+or schedule the scrapers to run via command line (see later). If you configure more than one Season Scraper, TVScraper will
+merge results according to your preferences and appearing order. You can tune scraper results by changing preference and
+delay parameters for each season scraper.
 
-
+- Scrapers are results evaulated in preference order. Empty preference has highest priority, followed by preference value 
+in increasing order. If two scrapers with different priorities provide link for the same episode, the highest priority one
+wins.
+- If two scrapers with same priority provide link for the same episode, the oldest link wins. An exception to this rule 
+is applied when a single scraper provides two different links for the same episode. In this case, the scraper which pulished
+the first link before wins.
+- If a delay is configured for a Season Scraper, that delay will be applied to scraped links, so that they won't be considered
+until that delay (in seconds) expires.
 
 ### Managing Episodes ###
 
+You will find air dates and episode links in the Espisodes section. If you are using more than one season scraper, you can
+fine tune the results by clicking on the icons on the right of each episode. 
+
+- Trash icon will remove this link from the database. Warning: this is meant to be used to overcome temporary bad result 
+received from scraper, as the same link could re-appear if the scraper finds it again. 
+- OK sign (v) will "lock" a scraper result, meaning that it will always be considered as the best one for that episode, and
+the standard priority rules for scrapers results won't be applied anymore. Click on the sign again to unlock the result and
+let stanard priority logic apply.
+- The ban sign will mark a result as invalid. Warning: that result won't ever come up anymore.
+
 ### Automation via command line ###
+

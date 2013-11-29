@@ -16,6 +16,7 @@ show_usage() {
 	echo "Valid ACTION" >&2
 	echo "  update [only_season|only_show]" >&2
 	echo "  notify" >&2
+	echo "  cleanup" >&2
 }
 
 

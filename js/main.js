@@ -121,8 +121,7 @@ function toggleTVShow(tvShowElem) {
 		toggleButton.addClass('glyphicon-collapse-up');
 	} else {
 		toggleButton.removeClass('glyphicon-collapse-up');
-		toggleButton.addClass('glyphicon-collapse-down');
-	}
+		toggleButton.addClass('glyphicon-collapse-down'); }
 	tvShowElem.find('.showContent').slideToggle();
 	if (tvShowElem.find('.seasons').hasClass('notFetched')) {
 		loadTVShowSeasons(tvShowElem.attr('id').substr(4));
@@ -717,6 +716,11 @@ function loadSeasonEpisodes(seasonId) {
 }
 
 
+function setSortFlag(menuElem) {
+	menuElem.closest('ul').find('.glyphicon').removeClass('glyphicon-ok');
+	menuElem.closest('li').find('.glyphicon').addClass('glyphicon-ok');
+}
+
 var showSortBy = 'nextAirDate';
 var showHiddenScrapedSeasons = false;
 
@@ -746,17 +750,20 @@ $(document).ready(function() {
 	//$('#addNewShowButton').click(function() {addNewShowSubmit();} );
 	$('#addNewShowForm').submit(function(e) { addNewShowSubmit(e);} );
 
-	$('#sortByTitle').click(function(e) { e.preventDefault(); showSortBy = 'title'; tvShowSort(); });
-	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); showSortBy = 'lastPubDate'; tvShowSort(); });
-	$('#sortByLastAirDate').click(function(e) { e.preventDefault(); showSortBy = 'lastAirDate'; tvShowSort(); });
-	$('#sortByNextAirDate').click(function(e) { e.preventDefault(); showSortBy = 'nextAirDate'; tvShowSort(); });
+	$('#sortByTitle').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'title'; tvShowSort(); });
+	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastPubDate'; tvShowSort(); });
+	$('#sortByLastAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastAirDate'; tvShowSort(); });
+	$('#sortByNextAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'nextAirDate'; tvShowSort(); });
 
 	$('#toggleHiddenScrapedSeasons').click(function(e) { 
 		e.preventDefault(); 
+		var menuIcon = $(this).closest('li').find('.glyphicon');
 		showHiddenScrapedSeasons = ! showHiddenScrapedSeasons;
 		if (!showHiddenScrapedSeasons) {
+			menuIcon.removeClass('glyphicon-ok');
 			$('.hiddenScrapedSeasonsSection').hide();
 		} else {
+			menuIcon.addClass('glyphicon-ok');
 			$('.hiddenScrapedSeasonsSection').each(function() {
 				if ($(this).find('.scrapedSeason').length == 0) {
 					$(this).hide();

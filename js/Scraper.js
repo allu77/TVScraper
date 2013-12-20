@@ -1,9 +1,65 @@
-var TVShow = {
-	showOnlyGoodNews:false,
-	showOnlyBadNews:false
+var Season = {
 };
 
-TVShow.set = function(showObj, showElem) {
+Season.showEditDialog = function(onClick, seasonObj) {
+	if (Season.dialog == undefined) {
+		Season.dialog = $("#seasonEditDialog").first();
+	}
+
+	var isNewDialog = (seasonObj == undefined);
+	Season.dialog.find('#editSeasonN').val(isNewDialog ? "" : seasonObj.n);
+	Season.dialog.find('#editSeasonStatus option').each(function() { this.selected = (this.value == (isNewDialog ? 'watched' : seasonObj.status)); });
+	
+	Season.dialog.find('.submitButton').unbind('click');
+	if (onClick != undefined) {
+		Season.dialog.find('.submitButton').click(onClick);
+	}
+	Season.dialog.modal('show');
+};
+
+Season.create = function(showElem, e) {
+	e.preventDefault();
+	Season.showEditDialog(function(e) {
+		showObj = TVShow.parse(showElem);
+
+		runAPI({
+			action:"addSeason",
+			showId:showObj.id,
+			n:Season.dialog.find('#editSeasonN').val(),
+			status:Season.dialog.find('#editSeasonStatus').find(':selected').first().val(),
+		}, function(data) {
+			Season.add(data.result);
+			Season.sort(showElem);
+			Season.dialog.modal('hide');
+		});
+	});
+};
+
+Season.add = function(seasonObj) {
+	var newSeasonElem = $('#guiSkeleton .season').clone(true);
+	Season.set(seasonObj, newSeasonElem);
+	$('#show' + seasonObj.tvshow + ' .seasonList').append(newSeasonElem);
+}
+
+Season.set = function(seasonObj, seasonElem) {
+	if (seasonObj.id != undefined) seasonElem.attr('id', 'season' + seasonObj.id);
+	if (seasonObj.n != undefined) seasonElem.find('.seasonN').text(seasonObj.n);
+	if (seasonObj.status != undefined) seasonElem.find('.seasonStatus').text(seasonObj.status);
+}
+
+Season.sort = function(showElem) {
+	showElem.find('.seasonN').sortElements(function(a,b) { 
+		return parseInt(($(a).text()) - parseInt($(b).text())); 
+	}, function() { 
+		return $(this).closest('.season').get(0); 
+	});
+}
+
+
+
+/*
+
+Season.set = function(showObj, showElem) {
 	if (showObj.id != undefined) showElem.attr('id', 'show' + showObj.id);
 	if (showObj.title != undefined) showElem.find('.showTitle').text(showObj.title);
 	if (showObj.lastAirDate != undefined) {
@@ -105,34 +161,15 @@ TVShow.set = function(showObj, showElem) {
 
 }
 
-TVShow.add = function(showObj) {
+Season.add = function(showObj) {
 	var newTVShowElement = $('#guiSkeleton .show').clone(true);
 	TVShow.set(showObj, newTVShowElement);
 	$('#showList').append(newTVShowElement);
 	tvShowSort();
 }
 
-TVShow.showEditDialog = function(onClick, showObj ) {
-	if (TVShow.dialog == undefined) {
-		TVShow.dialog = $("#showEditDialog").first();
-	}
 
-	var isNewDialog = (showObj == undefined);
-	TVShow.dialog.find('#editTVShowTitle').val(isNewDialog ? "" : showObj.title);
-	TVShow.dialog.find('#editTVShowAlternateTitle').val(isNewDialog ? "" : showObj.alternateTitle);
-	TVShow.dialog.find('#editTVShowLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'ita' : showObj.lang)); });
-	TVShow.dialog.find('#editTVShowNativeLanguage option').each(function() { this.selected = (this.value == (isNewDialog ? 'eng' : showObj.nativeLang)); });
-	TVShow.dialog.find('#editTVShowResolution option').each(function() { this.selected = (this.value == (isNewDialog ? 'any' : showObj.res)); });
-
-	
-	TVShow.dialog.find('.submitButton').unbind('click');
-	if (onClick != undefined) {
-		TVShow.dialog.find('.submitButton').click(onClick);
-	}
-	TVShow.dialog.modal('show');
-};
-
-TVShow.create = function(e) {
+Season.create = function(e) {
 	e.preventDefault();
 	TVShow.showEditDialog(function(e) {
 		runAPI({
@@ -150,7 +187,7 @@ TVShow.create = function(e) {
 	});
 };
 
-TVShow.parse = function(showElement) {
+Season.parse = function(showElement) {
 	return {
 		id:showElement.attr('id').substr(4),
 		title:showElement.find('.showTitle').text(),
@@ -161,7 +198,7 @@ TVShow.parse = function(showElement) {
 	};
 }
 
-TVShow.edit = function(e, showElement) {
+Season.edit = function(e, showElement) {
 	e.preventDefault();
 	showObj = TVShow.parse(showElement);
 	TVShow.showEditDialog(function(e) {
@@ -222,9 +259,12 @@ TVShow.filter = function() {
 }
 
 
-$(".createTVShow").click(function(e) { TVShow.create(e); });
 $(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });
 $(".toggleTVShow").click(function() { toggleTVShow($(this).closest('.show'));});
 
 $("#toggleGoodNews").click(function(e) { e.preventDefault(); TVShow.showOnlyGoodNews = ! TVShow.showOnlyGoodNews; TVShow.filter(); });
 $("#toggleBadNews").click(function(e) { e.preventDefault(); TVShow.showOnlyBadNews = ! TVShow.showOnlyBadNews; TVShow.filter(); });
+
+*/
+
+$(".createSeason").click(function(e) { Season.create($(this).closest('.show'), e); });

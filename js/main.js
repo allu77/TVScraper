@@ -115,6 +115,14 @@ function addNewShowSubmit(e) {
 }
 
 function toggleTVShow(tvShowElem) {
+	var toggleButton = tvShowElem.find('.toggleTVShow .glyphicon');
+	if (toggleButton.hasClass('glyphicon-collapse-down')) {
+		toggleButton.removeClass('glyphicon-collapse-down');
+		toggleButton.addClass('glyphicon-collapse-up');
+	} else {
+		toggleButton.removeClass('glyphicon-collapse-up');
+		toggleButton.addClass('glyphicon-collapse-down');
+	}
 	tvShowElem.find('.showContent').slideToggle();
 	if (tvShowElem.find('.seasons').hasClass('notFetched')) {
 		loadTVShowSeasons(tvShowElem.attr('id').substr(4));
@@ -148,7 +156,8 @@ function refreshTVShow(showEelement) {
 
 
 function loadTVShowSeasons(showId) {
-	$('#show' + showId + ' .seasons').removeClass('notFetched');
+	var showElem = $('#show' + showId);
+	showElem.find('.seasons').removeClass('notFetched');
 
 	runAPI(
 		{
@@ -157,49 +166,11 @@ function loadTVShowSeasons(showId) {
 		},
 		function(data) {
 			for (var i = 0; i < data.result.length; i++) {
-				addSeason(showId, data.result[i]);
+				Season.add(data.result[i]);
 			}
+			Season.sort(showElem);
 		}
 		);
-}
-
-function addSeason(showId, seasonObj) {
-	var newSeasonElem = $('#guiSkeleton .season').clone(true);
-	setSeason(seasonObj, newSeasonElem);
-	$('#show' + showId + ' .seasons').append(newSeasonElem);
-	seasonSort(showId);
-}
-
-function setSeason(seasonObj, seasonElem) {
-	if (seasonObj.id != undefined) seasonElem.attr('id', 'season' + seasonObj.id);
-	if (seasonObj.n != undefined) seasonElem.find('.seasonN').text(seasonObj.n);
-	if (seasonObj.status != undefined) seasonElem.find('.seasonStatus').text(seasonObj.status);
-}
-
-function seasonSort(showId) {
-	$('#show' + showId + ' .seasonTitle').sortElements(function(a,b) { return $(a).text().localeCompare($(b).text()); }, function() { return $(this).closest('.season').get(0); });
-}
-
-
-function addNewSeasonSubmit(e, formElement) {
-	e.preventDefault();
-	var seasonN = formElement.children('input[name="newSeasonN"]').val();
-	var seasonShowId = formElement.closest('.show').attr('id').substr(4);
-	runAPI(
-		{ 
-			action:"addSeason", 
-			showId:seasonShowId,
-			n:seasonN,
-			status:"watched"
-		}, 
-		function(data) {
-			addSeason(seasonShowId, {
-				id: data.result,
-				n: seasonN,
-				status: "watched"
-			});
-
-		});
 }
 
 
@@ -239,7 +210,7 @@ function refreshSeason(seasonElement) {
 		seasonId:seasonElement.attr('id').substr(6)
 	},
 	function(dataSeason) {
-		setSeason(dataSeason.result, seasonElement);
+		Season.set(dataSeason.result, seasonElement);
 		refreshTVShow(seasonElement.closest('.show'));
 	});
 }
@@ -299,14 +270,16 @@ function loadTVShowScrapers(showId) {
 }
 
 function loadSeasonScrapers(seasonId) {
-	$('#season' + seasonId + ' .scraperList').removeClass('notFetched');
+	var seasonElem = $('#season' + seasonId);
+	seasonElem.find('.scraperList').removeClass('notFetched');
 	runAPI({
 		action:"getSeasonScrapers",
 		seasonId:seasonId
 	}, function(data) {
 		for (var i = 0; i < data.result.length; i++) {
-			addSeasonScraper(seasonId, data.result[i]);
+			SeasonScraper.add(data.result[i]);
 		}
+		SeasonScraper.sort(seasonElem);
 	});
 }
 
@@ -318,13 +291,6 @@ function addTVShowScraper(showId, scraperObj) {
 }
 
 
-function addSeasonScraper(seasonId, scraperObj) {
-	var newScraperElem = $('#guiSkeleton .seasonScraper').clone(true);
-	setSeasonScraper(scraperObj, newScraperElem);
-	$('#season' + seasonId + ' .scraperList').append(newScraperElem);
-	seasonScraperSort(seasonId);
-}
-
 function setTVShowScraper(scraperObj, scraperElem) {
 	if (scraperObj.id != undefined) scraperElem.attr('id', 'scraper' + scraperObj.id);
 	if (scraperObj.source != undefined) scraperElem.find('.scraperSource').text(scraperObj.source);
@@ -334,17 +300,6 @@ function setTVShowScraper(scraperObj, scraperElem) {
 	}
 	scraperElem.find('.scraperAutoAdd').attr("checked", scraperObj.autoAdd == "1" ? true : false);
 	scraperElem.find('.scraperNotify').attr("checked", scraperObj.notify == "1" ? true : false);
-}
-
-function setSeasonScraper(scraperObj, scraperElem) {
-	if (scraperObj.id != undefined) scraperElem.attr('id', 'scraper' + scraperObj.id);
-	scraperElem.find('.scraperPreference').text(scraperObj.preference != undefined ? scraperObj.preference : "");
-	if (scraperObj.source != undefined) scraperElem.find('.scraperSource').text(scraperObj.source);
-	if (scraperObj.delay != undefined) scraperElem.find('.scraperDelay').text(scraperObj.delay);
-	if (scraperObj.uri != undefined) {
-		scraperElem.find('.scraperUriText').text(scraperObj.uri.trunc(100));
-		scraperElem.find('.scraperUri').attr('href', scraperObj.uri);
-	}
 }
 
 function seasonScraperSort(seasonId) {
@@ -406,23 +361,6 @@ function refreshEpisodeList(seasonElement) {
 	loadSeasonEpisodes(seasonElement.attr('id').substr(6));
 }
 
-function addNewScraperSubmit(e, formElement) {
-	e.preventDefault();
-	var scraperSource = formElement.find('select[name="newScraperSource"] :selected').val();
-	var scraperUri = formElement.find('input[name="newScraperURI"]').val();
-	var scraperSeasonId = formElement.closest('.season').attr('id').substr(6);
-	runAPI(
-			{ 
-				action:"addScraper", 
-				rootId:scraperSeasonId,
-				source:scraperSource,
-				uri:scraperUri
-			}, 
-			function(data) {
-				addSeasonScraper(scraperSeasonId, data.result);
-			});
-}
-
 
 
 function refreshTVShowScraper(scraperElement) {
@@ -444,7 +382,7 @@ function refreshSeasonScraper(scraperElement) {
 		scraperId:scraperElement.attr('id').substr(7)
 	},
 	function(dataScraper) {
-		setSeasonScraper(dataScraper.result, scraperElement);
+		SeasonScraper.set(dataScraper.result, scraperElement);
 		seasonScraperSort(scraperElement.closest('.season').attr('id').substr(6));
 		refreshEpisodeList(scraperElement.closest('.season'));
 	});
@@ -625,9 +563,9 @@ function setScrapedSeason(scrapedSeasonElem, scrapedSeasonObj) {
 		scrapedSeasonElem.find('.scrapedSeasonUriText').text(scrapedSeasonObj.uri);
 	}
 	if (scrapedSeasonObj.hide == undefined || scrapedSeasonObj.hide == '0') {
-		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'icon-thumbs-down');
+		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'glyphicon glyphicon-thumbs-down');
 	} else {
-		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'icon-thumbs-up');
+		scrapedSeasonElem.find('.toggleScrapedSeason i').attr('class', 'glyphicon glyphicon-thumbs-up');
 	}
 }
 
@@ -713,8 +651,10 @@ function loadSeasonEpisodes(seasonId) {
 						if (data.result[i].airDate  != undefined) {
 							var d = new Date(Number(data.result[i].airDate * 1000));
 							newEp.find('.episodeAirDate').text(d.getDate() + '/' + (d.getMonth() + 1) + "/" + d.getFullYear());
+							newEp.find('.episodeAirDateShort').text(d.getDate() + '/' + (d.getMonth() + 1));
 						} else {
 							newEp.find('.episodeAirDate').text("Unknown");
+							newEp.find('.episodeAirDateShort').text("Unk");
 						}
 
 						if (data.result[i].lastFilePubDate  != undefined) {
@@ -725,6 +665,7 @@ function loadSeasonEpisodes(seasonId) {
 						} else {
 							newEp.find('.episodeLastPubDate').text("Not yet");
 						}
+						newEp.find('.bestUriTextShort').text('');
 
 						if (data.result[i].bestSticky) {
 							newEp.find('.removeFile').hide();
@@ -749,6 +690,8 @@ function loadSeasonEpisodes(seasonId) {
 								for (var j = 0; j < data.result.length; j++) {
 									$('#episode' + data.result[j].episode + ' .bestUri').attr('href', data.result[j].uri);
 									$('#episode' + data.result[j].episode + ' .bestUriText').text(data.result[j].uri.trunc(100));
+									console.log("LEN:" + data.result[j].uri.length);
+									$('#episode' + data.result[j].episode + ' .bestUriTextShort').text('URI');
 									$('#episode' + data.result[j].episode + ' .bestFileId').text(data.result[j].id);
 									$('#episode' + data.result[j].episode + ' .bestFileSource').text($('#season' + seasonId + ' #scraper' + data.result[j].scraper + ' .scraperOrder').text());
 								}
@@ -794,8 +737,6 @@ $(document).ready(function() {
 	
 	//$('#addNewShowButton').click(function() {addNewShowSubmit();} );
 	$('#addNewShowForm').submit(function(e) { addNewShowSubmit(e);} );
-	$('form.addNewSeason').submit(function(e) { addNewSeasonSubmit(e, $(this));} );
-	$('form.addNewScraper').submit(function(e) { addNewScraperSubmit(e, $(this));} );
 
 	$('#sortByTitle').click(function(e) { e.preventDefault(); showSortBy = 'title'; tvShowSort(); });
 	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); showSortBy = 'lastPubDate'; tvShowSort(); });

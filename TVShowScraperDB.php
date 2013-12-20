@@ -264,13 +264,14 @@ class TVShowScraperDB  {
 			$this->error("Can't create new season for show $showId");
 			return FALSE;
 		}
-	
-		if (! $this->setSeason($newId, $p)) {
+
+		$newSeason = $this->setSeason($newId, $p);
+		if (!$newSeason) {	
 			$this->removeSeason($newId);
 			return FALSE;
 		}
 	
-		return $newId;
+		return $newSeason;
 	}
 	
 	public function removeSeason($id) {
@@ -317,7 +318,7 @@ class TVShowScraperDB  {
 			}
 		}
 	
-		return TRUE;
+		return $this->getSeason($id);
 	}
 	
 	public function getSeason($id) {

@@ -8,8 +8,15 @@
 	display: none;
 }
 
+.showContent {
+	margin-top: 2em;
+}
+
+.showContent h2 {
+	margin-top: 0;
+}
+
 .seasonTitle {
-	display: inline;
 	cursor: pointer;
 }
 
@@ -30,6 +37,19 @@
 	text-align: right;
 }
 
+.actionIcons a {
+	color: black;
+}
+
+tfoot .actionIcons {
+	text-align: center;
+	font-size: 2em;
+}
+
+.seasons h3.actionIcons {
+	text-align: center;
+}
+
 .fileURIContainer {
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -42,4 +62,40 @@
 
 .warningMsg.bad {
 	color: red;
+}
+
+.modal-header h3 {
+	margin: 0px;
+}
+
+.season header {
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+}
+
+.show header h1 {
+	margin-top: 5px;
+}
+
+.tvShowScraperAdd {
+	font-size: 0.7em;
+	padding-left: 0.5;
+}
+
+.showScraper td {
+	vertical-align: middle;
+}
+
+.actionIcons.visible-xs {
+	font-size: 1.5em;
+}
+
+.seasons h3 {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+
+.well {
+	padding: 14px;
 }

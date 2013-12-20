@@ -199,7 +199,7 @@ Season.add = function(showObj) {
 	var newTVShowElement = $('#guiSkeleton .show').clone(true);
 	TVShow.set(showObj, newTVShowElement);
 	$('#showList').append(newTVShowElement);
-	tvShowSort();
+	TVShow.sort();
 }
 
 

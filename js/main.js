@@ -1,4 +1,5 @@
 var showProgress = false;
+var confDialog;
 
 function runAPI(parameters, onSuccess, onKO, onFailure) {
 	showProgress = true;
@@ -37,115 +38,24 @@ function progressDialog(show, timeout) {
 	}
 }
 
+function confirmDialog(msg, onOK) {
+	if (confDialog == undefined) {
+		confDialog = $('#confirmDialog');
+	}
+	confDialog.find('#confirmMsg').text(msg);
+
+	confDialog.find('.submitButton').unbind('click');
+	if (onOK != undefined) {
+		confDialog.find('.submitButton').click(onOK);
+	}
+	confDialog.modal('show');
+}
 
 
 /******************************************************
  TV Show 
  *****************************************************/
 
-function tvShowSort() {
-	var sorter;
-	switch (showSortBy) {
-		case 'lastPubDate':
-			sorter = function(a,b) { return Number($(b).find('.lastPubDate').text()) - Number($(a).find('.lastPubDate').text()); };
-			break;
-		case 'lastAirDate':
-			sorter = function(a,b) { return Number($(b).find('.lastAirDate').text()) - Number($(a).find('.lastAirDate').text()); };
-			break;
-		case 'nextAirDate':
-			sorter = function(a,b) { 
-				var textA = $(a).find('.nextAirDate').text();
-				var textB = $(b).find('.nextAirDate').text();
-
-				if (textA == "" && textB == "") { return 0; }
-				else if (textA == "") { return 1; }
-				else if (textB == "") { return -1; }
-				else { return Number(textA) - Number(textB); };
-			};
-			break;
-		case 'title':
-			sorter = function(a,b) { return $(a).find('.showTitle').text().localeCompare($(b).find('.showTitle').text()); };
-			break;
-	}
-	
-	$('#showList .show').sortElements(sorter, function() { return $(this).get(0); });
-}
-
-function getAllTVShows() {
-	runAPI(
-		{ action:"getAllTVShows" },
-		function(data) {
-			for (var i = 0; i < data.result.length; i++) {
-				TVShow.add(data.result[i]);
-			}
-		}
-	);
-}
-
-function deleteTVShow(e, showElement) {
-	e.preventDefault();
-	var goOn = confirm("DELETE SHOW " + showElement.attr('id').substr(4) + "?");
-	if (goOn) {
-		runAPI(
-			{ 
-				action:"removeTVShow", 
-				showId:showElement.attr('id').substr(4) 
-			}, 
-			function(data) {
-				showElement.remove();
-			}
-		);
-	}
-}
-
-function addNewShowSubmit(e) {
-	e.preventDefault();
-	var showTitle = $.trim($('#newShowTitle').val());
-	runAPI(
-		{ 
-			action:"addTVShow", 
-			title:showTitle 
-		}, 
-		function(data) {
-			TVShow.add({
-				id:data.result,
-				title:showTitle
-			});
-		});
-}
-
-function toggleTVShow(tvShowElem) {
-	var toggleButton = tvShowElem.find('.toggleTVShow .glyphicon');
-	if (toggleButton.hasClass('glyphicon-collapse-down')) {
-		toggleButton.removeClass('glyphicon-collapse-down');
-		toggleButton.addClass('glyphicon-collapse-up');
-	} else {
-		toggleButton.removeClass('glyphicon-collapse-up');
-		toggleButton.addClass('glyphicon-collapse-down'); }
-	tvShowElem.find('.showContent').slideToggle();
-	if (tvShowElem.find('.seasons').hasClass('notFetched')) {
-		loadTVShowSeasons(tvShowElem.attr('id').substr(4));
-	}
-	if (tvShowElem.find('.showScrapers .scraperList').hasClass('notFetched')) {
-		loadTVShowScrapers(tvShowElem.attr('id').substr(4));
-	}
-	if (tvShowElem.find('.showScrapers .scrapedSeasonsList').hasClass('notFetched')) {
-		loadScrapedSeasons(tvShowElem.attr('id').substr(4));
-	}
-
-}
-
-function refreshTVShow(showEelement) {
-	runAPI(
-	{
-		action:"getTVShow",
-		showId:showEelement.attr('id').substr(4)
-	},
-	function(data) {
-		TVShow.set(data.result, showEelement);
-		tvShowSort();
-	});
-}
 
 
 
@@ -218,7 +128,7 @@ function refreshSeason(seasonElement) {
 	},
 	function(dataSeason) {
 		Season.set(dataSeason.result, seasonElement);
-		refreshTVShow(seasonElement.closest('.show'));
+		TVShow.refresh(seasonElement.closest('.show'));
 	});
 }
 
@@ -590,7 +500,7 @@ function addScrapedSeasonToSeasons(e, scrapedSeasonElem) {
 		$('#show' + showId + ' .scrapedSeasonsList').addClass('notFetched');
 		$('#show' + showId + ' .season').remove();
 		$('#show' + showId + ' .seasons').addClass('notFetched');
-		refreshTVShow(showElem);
+		TVShow.refresh(showElem);
 		loadTVShowSeasons(showId);
 		loadScrapedSeasons(showId);
 	});
@@ -727,8 +637,6 @@ var showHiddenScrapedSeasons = false;
 $(document).ready(function() {
 	//refreshShowList();
 
-	//tvShowSort();
-	$('.show .showTitle').click(function() { toggleTVShow($(this).closest('.show'));});
 	$('.season .seasonTitle').click(function() { toggleSeason($(this).closest('.season'));});
 	$('.season .toggleSeason').click(function(e) { e.preventDefault(); toggleSeason($(this).closest('.season'));});
 	$('.seasonScraper .removeScraper').click(function(e) { deleteScraper(e, $(this).closest('.seasonScraper')); });
@@ -738,7 +646,6 @@ $(document).ready(function() {
 	$('.scrapedSeason .removeScrapedSeason').click(function(e) { removeScrapedSeason(e, $(this).closest('.scrapedSeason')); });
 	$('.seasonScraper .runScraper').click(function(e) { runScraper(e, $(this).closest('.seasonScraper')); });
 	$('.showScraper .runScraper').click(function(e) { runScraper(e, $(this).closest('.showScraper')); });
-	$('.removeShow').click(function(e) { deleteTVShow(e, $(this).closest('.show')); });
 	$('.removeSeason').click(function(e) { deleteSeason(e, $(this).closest('.season')); });
 
 	$('.episodeList').addClass('notFetched');
@@ -750,10 +657,10 @@ $(document).ready(function() {
 	//$('#addNewShowButton').click(function() {addNewShowSubmit();} );
 	$('#addNewShowForm').submit(function(e) { addNewShowSubmit(e);} );
 
-	$('#sortByTitle').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'title'; tvShowSort(); });
-	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastPubDate'; tvShowSort(); });
-	$('#sortByLastAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastAirDate'; tvShowSort(); });
-	$('#sortByNextAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'nextAirDate'; tvShowSort(); });
+	$('#sortByTitle').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'title'; TVShow.sort(); });
+	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastPubDate'; TVShow.sort(); });
+	$('#sortByLastAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastAirDate'; TVShow.sort(); });
+	$('#sortByNextAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'nextAirDate'; TVShow.sort(); });
 
 	$('#toggleHiddenScrapedSeasons').click(function(e) { 
 		e.preventDefault(); 
@@ -779,8 +686,5 @@ $(document).ready(function() {
 	$('.showScraper .editScraper').click(function(e) { editTVShowScraper(e, $(this).closest('.showScraper'));} );
 	
 	$('.addTVShowScraper').click(function(e) { addFormTVShowScraper(e, $(this).closest('.show'));});
-
-
-	getAllTVShows();
 
 });

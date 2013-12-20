@@ -109,7 +109,7 @@ TVShow.add = function(showObj) {
 	var newTVShowElement = $('#guiSkeleton .show').clone(true);
 	TVShow.set(showObj, newTVShowElement);
 	$('#showList').append(newTVShowElement);
-	tvShowSort();
+	TVShow.sort();
 }
 
 TVShow.showEditDialog = function(onClick, showObj ) {
@@ -233,10 +233,78 @@ TVShow.filter = function() {
 	});
 }
 
+TVShow.del = function(e, showElem) {
+	e.preventDefault();
+	showObj = TVShow.parse(showElem);
+	confirmDialog("WARNING! You are going to completely remove TV Show '" + showObj.title + "'! This cannot be undone. Are you sure you want to go on?", function() { TVShow.remove(showElem); });
+}
+
+TVShow.remove = function(showElem) {
+	showObj = TVShow.parse(showElem);
+	runAPI(
+		{ 
+		action:"removeTVShow", 
+		showId:showObj.id
+		}, 
+		function(data) {
+			showElem.remove();
+			confDialog.modal('hide');
+		}
+	);
+}
+
+
+TVShow.getAll = function () {
+	runAPI(
+		{ action:"getAllTVShows" },
+		function(data) {
+			for (var i = 0; i < data.result.length; i++) {
+				TVShow.add(data.result[i]);
+			}
+		}
+	);
+}
+
+TVShow.refresh = function(showEelement) {
+	showObj = TVShow.parse(showElement);
+	runAPI(
+	{
+		action:"getTVShow",
+		showId:showObj.id
+	},
+	function(data) {
+		TVShow.set(data.result, showEelement);
+		TVShow.sort();
+	});
+}
+
+TVShow.toggle = function (tvShowElem) {
+	var toggleButton = tvShowElem.find('.toggleTVShow .glyphicon');
+	var showObj = TVShow.parse(tvShowElem);
+	if (toggleButton.hasClass('glyphicon-collapse-down')) {
+		toggleButton.removeClass('glyphicon-collapse-down');
+		toggleButton.addClass('glyphicon-collapse-up');
+	} else {
+		toggleButton.removeClass('glyphicon-collapse-up');
+		toggleButton.addClass('glyphicon-collapse-down');
+	}
+	tvShowElem.find('.showContent').slideToggle();
+	if (tvShowElem.find('.seasons').hasClass('notFetched')) {
+		loadTVShowSeasons(showObj.id);
+	}
+	if (tvShowElem.find('.showScrapers .scraperList').hasClass('notFetched')) {
+		loadTVShowScrapers(showObj.id);
+	}
+	if (tvShowElem.find('.showScrapers .scrapedSeasonsList').hasClass('notFetched')) {
+		loadScrapedSeasons(showObj.id);
+	}
+}
 
 $(".createTVShow").click(function(e) { TVShow.create(e); });
 $(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });
-$(".toggleTVShow").click(function(e) { e.preventDefault(); toggleTVShow($(this).closest('.show'));});
+$(".show .toggleTVShow").click(function(e) { e.preventDefault(); TVShow.toggle($(this).closest('.show'));});
+$('.show .showTitle').click(function() { TVShow.toggle($(this).closest('.show'));});
+$('.removeShow').click(function(e) { TVShow.del(e, $(this).closest('.show')); });
 
 $("#toggleGoodNews").click(function(e) { 
 	e.preventDefault(); 
@@ -254,3 +322,5 @@ $("#toggleBadNews").click(function(e) {
 	}
 	TVShow.filter(); 
 });
+
+$(document).ready(function() { TVShow.getAll(); } );

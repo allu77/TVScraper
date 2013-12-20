@@ -654,13 +654,6 @@ $(document).ready(function() {
 	$('.seasons').addClass('notFetched');
 
 	
-	//$('#addNewShowButton').click(function() {addNewShowSubmit();} );
-	$('#addNewShowForm').submit(function(e) { addNewShowSubmit(e);} );
-
-	$('#sortByTitle').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'title'; TVShow.sort(); });
-	$('#sortByLastUpdate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastPubDate'; TVShow.sort(); });
-	$('#sortByLastAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastAirDate'; TVShow.sort(); });
-	$('#sortByNextAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'nextAirDate'; TVShow.sort(); });
 
 	$('#toggleHiddenScrapedSeasons').click(function(e) { 
 		e.preventDefault(); 

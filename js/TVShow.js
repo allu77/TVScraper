@@ -323,4 +323,9 @@ $("#toggleBadNews").click(function(e) {
 	TVShow.filter(); 
 });
 
+$('#sortByTitle').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'title'; TVShow.sort(); });
+$('#sortByLastUpdate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastPubDate'; TVShow.sort(); });
+$('#sortByLastAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'lastAirDate'; TVShow.sort(); });
+$('#sortByNextAirDate').click(function(e) { e.preventDefault(); setSortFlag($(this)); showSortBy = 'nextAirDate'; TVShow.sort(); });
+
 $(document).ready(function() { TVShow.getAll(); } );

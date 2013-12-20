@@ -224,7 +224,7 @@ TVShow.filter = function() {
 
 $(".createTVShow").click(function(e) { TVShow.create(e); });
 $(".editTVShow").click(function(e) { TVShow.edit(e, $(this).closest('.show')); });
-$(".toggleTVShow").click(function() { toggleTVShow($(this).closest('.show'));});
+$(".toggleTVShow").click(function(e) { e.preventDefault(); toggleTVShow($(this).closest('.show'));});
 
 $("#toggleGoodNews").click(function(e) { e.preventDefault(); TVShow.showOnlyGoodNews = ! TVShow.showOnlyGoodNews; TVShow.filter(); });
 $("#toggleBadNews").click(function(e) { e.preventDefault(); TVShow.showOnlyBadNews = ! TVShow.showOnlyBadNews; TVShow.filter(); });

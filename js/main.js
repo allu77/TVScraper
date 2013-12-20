@@ -190,6 +190,14 @@ function deleteSeason(e, seasonElement) {
 }
 
 function toggleSeason(seasonElement) {
+	var toggleButton = seasonElement.find('.toggleSeason .glyphicon');
+	if (toggleButton.hasClass('glyphicon-collapse-down')) {
+		toggleButton.removeClass('glyphicon-collapse-down');
+		toggleButton.addClass('glyphicon-collapse-up');
+	} else {
+		toggleButton.removeClass('glyphicon-collapse-up');
+		toggleButton.addClass('glyphicon-collapse-down');
+	}
 	var epList = seasonElement.find('.episodeList');
 	if (epList.hasClass('notFetched')) {
 		loadSeasonEpisodes(seasonElement.attr('id').substr(6));
@@ -717,8 +725,8 @@ $(document).ready(function() {
 
 	//tvShowSort();
 	$('.show .showTitle').click(function() { toggleTVShow($(this).closest('.show'));});
-	//$('.season .seasonTitle').click(function() { $(this).closest('.season').find('.scrapers').slideToggle(); toggleSeason($(this).closest('.season').find('.episodes'));});
 	$('.season .seasonTitle').click(function() { toggleSeason($(this).closest('.season'));});
+	$('.season .toggleSeason').click(function(e) { e.preventDefault(); toggleSeason($(this).closest('.season'));});
 	$('.seasonScraper .removeScraper').click(function(e) { deleteScraper(e, $(this).closest('.seasonScraper')); });
 	$('.showScraper .removeScraper').click(function(e) { deleteScraper(e, $(this).closest('.showScraper')); });
 	$('.scrapedSeason .addScrapedSeason').click(function(e) { addScrapedSeasonToSeasons(e, $(this).closest('.scrapedSeason')); });

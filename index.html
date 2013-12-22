@@ -511,60 +511,73 @@
 
 					<section class="showContent">
 						<section class="showScrapers well">
-							<h2 class="scrapersSectionTitle">TV Show Scrapers</h2>
-							<table class="table table-striped table-hover">
-								<thead>
-									<tr>
-										<th>Source</th>
-										<th>URI</th>
-										<th class="hidden-sm hidden-xs">Auto Add</th>
-										<th class="hidden-sm hidden-xs">Notify</th>
-										<th></th>
-									</tr>
-								</thead>
-								<tbody class="scraperList">
-								</tbody>
-								<tfoot>
-									<tr>
-										<td colspan="5">
-											<div class="actionIcons">
-												<a href="#" class="addTVShowScraper" title="Add TV Show scraper"><span class="glyphicon glyphicon-plus-sign tvShowScraperAdd"></span></a>
-											</div>
-										</td>
-									</tr>
-								</tfoot>
-							</table>
+							<header class="row">
+								<div class="col-xs-9">
+									<h2 class="scrapersSectionTitle">TV Show Scrapers</h2>
+								</div>
+								<div class="col-xs-3 actionIcons">
+									<h3>
+										 <a class="toggleTVShowScrapers" href="#" title="Toggle TV Show Scrapersdetails"><span class="glyphicon glyphicon-collapse-down"></span></a>
+									</h3>
+								</div>
+							</header>
 
-							<section class="scrapedSeasonsSection ">
-								<h2>Scraped Seasons</h2>
+
+							<section class="showScrapersContent">
 								<table class="table table-striped table-hover">
 									<thead>
 										<tr>
-											<th>N</th>
 											<th>Source</th>
 											<th>URI</th>
+											<th class="hidden-sm hidden-xs">Auto Add</th>
+											<th class="hidden-sm hidden-xs">Notify</th>
 											<th></th>
 										</tr>
 									</thead>
-									<tbody class="scrapedSeasonsList">
+									<tbody class="scraperList">
 									</tbody>
-								</table>
-							</section>
-
-							<section class="hiddenScrapedSeasonsSection ">
-								<h2>Hidden Scraped Seasons</h2>
-								<table class="table table-striped table-hover">
-									<thead>
+									<tfoot>
 										<tr>
-											<th>N</th>
-											<th>Source</th>
-											<th>URI</th>
-											<th></th>
+											<td colspan="5">
+												<div class="actionIcons">
+													<a href="#" class="addTVShowScraper" title="Add TV Show scraper"><span class="glyphicon glyphicon-plus-sign tvShowScraperAdd"></span></a>
+												</div>
+											</td>
 										</tr>
-									</thead>
-									<tbody class="hiddenScrapedSeasonsList">
-									</tbody>
+									</tfoot>
 								</table>
+
+								<section class="scrapedSeasonsSection ">
+									<h2>Scraped Seasons</h2>
+									<table class="table table-striped table-hover">
+										<thead>
+											<tr>
+												<th>N</th>
+												<th>Source</th>
+												<th>URI</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody class="scrapedSeasonsList">
+										</tbody>
+									</table>
+								</section>
+
+								<section class="hiddenScrapedSeasonsSection ">
+									<h2>Hidden Scraped Seasons</h2>
+									<table class="table table-striped table-hover">
+										<thead>
+											<tr>
+												<th>N</th>
+												<th>Source</th>
+												<th>URI</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody class="hiddenScrapedSeasonsList">
+										</tbody>
+									</table>
+								</section>
 							</section>
 						</section>
 						<section class="seasons well">
@@ -660,6 +673,7 @@
         <script src="js/Utils.js"></script>
         <script src="js/main.js"></script>
         <script src="js/TVShow.js"></script>
+        <script src="js/TVShowScraper.js"></script>
         <script src="js/Season.js"></script>
         <script src="js/SeasonScraper.js"></script>
         <script src="js/Episode.js"></script>

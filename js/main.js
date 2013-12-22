@@ -246,7 +246,6 @@ function deleteScraper(e, scraperElement) {
 			var seasonElement = scraperElement.closest('.season');
 			scraperElement.remove();
 			if (seasonElement != undefined && seasonElement.length != 0) {
-				console.log("Refreshing"); 
 				refreshEpisodeList(seasonElement);
 				refreshSeason(seasonElement);
 			}
@@ -607,7 +606,6 @@ function loadSeasonEpisodes(seasonId) {
 								for (var j = 0; j < data.result.length; j++) {
 									$('#episode' + data.result[j].episode + ' .bestUri').attr('href', data.result[j].uri);
 									$('#episode' + data.result[j].episode + ' .bestUriText').text(data.result[j].uri.trunc(100));
-									console.log("LEN:" + data.result[j].uri.length);
 									$('#episode' + data.result[j].episode + ' .bestUriTextShort').text('URI');
 									$('#episode' + data.result[j].episode + ' .bestFileId').text(data.result[j].id);
 									$('#episode' + data.result[j].episode + ' .bestFileSource').text($('#season' + seasonId + ' #scraper' + data.result[j].scraper + ' .scraperOrder').text());

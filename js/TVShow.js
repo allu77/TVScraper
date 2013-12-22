@@ -265,7 +265,7 @@ TVShow.getAll = function () {
 	);
 }
 
-TVShow.refresh = function(showEelement) {
+TVShow.refresh = function(showElement) {
 	showObj = TVShow.parse(showElement);
 	runAPI(
 	{
@@ -273,7 +273,7 @@ TVShow.refresh = function(showEelement) {
 		showId:showObj.id
 	},
 	function(data) {
-		TVShow.set(data.result, showEelement);
+		TVShow.set(data.result, showElement);
 		TVShow.sort();
 	});
 }

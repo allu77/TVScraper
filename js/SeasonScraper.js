@@ -42,7 +42,6 @@ SeasonScraper.create = function(seasonElem, e) {
 SeasonScraper.add = function(seasonScraperObj) {
 	var newSeasonScraperElem = $('#guiSkeleton .seasonScraper').clone(true);
 	SeasonScraper.set(seasonScraperObj, newSeasonScraperElem);
-	console.log('#season' + seasonScraperObj.id + ' .scraperList');
 	$('#season' + seasonScraperObj.season + ' .scraperList').append(newSeasonScraperElem);
 }
 

@@ -605,8 +605,10 @@ function loadSeasonEpisodes(seasonId) {
 							function(data) {
 								for (var j = 0; j < data.result.length; j++) {
 									$('#episode' + data.result[j].episode + ' .bestUri').attr('href', data.result[j].uri);
-									$('#episode' + data.result[j].episode + ' .bestUriText').text(data.result[j].uri.trunc(100));
-									$('#episode' + data.result[j].episode + ' .bestUriTextShort').text('URI');
+									$('#episode' + data.result[j].episode + ' .bestUriTextLG').text(data.result[j].uri.trunc(110));
+									$('#episode' + data.result[j].episode + ' .bestUriTextMD').text(data.result[j].uri.trunc(80));
+									$('#episode' + data.result[j].episode + ' .bestUriTextSM').text(data.result[j].uri.trunc(40));
+									$('#episode' + data.result[j].episode + ' .bestUriTextXS').text('URI');
 									$('#episode' + data.result[j].episode + ' .bestFileId').text(data.result[j].id);
 									$('#episode' + data.result[j].episode + ' .bestFileSource').text($('#season' + seasonId + ' #scraper' + data.result[j].scraper + ' .scraperOrder').text());
 								}

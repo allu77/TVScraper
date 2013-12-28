@@ -1067,10 +1067,7 @@ class TVShowScraperDB  {
 		
 		if ($season == NULL) {
 			$this->log("Season $n does not exist yet. Creating...");
-			$seasonId = $this->addSeason($scraper['tvshow'], array('n' => $scrapedSeason['n'], 'status' => 'watched'));
-			if ($seasonId === FALSE) return FALSE;
-			
-			$season = $this->getSeason($seasonId);
+			$season = $this->addSeason($scraper['tvshow'], array('n' => $scrapedSeason['n'], 'status' => 'watched'));
 			if ($season === FALSE) return FALSE;
 		}
 		

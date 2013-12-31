@@ -362,13 +362,15 @@
 						<td class="episodeN"></td>
 						<td>
 							<span class="hidden-xs episodeAirDate"></span>
-							<span class="visible-xs episodeAirDateShort"></span>
+							<a class="visible-xs bestUri">
+								<span class="visible-xs episodeAirDateShort"></span>
+							</a>
 						</td>
-						<td>
+						<td class="hidden-xs">
 							<div class="fileURIContainer">
 								<span class="bestFileId"></span>
 								<a class="bestUri" href="#">
-									<span class="visible-xs bestUriTextXS"></span>
+									<!--<span class="visible-xs bestUriTextXS"></span>-->
 									<span class="visible-sm bestUriTextSM"></span>
 									<span class="visible-md bestUriTextMD"></span>
 									<span class="visible-lg bestUriTextLG"></span>
@@ -397,7 +399,16 @@
 					<tr class="seasonScraper">
 						<td class="scraperOrder"></td>
 						<td class="hidden-xs scraperPreference"></td>
-						<td class="scraperSource"></td>
+						<td class="">
+							<span class="hidden-xs scraperSource">
+							</span>
+							<span class="visible-xs">
+								<a class="scraperUri" href="#">
+									<span class="scraperSource">
+									</span>
+								</a>
+							</span>
+						</td>
 						<td class="hidden-xs"><a class="scraperUri" href="#"><span class="scraperUriText"></span></a></td>
 						<td class="hidden-xs scraperDelay"></td>
 						<td>
@@ -437,8 +448,15 @@
 
 				<table>
 					<tr class="showScraper">
-						<td class="scraperSource"></td>
-						<td><a class="scraperUri" href="#"><span class="hidden-xs scraperUriText"></span><span class="visible-xs">URI</span></a></td>
+						<td class="">
+							<span class="hidden-xs scraperSource">
+							</span>
+							<a class="visible-xs scraperUri" href="#">
+								<span class="scraperSource">
+								</span>
+							</a>
+						</td>
+						<td class="hidden-xs"><a class="scraperUri" href="#"><span class="hidden-xs scraperUriText"></span><span class="visible-xs">URI</span></a></td>
 						<td class="hidden-sm hidden-xs"><input type="checkbox" class="scraperAutoAdd" disabled/></td>
 						<td class="hidden-sm hidden-xs"><input type="checkbox" class="scraperNotify" disabled/></td>
 						<td>
@@ -533,7 +551,7 @@
 									<thead>
 										<tr>
 											<th>Source</th>
-											<th>URI</th>
+											<th class="hidden-xs">URI</th>
 											<th class="hidden-sm hidden-xs">Auto Add</th>
 											<th class="hidden-sm hidden-xs">Notify</th>
 											<th></th>
@@ -651,7 +669,7 @@
 								<tr>
 									<th>N</th>
 									<th>Air Date</th>
-									<th>Best URI</th>
+									<th class="hidden-xs">Best URI</th>
 									<th class="hidden-xs">Source</th>
 									<th></th>
 								</tr>

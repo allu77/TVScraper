@@ -17,6 +17,12 @@ show_usage() {
 	echo "  update [only_season|only_show]" >&2
 	echo "  notify" >&2
 	echo "  cleanup" >&2
+	echo "  get-best [additional options...]" >&2
+	echo "" >&2
+	echo "Some ACTIONs have additional options:" >&2
+	echo "  get-best" >&2
+	echo "    -t <ed2k|torrent> filter link by type" >&2
+	echo "    -d <seconds>      return only links published in the last X seconds" >&2
 }
 
 
@@ -257,6 +263,66 @@ do_cleanup_complete_seasons() {
 	done
 	IFS=$oldIFS
 }
+
+do_get_best() {
+	local filterType
+	local filterPubDate
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-t) shift ; filterType="$1" ;;
+			-d) shift ; filterPubDate=$(($(date +"%s") - $1)) ;;
+			-*) 
+				echo "Unknown option $1" >&2
+				show_usage
+				exit 1
+				;;
+			*)  break;;	# terminate while loop
+		esac
+		shift
+	done
+	seasonList=$(api getAllWatchedSeasons | awk '
+		doRead=="id" { id=$2; doRead="nothing"; }
+		/^      \["id"\]/ { doRead="id"; }
+		/^    \}/ { printf "%s\n", id; }
+	')
+
+	oldIFS=$IFS
+	IFS=$'\n'
+
+	local finalList
+	for season in $seasonList; do
+		IFS=$oldIFS
+		seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+
+		fileList=$(api getBestFilesForSeason seasonId $seasonId | awk '
+			doRead=="pubDate" { pubDate=$2; doRead="nothing"; }
+			doRead=="type" { type=$2; doRead="nothing"; }
+			doRead=="uri" { uri=$2; for(i=3;i<=NF;i++){uri=uri" "$i}; doRead="nothing"; }
+			/^      \["pubDate"\]/ { doRead="pubDate"; }
+			/^      \["uri"\]/ { doRead="uri"; }
+			/^      \["type"\]/ { doRead="type"; }
+			/^    \}/ { printf "%s,%s,%s\n", pubDate, type, uri; }
+		')
+
+		IFS=$'\n'
+		for file in $fileList; do
+			IFS=$oldIFS
+			filePubDate=$(echo $file | cut -d , -f 1 | sed s/\"//g)
+			fileType=$(echo $file | cut -d , -f 2 | sed s/\"//g)
+
+			if ( [ -z "$filterType" ] || [ "$filterType" == "$fileType" ] ) && ( [ -z "$filterPubDate" ] || [ "$filePubDate" -ge "$filterPubDate" ] ) ; then
+				finalList=$(printf "%s\n%s" "$finalList" "$file")
+			fi
+
+		done
+		IFS=$oldIFS
+
+	done
+	IFS=$oldIFS
+	echo "$finalList" | tail -n +2 | sort -r | cut -d , -f 3- | sed s/\"//g
+
+
+}
 HTTP_USER=""
 HTTP_PASSWORD=""
 HTTP_BASE_URL="http://localhost/TVScraper"
@@ -291,15 +357,19 @@ action=$1
 case "$action" in
 
 "update")
-	do_update "$2"
+	shift; do_update "$@"
 	;;
 
 "notify")
-	if ! do_notify "$2"; then exit 1; fi
+	shift; if ! do_notify "$@"; then exit 1; fi
 	;;
 
 "cleanup")
-	do_cleanup_complete_seasons
+	shift; do_cleanup_complete_seasons "$@"
+	;;
+
+"get-best")
+	shift; do_get_best "$@"
 	;;
 
 *)

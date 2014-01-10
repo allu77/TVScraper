@@ -93,6 +93,7 @@ $simpleMethods = array(
 /* method */ 'removeSeason' 			=> array( 'save' => TRUE,	'params' => array( 'seasonId' )),
 /* method */ 'removeScraper' 			=> array( 'save' => TRUE,	'params' => array( 'scraperId' )),
 /* method */ 'removeScrapedSeason' 		=> array( 'save' => TRUE,	'params' => array( 'scrapedSeasonId' )),
+/* method */ 'getAllWatchedSeasons'		=> array( 'save' => FALSE,	'params' => array(  )),
 /* method */ 'getBestFilesForSeason'	=> array( 'save' => TRUE,	'params' => array( 'seasonId' )),
 /* method */ 'getBestFileForEpisode'	=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
 /* method */ 'getEpisode' 				=> array( 'save' => FALSE,	'params' => array( 'episodeId' )),

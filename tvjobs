@@ -18,11 +18,15 @@ show_usage() {
 	echo "  notify" >&2
 	echo "  cleanup" >&2
 	echo "  get-best [additional options...]" >&2
+	echo "  find-missing [additional options...]" >&2
 	echo "" >&2
 	echo "Some ACTIONs have additional options:" >&2
 	echo "  get-best" >&2
 	echo "    -t <ed2k|torrent> filter link by type" >&2
 	echo "    -d <seconds>      return only links published in the last X seconds" >&2
+	echo "  find-missing" >&2
+	echo "    -d <seconds>      return episode missing files only if episode was" >&2
+	echo "                      aired before <seconds> ago">&2
 }
 
 
@@ -323,6 +327,119 @@ do_get_best() {
 
 
 }
+
+do_find_missing() {
+	local filterAirTime=$(date +"%s")
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-d) shift ; filterAirTime=$(($(date +"%s") - $1)) ;;
+			-*) 
+				echo "Unknown option $1" >&2
+				show_usage
+				exit 1
+				;;
+			*)  break;;	# terminate while loop
+		esac
+		shift
+	done
+	showList=$(api getAllTVShows | awk '
+		doRead=="id" { id=$2; doRead="nothing"; }
+		doRead=="lastAiredEpisodeIndex" { lastAiredEpisodeIndex=$1; gsub(/[int\(\)]/, "", lastAiredEpisodeIndex); doRead="nothing"; }
+		doRead=="episodesWithFile" { episodesWithFile=$1; gsub(/[int\(\)]/, "", episodesWithFile); doRead="nothing"; }
+		doRead=="lang" { lang=$2; doRead="nothing"; }
+		doRead=="nativeLang" { nativeLang=$2; doRead="nothing"; }
+		doRead=="res" { res=$2; doRead="nothing"; }
+		doRead=="title" { for(i=2;i<=NF;i++){title=title" "$i}; doRead="nothing"; }
+		doRead=="alternateTitle" { for(i=2;i<=NF;i++){alternateTitle=alternateTitle" "$i}; doRead="nothing"; }
+		/^      \["id"\]/ { doRead="id"; }
+		/^      \["lang"\]/ { doRead="lang"; }
+		/^      \["nativeLang"\]/ { doRead="nativeLang"; }
+		/^      \["lastAiredEpisodeIndex"\]/ { doRead="lastAiredEpisodeIndex"; }
+		/^      \["episodesWithFile"\]/ { doRead="episodesWithFile"; }
+		/^      \["res"\]/ { doRead="res"; }
+		/^      \["title"\]/ { doRead="title"; }
+		/^      \["alternateTitle"\]/ { doRead="alternateTitle"; }
+		/^    \}/ { 
+			printf "%s,%s,%s,%s,%s,%s,%s,%s\n", id, lastAiredEpisodeIndex, episodesWithFile, lang, nativeLang, res, title, alternateTitle; 
+			lastAiredEpisodeIndex=""; episodesWithFile=""; lang=""; nativeLang=""; res=""; title=""; alternateTitle="";
+
+			}
+	')
+
+	oldIFS=$IFS
+	IFS=$'\n'
+
+	for show in $showList; do
+		IFS=$oldIFS
+		showId=$(echo $show | cut -d , -f 1 | sed s/\"//g)
+		showLastAiredEpisodeIndex=$(echo $show | cut -d , -f 2 | sed s/\"//g)
+		showEpisodesWithFile=$(echo $show | cut -d , -f 3 | sed s/\"//g)
+		showLang=$(echo $show | cut -d , -f 4 | sed s/\"//g)
+		showNativeLang=$(echo $show | cut -d , -f 5 | sed s/\"//g)
+		showRes=$(echo $show | cut -d , -f 6 | sed s/\"//g)
+		showTitle=$(echo $show | cut -d , -f 7 | sed s/\"//g | cut -c 2-)
+		showAlternateTitle=$(echo $show | cut -d , -f 8 | sed s/\"//g | cut -c 2-)
+
+		[ -z "$showLastAiredEpisodeIndex" ] && showLastAiredEpisodeIndex=0
+		[ -z "$showEpisodesWithFile" ] && showEpisodesWithFile=0
+
+		if [ "$showLastAiredEpisodeIndex" -gt "$showEpisodesWithFile" ]; then
+			#echo "Missing file(s) for $showTitle - $showLastAiredEpisodeIndex - $showEpisodesWithFile"
+			seasonList=$(api getTVShowSeasons showId $showId | awk '
+				doRead=="id" { id=$2; doRead="nothing"; }
+				doRead=="status" { status=$2; doRead="nothing"; }
+				doRead=="n" { n=$2; doRead="nothing"; }
+				/^      \["id"\]/ { doRead="id"; }
+				/^      \["status"\]/ { doRead="status"; }
+				/^      \["n"\]/ { doRead="n"; }
+				/^    \}/ { printf "%s,%s,%s\n", id, status, n; }
+			')
+			oldIFS=$IFS
+			IFS=$'\n'
+			for season in $seasonList; do
+				IFS=$oldIFS
+				seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+				seasonStatus=$(echo $season | cut -d , -f 2 | sed s/\"//g)
+				seasonN=$(echo $season | cut -d , -f 3 | sed s/\"//g)
+
+				if [ "$seasonStatus" == "watched" ]; then
+					api getBestFilesForSeason seasonId $seasonId > /dev/null
+					episodeList=$(api getSeasonEpisodes seasonId $seasonId | awk '
+						doRead=="n" { n=$2; doRead="nothing"; }
+						doRead=="airDate" { airDate=$2; doRead="nothing"; }
+						doRead=="bestFile" { bestFile=$2; doRead="nothing"; }
+						/^      \["n"\]/ { doRead="n"; }
+						/^      \["airDate"\]/ { doRead="airDate"; }
+						/^      \["bestFile"\]/ { doRead="bestFile"; }
+						/^    \}/ { printf "%s,%s,%s\n", n, airDate, bestFile; airDate=""; bestFile=""}
+					')
+					oldIFS=$IFS
+					IFS=$'\n'
+					for episode in $episodeList; do
+						IFS=$oldIFS
+						episodeN=$(echo $episode | cut -d , -f 1 | sed s/\"//g)
+						episodeAirDate=$(echo $episode | cut -d , -f 2 | sed s/\"//g)
+						episodeBestFile=$(echo $episode | cut -d , -f 3 | sed s/\"//g)
+				
+						if ! [ -z "$episodeAirDate" ] && [ "$episodeAirDate" -lt "$filterAirTime" ] && [ -z "$episodeBestFile" ]; then
+							echo "\"$showTitle\",\"$showAlternateTitle\",$showLang,$showNativeLang,$showRes,$seasonN,$episodeN"
+						fi
+
+					done
+					IFS=$oldIFS
+				fi
+
+			done
+			IFS=$oldIFS
+
+		fi
+
+	done
+
+	IFS=$oldIFS
+
+}
+
 HTTP_USER=""
 HTTP_PASSWORD=""
 HTTP_BASE_URL="http://localhost/TVScraper"
@@ -370,6 +487,10 @@ case "$action" in
 
 "get-best")
 	shift; do_get_best "$@"
+	;;
+
+"find-missing")
+	shift; do_find_missing "$@"
 	;;
 
 *)

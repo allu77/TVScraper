@@ -58,7 +58,7 @@ class TVShowScraperDDU extends TVShowScraper {
 
 					$n = $m[2];
 					$candidateTitle = $m[1];
-					$candidateTitle = preg_replace('/[!\?\.\']/', '', $m[1]);
+					$candidateTitle = preg_replace('/[!\?\.\'\-]/', '', $m[1]);
 					if (preg_match("/^$showTitle\s*$/i", $candidateTitle) || 
 						preg_match("/^$showTitle\s*\(.*\)$\s*/i", $candidateTitle) || 
 						preg_match("/^.*\(\s*$showTitle\s*\)\s*$/i", $candidateTitle) ) {

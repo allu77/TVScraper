@@ -52,7 +52,7 @@ class TVShowScraperDDU extends TVShowScraper {
 				$this->log("Evaluating " . $t['title'] . " / " . $t['description']);
 
 
-				if (preg_match('/(.*\S)\s*-\s*stagione\s*(\d+)/i', $t['title'], $m)) {
+				if (preg_match('/(.*\S)\s*-?\s*stagione\s*(\d+)/i', $t['title'], $m)) {
 					$this->log("Found TV show title $m[1], season $m[2]");
 
 

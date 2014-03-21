@@ -28,8 +28,14 @@ class TVShowScraperDDU extends TVShowScraper {
 		$showTitle = strtolower($showData['title']);
 		$showTitle = preg_replace('/\s+/', '\s+', $showTitle);
 		$showTitle = preg_replace('/[!\?\.\']/', '', $showTitle);
+		$showTitle = preg_replace('/([\\(\\)\\[\\]])/', '\\\\$1?', $showTitle);
 
-		$this->log("Looking for $showTitle");
+		$alternateTitle = (isset($showData['alternateTitle']) && $showData['alternateTitle'] != '') ? strtolower($showData['alternateTitle']) :  strtolower($showData['title']);
+		$alternateTitle = preg_replace('/\s+/', '\s+', $alternateTitle);
+		$alternateTitle = preg_replace('/[!\?\.\']/', '', $alternateTitle);
+		$alternateTitle = preg_replace('/([\\(\\)\\[\\]])/', '\\\\$1?', $alternateTitle);
+
+		$this->log("Looking for $showTitle or $alternateTitle");
 
 		for ($offset = 0; $offset < 100; $offset += 25) {	
 			$uri = $scraper['uri'] . "&start=$offset";
@@ -61,7 +67,11 @@ class TVShowScraperDDU extends TVShowScraper {
 					$candidateTitle = preg_replace('/[!\?\.\'\-]/', '', $m[1]);
 					if (preg_match("/^$showTitle\s*$/i", $candidateTitle) || 
 						preg_match("/^$showTitle\s*\(.*\)$\s*/i", $candidateTitle) || 
-						preg_match("/^.*\(\s*$showTitle\s*\)\s*$/i", $candidateTitle) ) {
+						preg_match("/^.*\(\s*$showTitle\s*\)\s*$/i", $candidateTitle) || 
+						preg_match("/^$alternateTitle\s*$/i", $candidateTitle) || 
+						preg_match("/^$alternateTitle\s*\(.*\)$\s*/i", $candidateTitle) || 
+						preg_match("/^.*\(\s*$alternateTitle\s*\)\s*$/i", $candidateTitle) 
+						) {
 
 						$uri = $t['link'];
 						$this->log("Title matches! $uri");

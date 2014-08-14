@@ -108,3 +108,42 @@ let stanard priority logic apply.
 
 ### Automation via command line ###
 
+Using the `tvjobs` shell script, some action can be perfomed using command line. Using this script, you can automate 
+your scraping activity. `curl` is required to be installed and in `PATH`. The following syntax is supported:
+
+    tvjobs [OPTIONS] <ACTION> ...
+
+`tvjobs` works using the same APIs used by the web interfaces, so ou need to provide `tvjobs` some basic information
+in order to reache the APIs. This is done using the following options:
+
+    -b HTTP_BASE_URL
+    -u HTTP_USER
+    -p HTTP_PASSWORD
+
+- `HTTP_BASE_URL` is the URL used to reach the web GUI (e.g. <http://localhost/TVScraper/>).
+- `HTTP_USER` and `HTTP_USER` are needed only if your webserver is configured to require authentication to reach
+TVScraper (only HTTP digest authentication is supported).
+
+You may either provide these parameters via options each time you run `tvjobs` or alternatively you can 
+configure these parameters in one of the two following files
+
+    /etc/tvscraper
+    ~/.tvscraperrc
+
+Configuration file syntax is the following
+
+    HTTP_BASE_URL=http://localhost/TVScraper/
+	HTTP_USER=YOUR_USER_HERE
+	HTTP_PASSWORD=YOUR_PASSWORD_HERE
+
+The following ACTIONs are currently supported
+
+- `update`: runs all the TV Show scrapers and all the Season scrapers for seasons in watched status
+- `notify`: sends an e-mail if a TV Show scraper found a new season scaper candidate (only for TV Show scrapers with notify option enabled)
+- `cleanup`: in order to reduce response time of the web GUI and APIs, you need to keep your database as small as possible. This
+action remove all the complete seasons except the last one. On top of this, the scraped seasons referring to complete seasons will be removed
+- `get-best`: prints to stdout the list of seleted links for all episodes in watched seasons
+- `find-missing`: finds a prints to stdout the list of aired episodes missing a valid link
+
+Some of these actions support additional options. Run `tvjobs` without any actions for a detailed list.
+

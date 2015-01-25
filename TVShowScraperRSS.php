@@ -57,7 +57,7 @@ class TVShowScraperRSS extends TVShowScraper {
 			$fetchData = TRUE;
 			//$m = array();
 
-			if (! preg_match("/$showTitle/i", $title) && ! preg_match("/$showTitle/i", $description)) {
+			if (! preg_match("/^$showTitle/i", $title) && ! preg_match("/^$showTitle/i", $description)) {
 				$this->log("Neiter title nor description match, skipping...");
 				$fetchData = FALSE;
 			} else {

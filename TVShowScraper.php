@@ -77,12 +77,19 @@ abstract class TVShowScraper {
 					if (! checkResolution($showData['res'], $link['res'])) {
 						$this->log("Undesired resolution, skipping...");
 						$keepCandidate = FALSE;
+					} else {
+						$this->log("Resolution looks good, still checking...");
 					}
 				}
 
 				if ($keepCandidate && isset($showData['lang']) && isset($link['lang']) && sizeof($link['lang'] > 0)) {
-					$this->log("Candidate language = " . $link['lang']);
-					$keepCandidate = in_array($showData['lang'], $link['lang']);
+					$this->log("Candidate languages = " . implode(', ', $link['lang']));
+					if (!in_array($showData['lang'], $link['lang'])) {
+						$this->log("Cannot find required language ".$showData['lang'].", skipping...");
+						$keepCandidate = FALSE;
+					} else {
+						$this->log("Language looks good, still checking...");
+					}
 				}
 
 				if ($keepCandidate) {

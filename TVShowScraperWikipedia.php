@@ -112,7 +112,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 							if (preg_match('/n[º°]/i', $hh)) {
 								$nIndex = sizeof($hcols) - 1;
 								$this->log("n index = $nIndex");
-							} else if (preg_match('/prima\s+tv\s+italia/i', $hh)) {
+							} else if (preg_match('/prima\s+tv\s+italia/i', $hh) || preg_match('/pubblicazione\s+italia/i', $hh)) {
 								$airIndex = sizeof($hcols) - 1;
 								$this->log("n index = $airIndex");
 							}

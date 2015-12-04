@@ -9,6 +9,7 @@ require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
 require_once('TVShowScraperTXT.php');
 require_once('TVShowScraperTVRage.php');
+require_once('TVShowScraperTVMaze.php');
 require_once('TVShowScraperWikipedia.php');
 require_once('Logger.php');
 
@@ -195,6 +196,14 @@ if (isset($simpleMethods[$action])) {
 				} else {
 					
 					switch($scraper['source']) {
+						case 'tvmaze':
+							$tvrage = new TVShowScraperTVMaze($tv);
+							$tvrage->setLogger($logger);
+								
+							$res['status'] = 'ok';
+							$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
 						case 'tvrage':
 							$tvrage = new TVShowScraperTVRage($tv);
 							$tvrage->setLogger($logger);

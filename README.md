@@ -34,6 +34,7 @@ Supported sources for TV Show Scapers are:
 
 - Wikipedia.it (italian show schedule): use the URL of the TV Show page from wikipedia Italy (e.g. <http://it.wikipedia.org/wiki/Big_Bang_Theory>)
 - TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://services.tvrage.com/feeds/episode_list.php?sid=5098>) 
+- TVMaze.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://api.tvmaze.com/shows/7/episodes>) 
 - DDUnlinmited: use the URL of the messaging board where new season of the show will be posted
 - TV Undeground: use the URL of the show page (e.g. <http://tvunderground.org.ru/index.php?show=season&sid=2832>)
 - RSS: use the URL of a RSS containing links for new episodes
@@ -73,7 +74,8 @@ a season scraper manually by selecting the scraper type from the drop down list,
 clicking the Add button. Supported sources for season scrapers are:
 
 - Wikipedia.it (italian show schedule): use the URL of the season page from wikipedia Italy (e.g. <http://it.wikipedia.org/wiki/Episodi_di_Big_Bang_Theory_(sesta_stagione)>)
-- TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://services.tvrage.com/feeds/episode_list.php?sid=5098>) . The season scraper will look only for episodes of this season.
+- TVRage.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://services.tvrage.com/feeds/episode_list.php?sid=5098>). The season scraper will look only for episodes of this season.
+- TVMaze.com (US show schedule): use the URL of the episode list API for the show (e.g. <http://api.tvmaze.com/shows/7/episodes>). The season scraper will look only for episodes of this season.
 - DDUnlinmited: use the URL of the first page of the thread where new episodes of this season will be posted
 - TV Undeground: use the URL of the RSS of the season you want to download (e.g. <http://tvunderground.org.ru/rss.php?se_id=60938>)
 - RSS: use the URL of a RSS containing links for new episodes. The scraper will parse the filename or the item title and look only

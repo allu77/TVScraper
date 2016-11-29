@@ -60,6 +60,11 @@ abstract class TVShowScraper {
 		
 		foreach ($candidateLinks as $link) {
 			$this->log("Evaulating link " . $link['uri']);
+
+			# Removing heading 0s
+			$newN = preg_replace("/^\s*0*([1-9]\d*)/", "\\1", $link['n']);
+			$link['n'] = $newN;
+
 			if (! $showOnlyNew) {
 				$res[] = $link;
 			} else {

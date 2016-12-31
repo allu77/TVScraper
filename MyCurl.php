@@ -6,6 +6,7 @@ define('MYCURLOPT_COOKIEJAR',		'CURLOPT_COOKIEJAR');
 define('MYCURLOPT_COOKIEFILE', 		'CURLOPT_COOKIEFILE');
 define('MYCURLOPT_POST', 			'CURLOPT_POST');
 define('MYCURLOPT_POSTFIELDS',		'CURLOPT_POSTFIELDS');
+define('MYCURLOPT_TIMEOUT',			'CURLOPT_TIMEOUT');
 
 define('MYCURLOPT_RETURNTRANSFER',	'CURLOPT_RETURNTRANSFER');
 
@@ -97,6 +98,9 @@ class MyCurl {
 			}
 			if (isset($this->options[MYCURLOPT_POST]) && isset($this->options[MYCURLOPT_POSTFIELDS])) {
 				$optstr .= ' --data "' . $this->options[MYCURLOPT_POSTFIELDS] .'"';
+			}
+			if (isset($this->options[MYCURLOPT_TIMEOUT])) {
+				$optstr .= ' --max-time "' . $this->options[MYCURLOPT_TIMEOUT] .'"';
 			}
 
 			$cmdLine = self::$curlCmd . $optstr . ' "' . $this->url . '"';

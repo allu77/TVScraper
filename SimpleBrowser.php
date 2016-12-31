@@ -27,6 +27,8 @@ class SimpleBrowser {
 	protected $cachePrefix;
 	protected $cacheTTL;
 
+	protected $timeOut;
+
 	protected $logger;
 
 	private static $CACHE_USE = TRUE;
@@ -37,6 +39,8 @@ class SimpleBrowser {
 	private static $COOKIES_USE = TRUE;
 	private static $COOKIES_DIR = '/var/cache/autodl/dduScraper';
 	private static $COOKIES_FILE = 'SimpleBrowserCookies.txt';
+
+	private static $TIMEOUT = 600;
 
 	public static function initCache($useCache, $cacheTTL = 3600, $cacheDir = '/var/cache/autodl/dduScraper', $cachePrefix = 'SimpleBrowser_') {
 		self::$CACHE_USE = $useCache;
@@ -51,6 +55,10 @@ class SimpleBrowser {
 		self::$COOKIES_FILE = $cookiesFile;
 	}
 
+	public static function initTimeout($timeout) {
+		self::$TIMEOUT = $timeout;
+	}
+
 	public function __construct() {
 		$this->useCache = self::$CACHE_USE;
 		$this->cacheTTL = self::$CACHE_TTL;
@@ -59,6 +67,8 @@ class SimpleBrowser {
 		$this->useCookies = self::$COOKIES_USE;
 		$this->setCookiesFileDir(self::$COOKIES_DIR);
 		$this->setCookiesFile(self::$COOKIES_FILE);
+		
+		$this->setTimeOut(self::$TIMEOUT);
 	}
 
 	public function setLogger($logger) {
@@ -73,6 +83,10 @@ class SimpleBrowser {
 		if ($this->logger) {
 			$this->logger->log($msg, $severity);
 		}
+	}
+
+	public function setTimeOut($timeout) {
+		$this->timeOut = $timeout;
 	}
 
 	public function setCacheDir($dir) {
@@ -190,6 +204,10 @@ class SimpleBrowser {
 			$this->log("Setting curl cookies file/jar to " . $this->cookiesFile);
 			$cr->setOption(MYCURLOPT_COOKIEJAR, $this->cookiesFile);
 			$cr->setOption(MYCURLOPT_COOKIEFILE, $this->cookiesFile);
+		}
+		if (isset($this->timeOut)) {
+			$this->log("Setting curl time out to " . $this->timeOut);
+			$cr->setOption(MYCURLOPT_TIMEOUT, $this->timeOut);
 		}
 
 		return $cr;

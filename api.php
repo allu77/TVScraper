@@ -64,7 +64,7 @@ function myFlock($fh, $mode) {
 		if (flock($fh, $mode | LOCK_NB)) {
 			return true;
 		}
-		sleep 1;
+		sleep(1);
 	}
 	return false;
 }

@@ -59,17 +59,23 @@ function checkPostParameters($post, $validParams, $logger) {
 	return $params;
 }
 
-function myFlock($fh, $mode) {
+function myFlock($fh, $mode, $l) {
+	$lockStart = time();
 	for ($t = 0; $t < LOCK_TIMEOUT; $t++) {
 		if (flock($fh, $mode | LOCK_NB)) {
+			$lockStop = time();
+			$l->log("STATS: Setting flock to mode $mode took " . ($lockStop - $lockStart) . " seconds");
 			return true;
 		}
 		sleep(1);
 	}
+	$lockStop = time();
+	$l->log("STATS: Setting flock to mode $mode failed after " . ($lockStop - $lockStart) . " seconds");
 	return false;
 }
 
 set_time_limit(0);
+$startTime = time();
 
 /* array definition:
 
@@ -160,7 +166,7 @@ if (isset($simpleMethods[$action])) {
 		$lockMode = LOCK_EX;
 	}
 
-	if (! myFlock($fp, $lockMode)) {
+	if (! myFlock($fp, $lockMode, $logger)) {
 		$res['status'] = 'error';
 		$res['errmsg'] = "Can't acquire lock on lib file";
 	} else {
@@ -198,7 +204,7 @@ if (isset($simpleMethods[$action])) {
 				$showOnlyNew = (isset($_POST['showOnlyNew']) && $_POST['showOnlyNew'] == 'false' ? FALSE : TRUE);
 				$saveResults = (isset($_POST['saveResults']) && $_POST['saveResults'] == 'false' ? FALSE : TRUE);
 					
-				if (! myFlock($fp, $saveResults ? LOCK_EX : LOCK_SH)) {
+				if (! myFlock($fp, $saveResults ? LOCK_EX : LOCK_SH, $logger)) {
 					$res['status'] = 'error';
 					$res['errmsg'] = "Can't acquire lock on lib file";
 				} else {
@@ -297,13 +303,19 @@ if (isset($simpleMethods[$action])) {
 
 if ($saveNeeded) $tv->save(LIB_FILE);
 
-myFlock($fp, LOCK_UN);
+myFlock($fp, LOCK_UN, $logger);
 fclose($fp);
 
 ob_start();
 var_dump($res);
 $d = ob_get_clean();
 $logger->log($d);
+
+$endTime = time();
+
+$logger->log("STATS: action $action took " . ($endTime - $startTime) . " seconds to complete.");
+
+
 $logger->log("------ END -----");
 switch ($format) {
 	case 'json':

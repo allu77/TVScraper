@@ -142,6 +142,8 @@ $simpleMethods = array(
 $log_file = LOG_DIR . '/api.log';
 $log_level = LOGGER_DEBUG;
 
+$uuid = uniqid();
+
 $logger = new Logger($log_file, $log_level);
 $logger->log("------ START -----");
 ob_start();
@@ -149,10 +151,14 @@ var_dump($_POST);
 $d = ob_get_clean();
 $logger->log($d);
 
-
-
 $action = $_POST['action'];
 $format = isset($_POST['format']) ? $_POST['format'] : 'json';
+$paramString = "";
+foreach ($_POST as $k => $v) {
+	if ($k != 'action') {
+        $paramString .= "$k=$v ";
+	}
+}
 
 $saveNeeded = FALSE;
 $res = array();
@@ -313,7 +319,7 @@ $logger->log($d);
 
 $endTime = time();
 
-$logger->log("STATS: action $action took " . ($endTime - $startTime) . " seconds to complete.");
+$logger->log("STATS: task $uuid action $action params $paramString" . "took " . ($endTime - $startTime) . " seconds to complete.");
 
 
 $logger->log("------ END -----");

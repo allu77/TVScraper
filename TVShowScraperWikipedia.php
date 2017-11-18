@@ -114,7 +114,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 								$this->log("n index = $nIndex");
 							} else if (preg_match('/prima\s+tv\s+italia/i', $hh) || preg_match('/pubblicazione\s+italia/i', $hh)) {
 								$airIndex = sizeof($hcols) - 1;
-								$this->log("n index = $airIndex");
+								$this->log("air index = $airIndex");
 							}
 						}
 					}
@@ -126,16 +126,24 @@ class TVShowScraperWikipedia extends TVShowScraper {
 
 					$body = substr($t, $headerStop + 3, strlen($t) - $headerStop - 5);
 					$rows = explode("\n|-", $body);
+					$airDateForNext = 0;
+					$lastAirDate = "";
 					foreach ($rows as $r) {
 						$i = 0;
 						$ep = FALSE;
 						$strDate = FALSE;
 
 						$r = trim($r, " \t\n\r\0\x0B|");
+						
+						#$this->log("r = $r");
+
 						$rcols = explode("\n|", $r);
 						foreach ($rcols as $subcol) {
+							#$this->log("subcol = $subcol");
+
 							$col = explode("||", $subcol);
 							foreach ($col as $c) {
+								#$this->log("c = $c");
 								if ($i == $nIndex) {
 									$ep = $c;
 								} else if ($i == $airIndex) {
@@ -146,19 +154,29 @@ class TVShowScraperWikipedia extends TVShowScraper {
 						}
 
 						if ($ep === FALSE) {
-							$this->log("Some column missing, skipping row...");
+							#$this->log("Some column missing, skipping row...");
 							continue;
 						}
 
 						$ep = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $ep));
 						if (! preg_match('/^\d+$/', $ep)) {
-							$this->log("Not a valid episode index $ep, skipping row...");
+							#$this->log("Not a valid episode index $ep, skipping row...");
 							continue;
 						}
-						if ($strDate != FALSE) {
+
+						if ($airDateForNext-- > 0) {
+							$strDate = $lastAirDate;
+						} else if ($strDate != FALSE) {
 							$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
 							$strDate = preg_replace('/[^a-z0-9 ]+/i', '', $strDate);
 							$strDate = preg_replace('/\s+/', ' ', $strDate);
+							$checkSpan = Array();
+							if (preg_match('/^rowspan(\d+)/', $strDate, $checkSpan)) {
+								$airDateForNext = $checkSpan[1] - 1;
+								$this->log("rowspan found, this airDate is valid for the next $airDateForNext episodes");
+								$strDate = preg_replace('/rowspan\d+\s+/', '', $strDate);
+								$lastAirDate = $strDate;
+							}
 						}
 
 						$this->log("Episode: $ep, prima TV Italia: $strDate");

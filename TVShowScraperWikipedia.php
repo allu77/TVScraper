@@ -126,37 +126,55 @@ class TVShowScraperWikipedia extends TVShowScraper {
 
 					$body = substr($t, $headerStop + 3, strlen($t) - $headerStop - 5);
 					$rows = explode("\n|-", $body);
-					$airDateForNext = 0;
-					$lastAirDate = "";
-					foreach ($rows as $r) {
-						$i = 0;
-						$ep = FALSE;
-						$strDate = FALSE;
+					$table = array();
 
-						$r = trim($r, " \t\n\r\0\x0B|");
-						
-						#$this->log("r = $r");
-
+					for ($i = 0; $i < sizeof($rows); $i++) {
+						#$this->log("Checking row $i");
+						if (! isset($table[$i])) $table[$i] = array();
+						$j = 0;
+						$r = trim($rows[$i], " \t\n\r\0\x0B|");
 						$rcols = explode("\n|", $r);
 						foreach ($rcols as $subcol) {
-							#$this->log("subcol = $subcol");
-
 							$col = explode("||", $subcol);
 							foreach ($col as $c) {
-								#$this->log("c = $c");
-								if ($i == $nIndex) {
-									$ep = $c;
-								} else if ($i == $airIndex) {
-									$strDate = $c;
+								#$this->log("Checking cell $c");
+								while (isset($table[$i][$j])) {
+									#$this->log("Skipping column $j");
+									$j++;
 								}
-								$i++;
+								#$this->log("Column index is $j");
+								$colspan = 1;
+								$rowspan = 1;
+								$m = array();
+								if (preg_match("/rowspan\s*=\s*\"?\s?(\d+)/", $c, $m)) {
+									$rowspan = $m[sizeof($m) - 1];
+									$this->log("Cell has rowspan $rowspan");
+								}
+								if (preg_match("/colspan\s*=\s*\"?\s?(\d+)/", $c, $m)) {
+									$colspan = $m[sizeof($m) - 1];
+									$this->log("Cell has colspan $colspan");
+								}
+								#$this->log("c before cleanup: $c");
+								$c = preg_replace("/rowspan\s*=\s*\"?\s?\d+/", "", $c);
+								$c = preg_replace("/oolspan\s*=\s*\"?\s?\d+/", "", $c);
+								#$this->log("c after cleanup: $c");
+								for ($cs = 0; $cs < $colspan; $cs++) {
+									for ($rs = 0; $rs < $rowspan; $rs++) {
+										if (!isset($table[$i + $rs])) $table[$i + $rs] = array();
+										#$this->log("Setting value to " . ($i + $rs) . "," . ($j + $cs));
+										$table[$i + $rs][$j + $cs] = $c;
+									}
+								}
+								$j+= $colspan;
 							}
 						}
+					}
 
-						if ($ep === FALSE) {
-							#$this->log("Some column missing, skipping row...");
-							continue;
-						}
+					for ($i = 0; $i < sizeof($table); $i++) {
+						$ep = $table[$i][$nIndex];
+						$strDate = $table[$i][$airIndex];
+						
+						$this->log("ep $ep - strDate $strdate");
 
 						$ep = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $ep));
 						if (! preg_match('/^\d+$/', $ep)) {
@@ -164,20 +182,9 @@ class TVShowScraperWikipedia extends TVShowScraper {
 							continue;
 						}
 
-						if ($airDateForNext-- > 0) {
-							$strDate = $lastAirDate;
-						} else if ($strDate != FALSE) {
-							$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
-							$strDate = preg_replace('/[^a-z0-9 ]+/i', '', $strDate);
-							$strDate = preg_replace('/\s+/', ' ', $strDate);
-							$checkSpan = Array();
-							if (preg_match('/^rowspan(\d+)/', $strDate, $checkSpan)) {
-								$airDateForNext = $checkSpan[1] - 1;
-								$this->log("rowspan found, this airDate is valid for the next $airDateForNext episodes");
-								$strDate = preg_replace('/rowspan\d+\s+/', '', $strDate);
-								$lastAirDate = $strDate;
-							}
-						}
+						$strDate = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $strDate));
+						$strDate = preg_replace('/[^a-z0-9 ]+/i', '', $strDate);
+						$strDate = preg_replace('/\s+/', ' ', $strDate);
 
 						$this->log("Episode: $ep, prima TV Italia: $strDate");
 

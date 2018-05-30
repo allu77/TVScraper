@@ -5,7 +5,7 @@ define('LOCK_TIMEOUT', 300);
 require_once('config.php');
 
 
-require_once('TVShowScraperDB.php');
+require_once('TVShowScraperSQLite.php');
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
@@ -60,6 +60,10 @@ function checkPostParameters($post, $validParams, $logger) {
 }
 
 function myFlock($fh, $mode, $l) {
+
+return TRUE;
+
+
 	$lockStart = time();
 	for ($t = 0; $t < LOCK_TIMEOUT; $t++) {
 		if (flock($fh, $mode | LOCK_NB)) {
@@ -163,7 +167,7 @@ foreach ($_POST as $k => $v) {
 $saveNeeded = FALSE;
 $res = array();
 
-$fp = fopen(LIB_FILE, 'r');
+//$fp = fopen(LIB_FILE, 'r');
 
 if (isset($simpleMethods[$action])) {
 
@@ -176,7 +180,7 @@ if (isset($simpleMethods[$action])) {
 		$res['status'] = 'error';
 		$res['errmsg'] = "Can't acquire lock on lib file";
 	} else {
-		$tv = new TVShowScraperDB(LIB_FILE);
+		$tv = new TVShowScraperSQLite(LIB_FILE);
 		$tv->setLogger($logger);
 
 		$params = array();

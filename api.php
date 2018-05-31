@@ -5,7 +5,7 @@ define('LOCK_TIMEOUT', 300);
 require_once('config.php');
 
 
-require_once('TVShowScraperSQLite.php');
+require_once('TVShowScraperDBSQLite.php');
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
@@ -180,7 +180,7 @@ if (isset($simpleMethods[$action])) {
 		$res['status'] = 'error';
 		$res['errmsg'] = "Can't acquire lock on lib file";
 	} else {
-		$tv = new TVShowScraperSQLite(LIB_FILE);
+		$tv = new TVShowScraperDBSQLite(LIB_FILE);
 		$tv->setLogger($logger);
 
 		$params = array();

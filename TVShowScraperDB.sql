@@ -117,12 +117,23 @@ join scrapedSeasons
 on tvShowScrapers.scraper = scrapedSeasons.scraper
 and hide = 0
 group by tvShowScrapers.tvShow;
-CREATE VIEW tvShowsWithStats as
+CREATE VIEW seasonStatsFiles AS
+SELECT seasons.id, COUNT(*) as episodesWithFile
+FROM seasons
+JOIN episodes
+ON seasons.id = episodes.season
+WHERE seasons.status = "watched"
+AND episodes.id IN(
+	SELECT episode	
+		FROM files )
+GROUP BY seasons.id;
+CREATE VIEW tvShowsWithStats AS
 select tvShows.id, tvShows.title, tvShows.alternateTitle, tvShows.lang, tvShows.nativeLang, tvshows.res,
 max(seasonStatsPast.lastAirDate) as lastAirDate, max(seasonStatsPast.lastAiredEpisodeIndex) as lastAiredEpisodeIndex, sum(seasonStatsPast.airedEpisodesCount) as airedEpisodesCount,
 sum(seasonStatsMissing.missingCount) as missingCount, min(seasonStatsMissing.firstMissingIndex) as firstMissingIndex, max(seasonStatsMissing.latestMissingIndex) as latestMissingIndex,
 max(seasonStatsTotal.lastEpisodeIndex) as lastEpisodeIndex, max(seasonStatsTotal.lastPubDate) as lastPubDate,
-max(pendingScrapedSeasons.pendingScrapedSeasons) as pendingScrapedSeasons
+max(pendingScrapedSeasons.pendingScrapedSeasons) as pendingScrapedSeasons,
+sum(seasonStatsFiles.episodesWithFile) as episodesWithFile
 from tvshows
 left join seasons
 on tvshows.id = seasons.tvshow
@@ -134,4 +145,25 @@ left join seasonStatsTotal
 on seasons.id = seasonStatsTotal.season
 left join pendingScrapedSeasons
 on tvShows.id = pendingScrapedSeasons.tvShow
+left join seasonStatsFiles
+on seasons.id = seasonStatsFiles.id
 group by tvShows.id, tvShows.title, tvShows.alternateTitle, tvShows.lang, tvShows.nativeLang, tvshows.res;
+CREATE VIEW bestScrapersFiles AS
+SELECT outer.id, outer.episode, pubDate + delay as pubDate, outer.scraper
+FROM files as outer
+JOIN scrapers
+ON outer.scraper = scrapers.id
+WHERE scraper in (
+SELECT scrapers.id
+FROM files AS inner
+JOIN scrapers
+ON scraper = scrapers.id
+WHERE inner.episode = outer.episode
+AND pubDate < strftime('%s', 'now') - delay
+AND inner.discard = 0
+GROUP BY scrapers.id, preference
+ORDER BY IFNULL(preference, -9999), min(inner.pubDate + scrapers.delay), scrapers.id
+LIMIT 1
+)
+AND outer.discard = 0
+;

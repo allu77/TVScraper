@@ -109,7 +109,7 @@ $simpleMethods = array(
 /* method */ 'getActiveScrapers'		=> array( ),
 /* method */ 'addTVShow' 				=> array( 'save' => TRUE,	'params' => array( '+title', '_other' )),
 /* method */ 'addSeason' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '+n', '_other' )),
-/* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', '+source', '+uri', '_other' )),
+/* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', 'type', '+source', '+uri', '_other' )),
 /* method */ 'removeEpisode' 			=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
 /* method */ 'removeFile'	 			=> array( 'save' => TRUE,	'params' => array( 'fileId' )),
 /* method */ 'removeTVShow' 			=> array( 'save' => TRUE,	'params' => array( 'showId' )),

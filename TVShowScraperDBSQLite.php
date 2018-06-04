@@ -406,6 +406,8 @@ class TVShowScraperDBSQLite  {
 
 		if (! $this->validateParams($p, $this->validParamsScraper())) return FALSE;
 
+		if (isset($p['preference']) && $p['preference'] == '') unset($p['preference']); // Empty non null preference causes issues with scraper sorting during getBestFile
+
 		$wasInTransaction = $this->db->inTransaction();
 		if (!$wasInTransaction) $this->db->beginTransaction();
 
@@ -442,6 +444,8 @@ class TVShowScraperDBSQLite  {
 	}
 	
 	public function setScraper($id, $p) {
+
+		if (isset($p['preference']) && $p['preference'] == '') $p['preference'] = '_REMOVE_'; // Empty non null preference causes issues with scraper sorting during getBestFile
 
 		$wasInTransaction = $this->db->inTransaction();
 		if (!$wasInTransaction) $this->db->beginTransaction();

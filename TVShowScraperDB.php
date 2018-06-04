@@ -766,6 +766,8 @@ class TVShowScraperDB  {
 
 		$best = NULL;
 		$bestDelay = 0;
+		$bestSeed = NULL;
+		$bestSeedDelay = 0;
 		$lastPref = NULL;
 
 		foreach ($scrapers as $s) {
@@ -808,18 +810,33 @@ class TVShowScraperDB  {
 				}
 				$episodeId = $file->getAttribute('episode');
 						
-				if ($best == NULL || $file->getAttribute('pubDate') + $sDelay < $best->getAttribute('pubDate') + $bestDelay) {
+				if ($best == NULL) {
 					$best = $file;
+					$bestSeed = $file;
 					$bestDelay = $sDelay;
+					$bestSeedDelay = $sDelay;
+					$this->log("Found first file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
+				} else if ($file->getAttribute('pubDate') + $sDelay < $best->getAttribute('pubDate') + $bestDelay) {
 					$this->log("Found elder file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
+					if ($file->getAttribute('scraper') == $best->getAttribute('scraper')) {
+						$this->log("Elder file is from the same scraper. Skipping.");
+					} else if ($file->getAttribute('pubDate') + $sDelay < $bestSeed->getAttribute('pubDate') + $bestSeedDelay) {
+						$best = $file;
+						$bestSeed = $file;
+						$bestDelay = $sDelay;
+						$bestSeedDelay = $sDelay;
+						$this->log("Elder file is from a same preference scraper and older than the original seed. Switching to this scraper.");
+					} else {
+						$this->log("Elder file is from a same preference scraper but newer than the original seed. Keeping the existing one.");
+					}
 				} else {
 					$this->log("Found more recent file " . $file->getAttribute('id') . " for episode " . $file->getAttribute('episode'));
 					if ($best->getAttribute('scraper') == $file->getAttribute('scraper')) {
-						$this->log("Files are from the same scaper. Keeping latest.");
+						$this->log("Files are from the same scraper. Keeping latest.");
 						$best = $file;
-					$bestDelay = $sDelay;
+						$bestDelay = $sDelay;
 					} else {
-						$this->log("Files are from different scaper. Keeping oldest.");
+						$this->log("Files are from different scraper. Keeping oldest.");
 					}
 				}
 			}

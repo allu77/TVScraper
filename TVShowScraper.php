@@ -182,10 +182,8 @@ abstract class TVShowScraper {
 						if ($addFile) {
 							if ($saveResults) {
 								$this->log("Creating new file");
-								$this->tvdb->addFile($seasonData['tvshow'], Array(
+								$this->tvdb->addFile($episode['id'], Array(
 										'uri'		=> $link,
-										'season'	=> $scraperData['season'],
-										'episode'	=> $episode['id'],
 										'scraper'	=> $scraperData['id'],
 										'pubDate'	=> $candidateLinks[$j]['pubDate'],
 										'type'		=> isset($candidateLinks[$j]['type']) ? $candidateLinks[$j]['type'] : 'ed2k'

@@ -126,13 +126,17 @@ foreach ($tvShows as $tvShow) {
 			}
 
 			$xmlFileId = $file['id'];
-			unset($file['id']);
-			unset($file['season']);
+			$xmlEpisodeId = $file['episode'];
+
 			$file['episode'] = $episodesMap[$file['episode']];
 			$file['scraper'] = $scrapersMap[$file['scraper']];
 			if (!isset($file['type'])) $file['type'] = 'ed2k';
 
-			$dbFile = $db->addFile($season['id'], $file);
+			unset($file['id']);
+			unset($file['season']);
+			unset($file['episode']);
+
+			$dbFile = $db->addFile($episodesMap[$xmlEpisodeId], $file);
 			if ($dbFile === FALSE) die($logger->errmsg());
 			print "Done!\n";
 

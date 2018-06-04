@@ -500,9 +500,20 @@ class TVShowScraperDBSQLite  {
 	}
 	
 	// FILE
+
+
+	protected function validParamsFile() {
+		return array(
+			'discard'		=> 1,
+			'uri'			=> 1,
+			'pubDate'		=> 1,
+			'type'			=> 1,
+			'scraper'		=> 1
+		);
+	}
 	
-	public function addFile($showId, $p) {
-		return $this->addElementDB("files", null, null, $p);
+	public function addFile($episodeId, $p) {
+		return $this->validateParams($p, $this->validParamsFile()) ? $this->addElementDB('files', 'episode', $episodeId, $p) : FALSE;
 	}
 	
 	public function removeFile($id) {

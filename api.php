@@ -218,7 +218,7 @@ if (isset($simpleMethods[$action])) {
 					$res['status'] = 'error';
 					$res['errmsg'] = "Can't acquire lock on lib file";
 				} else {
-					$tv = new TVShowScraperDB(LIB_FILE);
+					$tv = new TVShowScraperDBSQLite(LIB_FILE);
 					$tv->setLogger($logger);
 					$scraper = $tv->getScraper($_POST['scraperId']);
 					

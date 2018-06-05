@@ -304,7 +304,8 @@ class TVShowScraperDBSQLite  {
 	
 	public function getSeasonFromN($showId, $n) {
 		$res = $this->getElementDB("SELECT * FROM seasons WHERE tvShow = :tvShow and n = :n", array('tvShow' => $showId, 'n' => $n));
-		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for tvShow $showId and n $n");
+		if ($res === FALSE) return FALSE;
+		return count($res) == 1 ? $res[0] : null;
 	}
 	
 	public function getTVShowSeasons($showId) {
@@ -517,53 +518,36 @@ class TVShowScraperDBSQLite  {
 	}
 	
 	public function removeFile($id) {
-		if ($this->removeElement("/tvscraper/tvshow/season/file[@id='$id']")) {
-			return TRUE;
-		} else {
-			$this->error("Can't remove file $id");
-			return FALSE;
-		}
+		return $this->removeElementDB('files', 'id', $id);
 	}
 	
 	
 	public function setFile($id, $p) {
-		$file = $this->getElement("/tvscraper/tvshow/season/file[@id='$id']");
-		if ($file === FALSE) {
-			$this->error("Can't fine unique file $id");
-			return FALSE;
-		}
 
-		$oldEpisodeId = strlen($file->getAttribute('episode')) > 0 ? $file->getAttribute('episode') : NULL;
-		$newEpisodeId = NULL;
-		$reset = FALSE;
-			
-		foreach ($p as $k => $v) {
-			switch ($k) {
-			case 'episode':
-				$newEpisodeId = $v;
-			case 'discard':
-				$reset = TRUE;
-				$this->setElementTextAttribute($file, $k, $v);
-				break;
-			case 'uri':
-			case 'season':
-			case 'scraper':
-			case 'pubDate':
-			case 'type':
-				$this->setElementTextAttribute($file, $k, $v);
-				break;
-			default:
-				$this->error("Unknown file parameter $k");
+		if (! $this->validateParams($p, $this->validParamsFile())) return FALSE;
+
+		$wasInTransaction = $this->db->inTransaction();
+		if (!$wasInTransaction) $this->db->beginTransaction();
+
+		if (isset($p['discard'])) {
+			$oldFile = $this->getFile($id);
+			if ($oldFile === FALSE) {
+				if (!$wasInTransaction) $this->db->rollBack();
+				return FALSE;
+			} 
+			if (! $this->resetEpisodeBestFile($oldFile['episode'])) {
+				if (!$wasInTransaction) $this->db->rollBack();
 				return FALSE;
 			}
 		}
-
-		if ($reset) {
-			if ($oldEpisodeId != NULL) $this->resetEpisodeBestFile($oldEpisodeId);
-			if ($newEpisodeId != NULL) $this->resetEpisodeBestFile($newEpisodeId);
+		if (!$this->setElementDB('files', 'id', $id, $p)) {
+			if (!$wasInTransaction) $this->db->rollBack();
+			return FALSE;
+		} else {
+			if (!$wasInTransaction) $this->db->rollBack();
+			$this->log("File $id successfully updated");
+			return TRUE;
 		}
-	
-		return TRUE;
 	}
 	
 	public function getFile($id) {
@@ -575,39 +559,17 @@ class TVShowScraperDBSQLite  {
 	
 
 	public function getFilesForEpisode($id) {
-		$x = $this->xPath->query("/tvscraper/tvshow/season/file[@episode='$id']");
-		$res = array();
-		for ($i = 0; $i < $x->length; $i++) {
-			$res[] = $this->getFile($x->item($i)->getAttribute('id'));
-		}
-		return $res;
+		return $this->getElementDB("SELECT * FROM files WHERE episode = :episode", array('episode' => $id));
 	}
 	
 	public function getFilesForSeason($id) {
-		$x = $this->xPath->query("/tvscraper/tvshow/season/file[@season='$id']");
-		$res = array();
-		for ($i = 0; $i < $x->length; $i++) {
-			$res[] = $x->item($i)->getAttribute('id');
-		}
-		return $res;
+		return $this->getElementDB("SELECT files.* FROM files JOIN episodes ON episode = episodes.id WHERE season = :season", array('season' => $id));
 	}
 	
 	public function getFilesForScraper($id) {
-		$x = $this->xPath->query("/tvscraper/tvshow/season/file[@scraper='$id']");
-		$res = array();
-		for ($i = 0; $i < $x->length; $i++) {
-			$res[] = $x->item($i)->getAttribute('id');
-		}
-		return $res;
+		return $this->getElementDB("SELECT * FROM files WHERE scraper = :scraper", array('scraper' => $id));
 	}
 
-	private static function sortByPreference($a, $b) {
-			if (!isset($b['preference']) && !isset($a['preference'])) return 0;
-			else if (!isset($a['preference'])) return -1;
-			else if (!isset($b['preference'])) return 1;
-			else return $a['preference'] - $b['preference'];
-	}
-	
 	public function getBestFileForEpisode($id) {
 		$this->log("Checking best file for episode $id");
 
@@ -709,93 +671,77 @@ class TVShowScraperDBSQLite  {
 
 	
 	// SCRAPED SEASON
+
+	protected function validParamsScrapedSeason() {
+		return array(
+			'uri'	=> 1,
+			'n'		=> 1,
+			'hide'	=> 1,
+			'tbn'	=> 1
+		);
+	}
 	
 	public function addScrapedSeason($scraperId, $p) {
-		return $this->addElementDB("scrapedSeasons", "scraper", $scraperId, $p);
+		return $this->validateParams($p, $this->validParamsScrapedSeason()) ? $this->addElementDB('scrapedSeasons', 'scraper', $scraperId, $p) : FALSE;
 	}
 	
 	public function removeScrapedSeason($id) {
 		$this->log("Removing scraped season $id...");
-		if ($this->removeElement("/tvscraper/tvshow/scraper/scrapedSeason[@id='$id']")) {
-			return TRUE;
-		} else {
-			$this->error("Can't remove scraped season $id");
-			return FALSE;
-		}
+		return $this->removeElementDB('scrapedSeasons', 'id', $id);
 	}
 	
 	public function setScrapedSeason($id, $p) {
-		$this->log("Searching for scraped season $id");
-		$scrapedSeason = $this->getElement("/tvscraper/tvshow/scraper/scrapedSeason[@id='$id']");
-		if ($scrapedSeason === FALSE) {
-			$this->error("Could not find unique scraped season $id");
-			return FALSE;
-		}
-			
-		foreach ($p as $k => $v) {
-			switch ($k) {
-				case 'uri':
-				case 'n':
-				case 'hide':
-				case 'tbn':
-					$this->setElementTextAttribute($scrapedSeason, $k, $v);
-					break;
-				default:
-					$this->error("Unknown scraped season parameter $k");
-					return FALSE;
-			}
-		}
-	
-		return TRUE;
+		return $this->validateParams($p, $this->validParamsScrapedSeason()) ? $this->setElementDB('scrapedSeasons', 'id', $id, $p) : FALSE;
 	}
 	
 	public function getScrapedSeason($id) {
-		$scrapedSeason = $this->getElement("/tvscraper/tvshow/scraper/scrapedSeason[@id='$id']");
-		if ($scrapedSeason === FALSE) {
-			$this->error("Could not find unique scraped season $id");
-			return FALSE;
-		}
-	
-		$res = $this->getElementAttributes($scrapedSeason);
-		$res['scraper'] = $scrapedSeason->parentNode->getAttribute('id');
-		$res['source'] = $scrapedSeason->parentNode->getAttribute('source');
-	
-		return $res;
+		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE scrapedSeasons.id = :id";
+		$res = $this->getElementDB($q, array('id' => $id));
+
+		if ($res === FALSE) return FALSE;
+		else if (count($res) != 1) return $this->error("Can't find a single match for scrapedSeason $id");
+		else return $res['0'];
 	}
 
 	public function getScrapedSeasons($showId) {
-		$scrapedSeasons = $this->xPath->query("/tvscraper/tvshow[@id='$showId']/scraper/scrapedSeason");
-		$res = array();
-
-		for ($i = 0; $i < $scrapedSeasons->length; $i++) {
-			$res[] = $this->getScrapedSeason($scrapedSeasons->item($i)->getAttribute('id'));
-		}
-
-		return $res;
+		$q = "
+		SELECT scrapedSeasons.*, scrapers.source 
+		FROM scrapedSeasons 
+		JOIN scrapers 
+		ON scrapedSeasons.scraper = scrapers.id 
+		JOIN tvshowScrapers
+		ON tvshowScrapers.scraper = scrapers.id
+		WHERE tvShow = :id
+		";
+		return $this->getElementDB($q, array('id' => $id));
 	}
 	
 	public function getScrapedSeasonsTBN() {
-		$scrapedSeasons = $this->xPath->query("/tvscraper/tvshow/scraper/scrapedSeason[@tbn='1']");
-		$res = array();
-	
-		for ($i = 0; $i < $scrapedSeasons->length; $i++) {
-			$res[] = $this->getScrapedSeason($scrapedSeasons->item($i)->getAttribute('id'));
-		}
-	
-		return $res;
+		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE tbn = 1";
+		return $this->getElementDB($q, array('id' => $id));
 	}
 	
 	
 	public function getScrapedSeasonFromUri($scraperId, $uri, $n = NULL) {
-		$query = "/tvscraper/tvshow/scraper[@id='$scraperId']/scrapedSeason[@uri='$uri'".($n == NULL ? "" : " and @n='$n'") ."]";
-		$scrapedSeason = $this->getElement($query);
-		if ($scrapedSeason === FALSE) {
-			// $this->error("Could not find unique scraped season with URI $uri for scraper $id");
-			$this->log("Scraped season with URI $uri and scraperId $scraperId not found");
-			return NULL;
+		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE uri = :uri";
+		$p = array('uri' => $uri);
+
+		if ($n != NULL) {
+			$q .= " AND n = :n";
+			$p['n'] = $n;
 		}
-	
-		return $this->getScrapedSeason($scrapedSeason->getAttribute('id'));
+
+		$res = $this->getElementDB($q, $p);
+
+		if ($res === FALSE) return FALSE;
+		else if (count($res) == 0) {
+			$this->log("Scraped season with URI $uri and n $n not found");
+			return NULL;
+		} else if (count($res) == 1) {
+			return $res['0'];
+		} else {
+			return $this->error("Multiple matched for URI $uri and n $n");
+		}
 	}
 	
 	public function createSeasonScraperFromScraped($id) {
@@ -812,24 +758,39 @@ class TVShowScraperDBSQLite  {
 		}
 		
 		$season = $this->getSeasonFromN($scraper['tvshow'], $scrapedSeason['n']);
+
+		if ($season === FALSE) return FALSE;
 		
+		$wasInTransaction = $this->db->inTransaction();
+		if (!$wasInTransaction) $this->db->beginTransaction();
+
 		if ($season == NULL) {
 			$this->log("Season $n does not exist yet. Creating...");
 			$season = $this->addSeason($scraper['tvshow'], array('n' => $scrapedSeason['n'], 'status' => 'watched'));
-			if ($season === FALSE) return FALSE;
+			if ($season === FALSE) {
+				if (!$wasInTransaction) $this->db->rollBack();
+				return FALSE;
+			}
 		}
 		
 		$this->log("Adding new scraper to season " . $season['id']);
-		$scraperId = $this->addScraper($season['id'], array(
+		$newScraper = $this->addScraper($season['id'], array(
 				'uri' => $scrapedSeason['uri'],
 				'source' => $scraper['source']
 		));
 
-		if ($scraperId != FALSE) {
-			$this->setScrapedSeason($id, array('hide' => '1'));
+		if ($newScraper === FALSE) {
+			if (!$wasInTransaction) $this->db->rollBack();
+			return FALSE;
 		}
-		
-		return $scraperId;
+
+		if (!$this->setScrapedSeason($id, array('hide' => '1'))) {
+			if (!$wasInTransaction) $this->db->rollBack();
+			return FALSE;
+		}
+
+		if (!$wasInTransaction) $this->db->commit();
+		return $newScraper['id'];
 		
 	}
 	

@@ -167,3 +167,12 @@ LIMIT 1
 )
 AND outer.discard = 0
 ;
+CREATE VIEW scrapersWithParents AS
+SELECT scrapers.*, seasonScrapers.season, tvShowScrapers.tvShow
+FROM scrapers
+LEFT JOIN seasonScrapers
+ON scrapers.id = seasonScrapers.scraper
+LEFT JOIN tvShowScrapers
+ON scrapers.id = tvShowScrapers.scraper
+;
+

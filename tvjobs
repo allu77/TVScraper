@@ -401,8 +401,8 @@ do_find_missing() {
 	done
 	showList=$(api getAllTVShows | awk '
 		doRead=="id" { id=$2; doRead="nothing"; }
-		doRead=="lastAiredEpisodeIndex" { lastAiredEpisodeIndex=$1; gsub(/[int\(\)]/, "", lastAiredEpisodeIndex); doRead="nothing"; }
-		doRead=="episodesWithFile" { episodesWithFile=$1; gsub(/[int\(\)]/, "", episodesWithFile); doRead="nothing"; }
+		doRead=="lastAiredEpisodeIndex" { lastAiredEpisodeIndex=$1; gsub(/[string\(\)]/, "", lastAiredEpisodeIndex); doRead="nothing"; }
+		doRead=="episodesWithFile" { episodesWithFile=$1; gsub(/[string\(\)]/, "", episodesWithFile); doRead="nothing"; }
 		doRead=="lang" { lang=$2; doRead="nothing"; }
 		doRead=="nativeLang" { nativeLang=$2; doRead="nothing"; }
 		doRead=="res" { res=$2; doRead="nothing"; }
@@ -422,6 +422,7 @@ do_find_missing() {
 
 			}
 	')
+
 
 	oldIFS=$IFS
 	IFS=$'\n'

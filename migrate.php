@@ -77,7 +77,7 @@ foreach ($tvShows as $tvShow) {
 			$scraperId = $scraper['id'];
 			unset($scraper['id']);
 			unset($scraper['season']);
-			$dbScraper = $db->addScraper($dbTVShow['id'], 'season', $scraper);
+			$dbScraper = $db->addScraper($dbSeason['id'], 'season', $scraper);
 			if ($dbScraper === FALSE) die($logger->errmsg());
 			print "Done!\n";
 			$scrapersMap[$scraperId] = $dbScraper['id'];

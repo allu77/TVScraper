@@ -127,13 +127,23 @@ AND episodes.id IN(
 	SELECT episode	
 		FROM files )
 GROUP BY seasons.id;
+CREATE VIEW seasonStatsFuture AS
+SELECT seasons.id AS season,
+MIN(episodes.airDate) AS nextAirDate
+FROM seasons
+JOIN episodes
+ON seasons.id = episodes.season
+WHERE seasons.status = "watched"
+AND episodes.airDate >= ((strftime('%s', 'now') / 86400) - 1) * 86400
+GROUP BY seasons.id;
 CREATE VIEW tvShowsWithStats AS
 select tvShows.id, tvShows.title, tvShows.alternateTitle, tvShows.lang, tvShows.nativeLang, tvshows.res,
 max(seasonStatsPast.lastAirDate) as lastAirDate, max(seasonStatsPast.lastAiredEpisodeIndex) as lastAiredEpisodeIndex, sum(seasonStatsPast.airedEpisodesCount) as airedEpisodesCount,
 sum(seasonStatsMissing.missingCount) as missingCount, min(seasonStatsMissing.firstMissingIndex) as firstMissingIndex, max(seasonStatsMissing.latestMissingIndex) as latestMissingIndex,
 max(seasonStatsTotal.lastEpisodeIndex) as lastEpisodeIndex, max(seasonStatsTotal.lastPubDate) as lastPubDate,
 max(pendingScrapedSeasons.pendingScrapedSeasons) as pendingScrapedSeasons,
-sum(seasonStatsFiles.episodesWithFile) as episodesWithFile
+sum(seasonStatsFiles.episodesWithFile) as episodesWithFile,
+min(seasonStatsFuture.nextAirDate) as nextAirDate
 from tvshows
 left join seasons
 on tvshows.id = seasons.tvshow
@@ -147,6 +157,8 @@ left join pendingScrapedSeasons
 on tvShows.id = pendingScrapedSeasons.tvShow
 left join seasonStatsFiles
 on seasons.id = seasonStatsFiles.id
+left join seasonStatsFuture
+on seasons.id = seasonStatsFuture.season
 group by tvShows.id, tvShows.title, tvShows.alternateTitle, tvShows.lang, tvShows.nativeLang, tvshows.res;
 CREATE VIEW bestScrapersFiles AS
 SELECT outer.id, outer.episode, pubDate + delay as pubDate, outer.scraper

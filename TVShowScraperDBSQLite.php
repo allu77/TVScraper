@@ -29,14 +29,13 @@ class TVShowScraperDBSQLite  {
 	public function __construct($fileName) {
 		if (file_exists($fileName)) {
 			$this->db = new PDO("sqlite:$fileName", null, null, array());
-			$this->db->exec("PRAGMA foreign_keys = 'ON'");
 		} else {
 			// CREATE new DB
 			$this->db = new PDO("sqlite:$fileName", null, null, array());
-			$this->db->exec("PRAGMA foreign_keys = 'ON'");
 			$buildSql = file_get_contents("TVShowScraperDB.sql");
 			$this->db->exec($buildSql);
 		}
+		$this->db->exec("PRAGMA foreign_keys = 'ON'");
 	}
 
 	public function beginTransaction() {
@@ -713,12 +712,12 @@ class TVShowScraperDBSQLite  {
 		ON tvshowScrapers.scraper = scrapers.id
 		WHERE tvShow = :id
 		";
-		return $this->getElementDB($q, array('id' => $id));
+		return $this->getElementDB($q, array('id' => $showId));
 	}
 	
 	public function getScrapedSeasonsTBN() {
 		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE tbn = 1";
-		return $this->getElementDB($q, array('id' => $id));
+		return $this->getElementDB($q);
 	}
 	
 	

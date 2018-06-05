@@ -7,6 +7,7 @@ show_usage() {
 	echo "  -b HTTP_BASE_URL" >&2
 	echo "  -u HTTP_USER" >&2
 	echo "  -p HTTP_PASSWORD">&2
+	echo "  -a HTTP_AUTH (= <digest|basic>)">&2
 	echo "" >&2
 	echo "HTTP parameters can either be provided as cmd line options or inside" >&2
 	echo "configuration files:" >&2
@@ -52,7 +53,7 @@ api() {
 
 
 	auth=""
-	[ -z "$HTTP_USER" ] || auth="--digest -u $HTTP_USER:$HTTP_PASSWORD"
+	[ -z "$HTTP_USER" ] || auth="--$HTTP_AUTH -u $HTTP_USER:$HTTP_PASSWORD"
 
 	result=$(curl -s --data "format=txt&action=$action$paramstring" $auth $HTTP_BASE_URL/api.php|awk '
 
@@ -499,6 +500,7 @@ do_find_missing() {
 
 HTTP_USER=""
 HTTP_PASSWORD=""
+HTTP_AUTH="digest"
 HTTP_BASE_URL="http://localhost/TVScraper"
 
 [ -e /etc/tvscraper ] && source /etc/tvscraper
@@ -510,6 +512,7 @@ while [ $# -gt 0 ]; do
 		-u) shift ; HTTP_USER="$1" ;; 
 		-p) shift ; HTTP_PASSWORD="$1" ;; 
 		-b) shift ; HTTP_BASE_URL="$1" ;; 
+		-a) shift ; HTTP_AUTH="$1" ;;
 		-*) 
 		    echo "Unknown option $1" >&2
 			show_usage

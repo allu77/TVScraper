@@ -27,6 +27,7 @@ SeasonScraper.create = function(seasonElem, e) {
 		runAPI({
 			action:"addScraper",
 			rootId:seasonObj.id,
+			type:"season",
 			preference:SeasonScraper.dialog.find('#editSeasonScraperPreference').val(),
 			delay:SeasonScraper.dialog.find('#editSeasonScraperDelay').val(),
 			uri:SeasonScraper.dialog.find('#editSeasonScraperURI').val(),

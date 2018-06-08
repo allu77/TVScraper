@@ -111,6 +111,7 @@ abstract class TVShowScraper {
 						);
 						if (isset($scraperData['notify']) && $scraperData['notify'] == "1") $p['tbn'] = '1';
 						$newId = $this->tvdb->addScrapedSeason($scraperData['id'], $p);
+						if ($newId === FALSE) return FALSE;
 							
 						if (isset($scraperData['autoAdd']) && $scraperData['autoAdd'] == "1"  && $n > 0) {
 							$this->tvdb->createSeasonScraperFromScraped($newId);
@@ -162,7 +163,7 @@ abstract class TVShowScraper {
 						$res[] = $link;
 					} else {
 						$episode = $this->tvdb->getEpisodeFromIndex($seasonData['tvshow'], $fileNameParts['season'], $fileNameParts['episode']);
-						if ($episode == FALSE && $saveResults) {
+						if ($episode === FALSE && $saveResults) {
 							$this->log("Creating new episode");
 							$episodeId = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
 							$episode = $this->tvdb->getEpisode($episodeId);
@@ -182,12 +183,12 @@ abstract class TVShowScraper {
 						if ($addFile) {
 							if ($saveResults) {
 								$this->log("Creating new file");
-								$this->tvdb->addFile($episode['id'], Array(
+								if (!$this->tvdb->addFile($episode['id'], Array(
 										'uri'		=> $link,
 										'scraper'	=> $scraperData['id'],
 										'pubDate'	=> $candidateLinks[$j]['pubDate'],
 										'type'		=> isset($candidateLinks[$j]['type']) ? $candidateLinks[$j]['type'] : 'ed2k'
-								));
+								))) return FALSE;
 							}
 							$res[] = $link;
 						}

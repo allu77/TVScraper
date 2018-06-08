@@ -72,10 +72,10 @@ class TVShowScraperDBSQLite  {
 		}
 		if ($parentKey != null) {
 			$this->log("Executing with params $parentValue, " . implode(', ', $params));
-			$st->execute(array_merge(array($parentKey => $parentValue), $params));
+			if (! $st->execute(array_merge(array($parentKey => $parentValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 		} else {
 			$this->log("Executing with params " . implode(', ', $params));
-			$st->execute($params);
+			if (! $st->execute($params)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 		}
 		if ($st->rowCount() == 1) {
 			return array_merge(array('id' => $this->db->lastInsertId()), $params);
@@ -103,7 +103,7 @@ class TVShowScraperDBSQLite  {
 		}
 
 		$this->log("Executing with params " . implode(', ', $params) . ", $value");
-		$st->execute($p);
+		if (! $st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 
 		if ($st->rowCount() != 1) {
 			if (! $wasInTransaction) $this->db->rollBack();
@@ -123,7 +123,7 @@ class TVShowScraperDBSQLite  {
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 		$this->log("Executing with param $value");
-		$st->execute(array($value));
+		if (! $st->execute(array($value))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 
 		return TRUE;
 	}
@@ -138,7 +138,7 @@ class TVShowScraperDBSQLite  {
 		}
 
 		$this->log("Executing with params " . implode(', ', $p));
-		$st->execute($p);
+		if (! $st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 
 		$res = array();
 
@@ -225,10 +225,10 @@ class TVShowScraperDBSQLite  {
 
 		if ($id == null) {
 			$this->log("Executing query");
-			$st->execute();
+			if (! $st->execute()) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 		} else {
 			$this->log("Executing query with param $id");
-			$st->execute(array('id'=>$id));
+			if (! $st->execute(array('id'=>$id))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
 		}
 
 		$res = array();
@@ -379,7 +379,7 @@ class TVShowScraperDBSQLite  {
 	}
 
 	public function getEpisodeFromIndex($showId, $season, $episode) {
-		$res = $this->getElementDB("SELECT episodes.* FROM episodes JOIN seasons ON episodes.season = season.id WHERE show = :show AND season.n = :season AND n = :episode", array('show' => $showId, 'season' => $season, 'episode' => $episode));
+		$res = $this->getElementDB("SELECT episodes.* FROM episodes JOIN seasons ON episodes.season = seasons.id WHERE tvshow = :show AND seasons.n = :season AND episodes.n = :episode", array('show' => $showId, 'season' => $season, 'episode' => $episode));
 		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for show $showId, season $season, episode $episode");
 	}
 
@@ -476,9 +476,10 @@ class TVShowScraperDBSQLite  {
 		$episodes = $this->getSeasonEpisodes($id);
 		foreach ($episodes as $e) {
 			if (isset($e['bestFile'])) {
-				$this->resetEpisodeBestFile($e['id']);
+				if (!$this->resetEpisodeBestFile($e['id'])) return FALSE;
 			}
 		}
+		return TRUE;
 	}
 	
 	public function getScraper($id) {
@@ -773,7 +774,7 @@ class TVShowScraperDBSQLite  {
 		}
 		
 		$this->log("Adding new scraper to season " . $season['id']);
-		$newScraper = $this->addScraper($season['id'], array(
+		$newScraper = $this->addScraper($season['id'], 'season', array(
 				'uri' => $scrapedSeason['uri'],
 				'source' => $scraper['source']
 		));

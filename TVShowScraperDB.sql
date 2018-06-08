@@ -23,9 +23,9 @@ CREATE TABLE `scrapedSeasons` (
         `id`    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         `scraper`      INTEGER NOT NULL,
         `n`     INTEGER NOT NULL,
-`uri`     TEXT NOT NULL,
-hide INTEGER NOT NULL DEFAULT 0,
-tbn INTEGER NOT NULL DEFAULT 0,
+		`uri`     TEXT NOT NULL,
+		hide INTEGER NOT NULL DEFAULT 0,
+		tbn INTEGER, 
         FOREIGN KEY(scraper) REFERENCES scrapers(id) ON DELETE CASCADE
 );
 CREATE TABLE `scrapers` (

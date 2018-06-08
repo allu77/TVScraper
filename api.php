@@ -265,7 +265,8 @@ if (isset($simpleMethods[$action])) {
 					}
 					if ($res['status'] == 'ok' && $res['result'] === FALSE) {
 						$res['status'] = 'error';
-						$res['errmsg'] = 'Error running scraper';
+						$res['errmsg'] = $logger->errmsg() ? $logger->errmsg() : 'Error running scraper';
+						$saveNeeded = FALSE;
 						unset($res['result']);
 					}
 				}

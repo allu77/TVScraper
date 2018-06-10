@@ -493,7 +493,7 @@ class TVShowScraperDBSQLite  {
 	}
 	
 	public function getActiveScrapers() {
-		return $this->getElementDB("SELECT scrapersWithParents.* FROM scrapersWithParents JOIN seasons on scrapersWithParents.season = seasons.id WHERE seasons.status = 'watched'", array());
+		return $this->getElementDB("SELECT scrapersWithParents.* FROM scrapersWithParents LEFT JOIN seasons on scrapersWithParents.season = seasons.id WHERE seasons.status = 'watched' OR scrapersWithParents.tvShow IS NOT NULL", array());
 	}
 	
 	public function getTVShowScrapers($showId) {

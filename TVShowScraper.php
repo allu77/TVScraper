@@ -165,8 +165,7 @@ abstract class TVShowScraper {
 						$episode = $this->tvdb->getEpisodeFromIndex($seasonData['tvshow'], $fileNameParts['season'], $fileNameParts['episode']);
 						if ($episode === FALSE && $saveResults) {
 							$this->log("Creating new episode");
-							$episodeId = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
-							$episode = $this->tvdb->getEpisode($episodeId);
+							$episode = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
 						}
 	
 						$addFile = TRUE;

@@ -297,29 +297,31 @@ do_cleanup_complete_seasons() {
 			done
 			IFS=$oldIFS
 
-			seasonList=$(api getScrapedSeasons showId $showId| awk '
-				doRead=="id" { id=$2; doRead="nothing"; }
-				doRead=="n" { n=$2; doRead="nothing"; }
-				/^      \["id"\]/ { doRead="id"; }
-				/^      \["n"\]/ { doRead="n"; }
-				/^    \}/ { printf "%s,%s\n", id, n; }
-			')
-			IFS=$'\n'
-			for season in $seasonList; do
-				IFS=$oldIFS
-				seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
-				seasonN=$(echo $season | cut -d , -f 2 | sed s/\"//g)
-				if ! [ -z "$seasonN" ] && [ "$seasonN" -le $lastCompleteIndex ]; then
-					echo -n "Removing scraped season $seasonId... "
-					if api removeScrapedSeason scrapedSeasonId $seasonId > /dev/null; then
-						echo "Done."
-					else
-						echo "Failed!"
-					fi
-				fi
-				
-			done
-			IFS=$oldIFS
+# NOT NEEDED ONCE MOVED TO SQL
+
+#			seasonList=$(api getScrapedSeasons showId $showId| awk '
+#				doRead=="id" { id=$2; doRead="nothing"; }
+#				doRead=="n" { n=$2; doRead="nothing"; }
+#				/^      \["id"\]/ { doRead="id"; }
+#				/^      \["n"\]/ { doRead="n"; }
+#				/^    \}/ { printf "%s,%s\n", id, n; }
+#			')
+#			IFS=$'\n'
+#			for season in $seasonList; do
+#				IFS=$oldIFS
+#				seasonId=$(echo $season | cut -d , -f 1 | sed s/\"//g)
+#				seasonN=$(echo $season | cut -d , -f 2 | sed s/\"//g)
+#				if ! [ -z "$seasonN" ] && [ "$seasonN" -le $lastCompleteIndex ]; then
+#					echo -n "Removing scraped season $seasonId... "
+#					if api removeScrapedSeason scrapedSeasonId $seasonId > /dev/null; then
+#						echo "Done."
+#					else
+#						echo "Failed!"
+#					fi
+#				fi
+#				
+#			done
+#			IFS=$oldIFS
 		fi
 	done
 	IFS=$oldIFS

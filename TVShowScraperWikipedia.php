@@ -194,7 +194,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 						if ($episodeDB === FALSE) {
 							if ($saveResults) {
 								$this->log("Creating episode $ep");
-								$episodeDB = $this->tvdb->getEpisode($this->tvdb->addEpisode($seasonData['id'], Array('n' => $ep)));
+								$episodeDB = $this->tvdb->addEpisode($seasonData['id'], Array('n' => $ep));
 								$retVal = TRUE;
 							}
 							if ($showOnlyNew) {

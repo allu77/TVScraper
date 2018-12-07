@@ -99,11 +99,13 @@ abstract class TVShowScraper {
 
 				if ($keepCandidate) {
 					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraperData['id'], $link['uri'], isset($link['n']) ? $link['n'] : NULL);
+					if ($previouslyScraped === FALSE) return FALSE;
+
 					$keepCandidate = $previouslyScraped == NULL ? TRUE : FALSE;
 				}
 
 				if ($keepCandidate) {
-					if ($saveResults) {
+//					if ($saveResults) {
 						$this->log("New season, adding...");
 						$p = array(
 								'uri' => $link['uri'],
@@ -111,11 +113,12 @@ abstract class TVShowScraper {
 						);
 						if (isset($scraperData['notify']) && $scraperData['notify'] == "1") $p['tbn'] = '1';
 						$newId = $this->tvdb->addScrapedSeason($scraperData['id'], $p);
+						if ($newId === FALSE) return FALSE;
 							
 						if (isset($scraperData['autoAdd']) && $scraperData['autoAdd'] == "1"  && $n > 0) {
 							$this->tvdb->createSeasonScraperFromScraped($newId);
 						}
-					}
+//					}
 					$res[] = $link;
 				}
 			}
@@ -162,10 +165,10 @@ abstract class TVShowScraper {
 						$res[] = $link;
 					} else {
 						$episode = $this->tvdb->getEpisodeFromIndex($seasonData['tvshow'], $fileNameParts['season'], $fileNameParts['episode']);
-						if ($episode == FALSE && $saveResults) {
+						//if ($episode === FALSE && $saveResults) {
+						if ($episode === FALSE) {
 							$this->log("Creating new episode");
-							$episodeId = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
-							$episode = $this->tvdb->getEpisode($episodeId);
+							$episode = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
 						}
 	
 						$addFile = TRUE;
@@ -182,14 +185,12 @@ abstract class TVShowScraper {
 						if ($addFile) {
 							if ($saveResults) {
 								$this->log("Creating new file");
-								$this->tvdb->addFile($seasonData['tvshow'], Array(
+								if (!$this->tvdb->addFile($episode['id'], Array(
 										'uri'		=> $link,
-										'season'	=> $scraperData['season'],
-										'episode'	=> $episode['id'],
 										'scraper'	=> $scraperData['id'],
 										'pubDate'	=> $candidateLinks[$j]['pubDate'],
 										'type'		=> isset($candidateLinks[$j]['type']) ? $candidateLinks[$j]['type'] : 'ed2k'
-								));
+								))) return FALSE;
 							}
 							$res[] = $link;
 						}

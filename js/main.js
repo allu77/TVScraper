@@ -315,6 +315,7 @@ function addFormTVShowScraper(e, showElement) {
 		{
 			action:"addScraper",
 			rootId:showId,
+			type:"tvShow",
 			uri:$('#showScraperEditDialog #editTVShowScraperURI').val(),
 			source:$('#showScraperEditDialog #editTVShowScraperSource').find(':selected').first().val(),
 			autoAdd:$('#showScraperEditDialog #editTVShowScraperAutoAdd').first().is(':checked') ? 1 : 0,

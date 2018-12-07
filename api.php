@@ -5,7 +5,7 @@ define('LOCK_TIMEOUT', 300);
 require_once('config.php');
 
 
-require_once('TVShowScraperDB.php');
+require_once('TVShowScraperDBSQLite.php');
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
@@ -59,21 +59,6 @@ function checkPostParameters($post, $validParams, $logger) {
 	return $params;
 }
 
-function myFlock($fh, $mode, $l) {
-	$lockStart = time();
-	for ($t = 0; $t < LOCK_TIMEOUT; $t++) {
-		if (flock($fh, $mode | LOCK_NB)) {
-			$lockStop = time();
-			$l->log("STATS: Setting flock to mode $mode took " . ($lockStop - $lockStart) . " seconds");
-			return true;
-		}
-		sleep(1);
-	}
-	$lockStop = time();
-	$l->log("STATS: Setting flock to mode $mode failed after " . ($lockStop - $lockStart) . " seconds");
-	return false;
-}
-
 set_time_limit(0);
 $startTime = time();
 
@@ -105,7 +90,7 @@ $simpleMethods = array(
 /* method */ 'getActiveScrapers'		=> array( ),
 /* method */ 'addTVShow' 				=> array( 'save' => TRUE,	'params' => array( '+title', '_other' )),
 /* method */ 'addSeason' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '+n', '_other' )),
-/* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', '+source', '+uri', '_other' )),
+/* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', 'type', '+source', '+uri', '_other' )),
 /* method */ 'removeEpisode' 			=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
 /* method */ 'removeFile'	 			=> array( 'save' => TRUE,	'params' => array( 'fileId' )),
 /* method */ 'removeTVShow' 			=> array( 'save' => TRUE,	'params' => array( 'showId' )),
@@ -139,7 +124,7 @@ $simpleMethods = array(
 );
 
 
-$log_file = LOG_DIR . '/api.log';
+$log_file = LOG_DIR . '/api.' .uniqid(). '.log';
 $log_level = LOGGER_DEBUG;
 
 $uuid = uniqid();
@@ -163,41 +148,36 @@ foreach ($_POST as $k => $v) {
 $saveNeeded = FALSE;
 $res = array();
 
-$fp = fopen(LIB_FILE, 'r');
+if (! defined('DB_FILE')) {
+	$res['status'] = 'error';
+	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
+} else if (isset($simpleMethods[$action])) {
 
-if (isset($simpleMethods[$action])) {
+	$tv = new TVShowScraperDBSQLite(DB_FILE);
+	$tv->setLogger($logger);
 
-	$lockMode = LOCK_SH;	
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
-		$lockMode = LOCK_EX;
+		$tv->beginTransaction();
 	}
 
-	if (! myFlock($fp, $lockMode, $logger)) {
-		$res['status'] = 'error';
-		$res['errmsg'] = "Can't acquire lock on lib file";
-	} else {
-		$tv = new TVShowScraperDB(LIB_FILE);
-		$tv->setLogger($logger);
+	$params = array();
+	if (isset($simpleMethods[$action]['params'])) {
+		$params = checkPostParameters($_POST, $simpleMethods[$action]['params'], $logger);
+		if ($params === FALSE) {
+			$res['status'] = 'error';
+			$res['errmsg'] = $logger->errmsg();
+		}
+	} 
 
-		$params = array();
-		if (isset($simpleMethods[$action]['params'])) {
-			$params = checkPostParameters($_POST, $simpleMethods[$action]['params'], $logger);
-			if ($params === FALSE) {
-				$res['status'] = 'error';
-				$res['errmsg'] = $logger->errmsg();
-			}
-		} 
-
-		if (!isset($res['status'])) {
-			$ret = call_user_func_array(array($tv, $action), $params);
-			if ($ret === FALSE) {
-				$res['status'] = 'error';
-				$res['errmsg'] = "Error executing $action - " . $logger->errmsg();
-			} else {
-				$res['status'] = 'ok';
-				$res['result'] = $ret;
-				$saveNeeded = (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) ? TRUE : FALSE;
-			}
+	if (!isset($res['status'])) {
+		$ret = call_user_func_array(array($tv, $action), $params);
+		if ($ret === FALSE) {
+			$res['status'] = 'error';
+			$res['errmsg'] = "Error executing $action - " . $logger->errmsg();
+		} else {
+			$res['status'] = 'ok';
+			$res['result'] = $ret;
+			$saveNeeded = (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) ? TRUE : FALSE;
 		}
 	}
 
@@ -206,99 +186,100 @@ if (isset($simpleMethods[$action])) {
 		case /* method */ 'runScraper':
 			
 			if (isset($_POST['scraperId'])) {
-				
+					
+				$tv = new TVShowScraperDBSQLite(DB_FILE);
+				$tv->setLogger($logger);
+				$scraper = $tv->getScraper($_POST['scraperId']);
+
 				$showOnlyNew = (isset($_POST['showOnlyNew']) && $_POST['showOnlyNew'] == 'false' ? FALSE : TRUE);
 				$saveResults = (isset($_POST['saveResults']) && $_POST['saveResults'] == 'false' ? FALSE : TRUE);
+
 					
-				if (! myFlock($fp, $saveResults ? LOCK_EX : LOCK_SH, $logger)) {
+				if ($scraper === FALSE) {
 					$res['status'] = 'error';
-					$res['errmsg'] = "Can't acquire lock on lib file";
-				} else {
-					$tv = new TVShowScraperDB(LIB_FILE);
-					$tv->setLogger($logger);
-					$scraper = $tv->getScraper($_POST['scraperId']);
+					$res['errmsg'] = 'Cannot find scraper ' . $_POST['scraperId'];
 					
-					if ($scraper === FALSE) {
-						$res['status'] = 'error';
-						$res['errmsg'] = 'Cannot find scraper ' . $_POST['scraperId'];
+				} else {
 						
-					} else {
-						
-						switch($scraper['source']) {
-							case 'tvmaze':
-								$tvrage = new TVShowScraperTVMaze($tv);
-								$tvrage->setLogger($logger);
-									
-								$res['status'] = 'ok';
-								$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'tvrage':
-								$tvrage = new TVShowScraperTVRage($tv);
-								$tvrage->setLogger($logger);
-									
-								$res['status'] = 'ok';
-								$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'DDU':
-								$ddu = new TVShowScraperDDU($tv, DDU_LOGIN, DDU_PASSWORD);
-								$ddu->setLogger($logger);
-									
-								$res['status'] = 'ok';
-								$res['result'] = $ddu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'TVU':
-								$tvu = new TVShowScraperTVU($tv);
-								$tvu->setLogger($logger);
+					$tv->beginTransaction();
 
-								$res['status'] = 'ok';
-								$res['result'] = $tvu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'RSS':
-								$rss = new TVShowScraperRSS($tv);
-								$rss->setLogger($logger);
-
-								$res['status'] = 'ok';
-								$res['result'] = $rss->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'txt':
-								$txt = new TVShowScraperTXT($tv);
-								$txt->setLogger($logger);
-
-								$res['status'] = 'ok';
-								$res['result'] = $txt->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							case 'wikipedia':
-								$wiki = new TVShowScraperWikipedia($tv);
-								$wiki->setLogger($logger);
+					switch($scraper['source']) {
+						case 'tvmaze':
+							$tvrage = new TVShowScraperTVMaze($tv);
+							$tvrage->setLogger($logger);
 								
-								$res['status'] = 'ok';
-								$res['result'] = $wiki->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
-								$saveNeeded = TRUE;
-								break;
-							default:
-								$res['status'] = 'error';
-								$res['errmsg'] = 'scraper source ' . $scraper['source'] . ' unknown';
-								break;
-						}
-						if ($res['status'] == 'ok' && $res['result'] === FALSE) {
+							$res['status'] = 'ok';
+							$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'tvrage':
+							$tvrage = new TVShowScraperTVRage($tv);
+							$tvrage->setLogger($logger);
+								
+							$res['status'] = 'ok';
+							$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'DDU':
+							$ddu = new TVShowScraperDDU($tv, DDU_LOGIN, DDU_PASSWORD);
+							$ddu->setLogger($logger);
+								
+							$res['status'] = 'ok';
+							$res['result'] = $ddu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'TVU':
+							$tvu = new TVShowScraperTVU($tv);
+							$tvu->setLogger($logger);
+
+							$res['status'] = 'ok';
+							$res['result'] = $tvu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'RSS':
+							$rss = new TVShowScraperRSS($tv);
+							$rss->setLogger($logger);
+
+							$res['status'] = 'ok';
+							$res['result'] = $rss->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'txt':
+							$txt = new TVShowScraperTXT($tv);
+							$txt->setLogger($logger);
+
+							$res['status'] = 'ok';
+							$res['result'] = $txt->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						case 'wikipedia':
+							$wiki = new TVShowScraperWikipedia($tv);
+							$wiki->setLogger($logger);
+							
+							$res['status'] = 'ok';
+							$res['result'] = $wiki->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
+							$saveNeeded = TRUE;
+							break;
+						default:
 							$res['status'] = 'error';
-							$res['errmsg'] = 'Error running scraper';
-							unset($res['result']);
-						}
+							$res['errmsg'] = 'scraper source ' . $scraper['source'] . ' unknown';
+							break;
+					}
+					if ($res['status'] == 'ok' && $res['result'] === FALSE) {
+						$res['status'] = 'error';
+						$res['errmsg'] = $logger->errmsg() ? $logger->errmsg() : 'Error running scraper';
+						$saveNeeded = FALSE;
+						unset($res['result']);
 					}
 				}
+
+				$saveNeeded = $saveNeeded && $saveResults;
+
 			} else {
 				$res['status'] = 'error';
 				$res['errmsg'] = 'scraperId not provided';
 			}
 			break;
-
 			
 		default:
 			$res['status'] = 'error';
@@ -307,10 +288,7 @@ if (isset($simpleMethods[$action])) {
 	}
 }
 
-if ($saveNeeded) $tv->save(LIB_FILE);
-
-myFlock($fp, LOCK_UN, $logger);
-fclose($fp);
+if ($saveNeeded) $tv->save(DB_FILE);
 
 ob_start();
 var_dump($res);

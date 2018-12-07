@@ -99,11 +99,13 @@ abstract class TVShowScraper {
 
 				if ($keepCandidate) {
 					$previouslyScraped = $this->tvdb->getScrapedSeasonFromUri($scraperData['id'], $link['uri'], isset($link['n']) ? $link['n'] : NULL);
+					if ($previouslyScraped === FALSE) return FALSE;
+
 					$keepCandidate = $previouslyScraped == NULL ? TRUE : FALSE;
 				}
 
 				if ($keepCandidate) {
-					if ($saveResults) {
+//					if ($saveResults) {
 						$this->log("New season, adding...");
 						$p = array(
 								'uri' => $link['uri'],
@@ -116,7 +118,7 @@ abstract class TVShowScraper {
 						if (isset($scraperData['autoAdd']) && $scraperData['autoAdd'] == "1"  && $n > 0) {
 							$this->tvdb->createSeasonScraperFromScraped($newId);
 						}
-					}
+//					}
 					$res[] = $link;
 				}
 			}
@@ -163,7 +165,8 @@ abstract class TVShowScraper {
 						$res[] = $link;
 					} else {
 						$episode = $this->tvdb->getEpisodeFromIndex($seasonData['tvshow'], $fileNameParts['season'], $fileNameParts['episode']);
-						if ($episode === FALSE && $saveResults) {
+						//if ($episode === FALSE && $saveResults) {
+						if ($episode === FALSE) {
 							$this->log("Creating new episode");
 							$episode = $this->tvdb->addEpisode($scraperData['season'], Array('n'=>$fileNameParts['episode']));
 						}

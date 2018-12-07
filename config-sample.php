@@ -11,7 +11,7 @@ define('COOKIES_DIR', 'cache');
 define('DDU_LOGIN', 'YOUR USERNAME HERE');
 define('DDU_PASSWORD', 'YOUR PASSWORD HERE');
 
-define('LIB_FILE', 'lib/myShows.xml');
+define('DB_FILE', 'lib/myShows.db');
 define('LOG_DIR', 'log');
 
 

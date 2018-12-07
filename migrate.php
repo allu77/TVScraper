@@ -3,15 +3,17 @@ require_once('TVShowScraperDB.php');
 require_once('TVShowScraperDBSQLite.php');
 require_once('Logger.php');
 
+require_once('config.php');
+
 ini_set('display_errors', 1);
 
 $logger = new Logger('log/migrate.log', LOGGER_DEBUG);
 
-$db = new TVShowScraperDBSQLite('lib/tvscraper.test.db');
+$db = new TVShowScraperDBSQLite(DB_FILE);
 $db->setLogger($logger);
 $db->beginTransaction();
 
-$xml = new TVShowScraperDB('/var/lib/tvscraper/myShows.xml');
+$xml = new TVShowScraperDB(LIB_FILE);
 $xml->setLogger($logger);
 
 

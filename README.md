@@ -149,3 +149,8 @@ action remove all the complete seasons except the last one. On top of this, the 
 
 Some of these actions support additional options. Run `tvjobs` without any actions for a detailed list.
 
+## Migrate DB to SQLite ##
+
+Previous versions of TVScraper were saving data in an XML file. This was requiring TVScraper to lock the file before every operation, resulting
+in poor performance and serial operations. In order to start using SQLite, you first need to set the DB_FILE constant in config.php
+migrate your data from the XML file. Data can then be migrated by using the migrate.php script.

@@ -148,9 +148,12 @@ foreach ($_POST as $k => $v) {
 $saveNeeded = FALSE;
 $res = array();
 
-if (isset($simpleMethods[$action])) {
+if (! defined('DB_FILE')) {
+	$res['status'] = 'error';
+	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
+} else if (isset($simpleMethods[$action])) {
 
-	$tv = new TVShowScraperDBSQLite(LIB_FILE);
+	$tv = new TVShowScraperDBSQLite(DB_FILE);
 	$tv->setLogger($logger);
 
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
@@ -184,7 +187,7 @@ if (isset($simpleMethods[$action])) {
 			
 			if (isset($_POST['scraperId'])) {
 					
-				$tv = new TVShowScraperDBSQLite(LIB_FILE);
+				$tv = new TVShowScraperDBSQLite(DB_FILE);
 				$tv->setLogger($logger);
 				$scraper = $tv->getScraper($_POST['scraperId']);
 
@@ -198,9 +201,8 @@ if (isset($simpleMethods[$action])) {
 					
 				} else {
 						
-					if ($saveResults) {
-						$tv->beginTransaction();
-					}
+					$tv->beginTransaction();
+
 					switch($scraper['source']) {
 						case 'tvmaze':
 							$tvrage = new TVShowScraperTVMaze($tv);
@@ -270,6 +272,9 @@ if (isset($simpleMethods[$action])) {
 						unset($res['result']);
 					}
 				}
+
+				$saveNeeded = $saveNeeded && $saveResults;
+
 			} else {
 				$res['status'] = 'error';
 				$res['errmsg'] = 'scraperId not provided';
@@ -283,7 +288,7 @@ if (isset($simpleMethods[$action])) {
 	}
 }
 
-if ($saveNeeded) $tv->save(LIB_FILE);
+if ($saveNeeded) $tv->save(DB_FILE);
 
 ob_start();
 var_dump($res);

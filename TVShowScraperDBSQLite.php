@@ -298,6 +298,7 @@ class TVShowScraperDBSQLite  {
 	
 	public function getSeason($id) {
 		$res = $this->getElementDB("SELECT * FROM seasons WHERE id = :id", array('id' => $id));
+		if ($res === FALSE) return FALSE;
 		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for season $id");
 	}
 	
@@ -375,11 +376,13 @@ class TVShowScraperDBSQLite  {
 	
 	public function getEpisode($id) {
 		$res = $this->getElementDB("SELECT * FROM episodes WHERE id = :id", array('id' => $id));
+		if ($res === FALSE) return FALSE;
 		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for episode $id");
 	}
 
 	public function getEpisodeFromIndex($showId, $season, $episode) {
 		$res = $this->getElementDB("SELECT episodes.* FROM episodes JOIN seasons ON episodes.season = seasons.id WHERE tvshow = :show AND seasons.n = :season AND episodes.n = :episode", array('show' => $showId, 'season' => $season, 'episode' => $episode));
+		if ($res === FALSE) return FALSE;
 		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for show $showId, season $season, episode $episode");
 	}
 
@@ -484,6 +487,7 @@ class TVShowScraperDBSQLite  {
 	
 	public function getScraper($id) {
 		$res = $this->getElementDB("SELECT * FROM scrapersWithParents WHERE id = :id", array('id' => $id));
+		if ($res === FALSE) return FALSE;
 		return count($res) == 1 ? $res[0] : $this->error("Found " . count($res) . " matches for season $id");
 	}
 
@@ -723,7 +727,7 @@ class TVShowScraperDBSQLite  {
 	
 	
 	public function getScrapedSeasonFromUri($scraperId, $uri, $n = NULL) {
-		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE uri = :uri";
+		$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id WHERE scrapedSeasons.uri = :uri";
 		$p = array('uri' => $uri);
 
 		if ($n != NULL) {

@@ -125,7 +125,8 @@ ON seasons.id = episodes.season
 WHERE seasons.status = "watched"
 AND episodes.id IN(
 	SELECT episode	
-		FROM files )
+	FROM files
+	WHERE discard <> 1 )
 GROUP BY seasons.id;
 CREATE VIEW seasonStatsFuture AS
 SELECT seasons.id AS season,

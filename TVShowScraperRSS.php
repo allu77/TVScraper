@@ -61,11 +61,13 @@ class TVShowScraperRSS extends TVShowScraper {
 				$this->log("Neiter title nor description match, skipping...");
 				$fetchData = FALSE;
 			} else {
+				$this->log("Parsing title $title..");
 				$fileData = parseEpisodeFileName($title);	
 				if ($fileData === FALSE) {
 					$this->log("Can't guess episode season, skipping...");
 				} else {
 					$n = $fileData['season'];
+					$this->log("Parsed season $n");
 
 					$res[] = array(
 						'n'	=> $n,

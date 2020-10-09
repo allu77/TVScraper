@@ -63,6 +63,12 @@ abstract class TVShowScraper {
 
 			# Removing heading 0s
 			$newN = preg_replace("/^\s*0*([1-9]\d*)/", "\\1", $link['n']);
+			$this->log("Found season $newN");
+			if (! is_numeric($newN)) {
+				$this->log("Not a number, skipping!");
+				continue;
+			}
+
 			$link['n'] = $newN;
 
 			if (! $showOnlyNew) {

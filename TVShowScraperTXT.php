@@ -87,6 +87,7 @@ class TVShowScraperTXT extends TVShowScraper {
 		$candidates = array();
 		$t = time();
 		for ($j = 0; $j < sizeof($rows); $j++) {
+			$this->log("Evaluating $r");
 			$uriData = parseED2KURI($rows[$j]);
 			if ($uriData === FALSE) {
 				$this->log("Can't guess episode filename, skipping...");

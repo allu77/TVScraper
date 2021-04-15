@@ -240,10 +240,16 @@ class SimpleBrowser {
 
 		foreach ($params as $key => $value) {
 			$paramsCount++;
-			$paramsString .= urlencode($key) . '=' . urlencode($value) . '&';
+			if (is_array($value)) {
+				foreach ($value as $p) {
+					$paramsString .= urlencode($key) . '=' . urlencode($p) . '&';
+				}
+			} else {
+				$paramsString .= urlencode($key) . '=' . urlencode($value) . '&';
+			}
 		}
 		$paramsString = rtrim($paramsString, '&');
-		
+
 		$cr = $this->curlInit($url);
 		$cr->setOption(MYCURLOPT_POST, $paramsCount);
 		$cr->setOption(MYCURLOPT_POSTFIELDS, $paramsString);

@@ -1,7 +1,7 @@
 <?php
 
 #define('DDU_LOGINURL', 'http://dduniverse.net/ita/ucp.php?mode=login');
-define('DDU_LOGINURL', 'http://ddunlimited.net/ucp.php?mode=login');
+define('DDU_LOGINURL', 'https://ddunlimited.net/ucp.php?mode=login');
 
 define('COOKIES_DDUBASENAME', 'DDUBrowser_');
 
@@ -68,7 +68,16 @@ class DDUBrowser extends SimpleBrowser {
 			$this->log('Found INPUT name=' . $input->getAttribute('name') . ' type=' . $input->getAttribute('type'));
 			if ($input->getAttribute('type') == 'hidden' || $input->getAttribute('type') == 'submit') {
 				$this->log("INPUT is added");
-				$params[$input->getAttribute('name')] = $input->getAttribute('value');
+				$aName = $input->getAttribute('name');
+				$aValue = $input->getAttribute('value');
+				if (! array_key_exists($aName, $params)) {
+					$params[$aName] = $aValue;
+				} else {
+					 if (! is_array($params[$aName])) {
+						 $params[$aName] = array($params[$aName]);
+					 }
+					 $params[$aName][] = $aValue;
+				}
 			}
 		}
 		return $params;

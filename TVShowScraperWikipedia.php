@@ -109,7 +109,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 
 							$this->log("Column " . sizeof($hcols) . " title: $hh");
 							$hcols[] = $hh;
-							if (preg_match('/n[º°]/i', $hh)) {
+							if (preg_match('/n[\.º°]/i', $hh)) {
 								$nIndex = sizeof($hcols) - 1;
 								$this->log("n index = $nIndex");
 							} else if (preg_match('/prima\s+tv\s+italia/i', $hh) || preg_match('/pubblicazione\s+italia/i', $hh)) {

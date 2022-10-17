@@ -64,6 +64,27 @@ class DDUParser {
 		return $xpath;
 	}
 
+	private function dumpDOMNode($node, $indent = 0) {
+
+		$iSpace = str_repeat("|  ", $indent);
+		$this->log($iSpace . "+------------ Type: " . $node->nodeType. ", Name: " . $node->nodeName . "--------------_");
+		$this->log($iSpace . "|Value: " . str_replace (array("\r\n", "\n", "\r"), ' ', $node->nodeValue));
+
+		if ($node->attributes) {
+			foreach ($node->attributes as $attr => $nodeAttr) {
+				$this->log($iSpace . "|attr $attr: " . $nodeAttr->value);
+			}
+		}
+
+		if ($node->childNodes) {
+			for ($i = 0; $i < $node->childNodes->count(); $i++) {
+				$this->dumpDOMNode($node->childNodes->item($i), $indent + 1);
+			}	
+		}
+
+		$this->log($iSpace . "+-----------------------------------------------------");
+	}
+
 	public function setPage($page) {
 		$this->page = $page;
 	}
@@ -141,6 +162,7 @@ class DDUParser {
 			$dtList = $xpath->query('*//dt', $topic);
 			if ($dtList->length > 0) {
 				$dt = $dtList->item(0);
+
 				$link = $xpath->query('*//a[contains(@class, "topictitle")]', $dt);
 
 				if ($link->length > 0) {
@@ -149,7 +171,6 @@ class DDUParser {
 
 					$p['title'] = utf8_encode($text);
 					$p['link'] = $href;
-
 
 					$desc = $xpath->query('./ancestor::tr[1]/following-sibling::tr[1]/td[1]', $link->item(0));
 					if ($desc->length > 0 ) {
@@ -169,27 +190,34 @@ class DDUParser {
 				}
 				*/
 
-				$author = $xpath->query('span[contains(@class, "username-coloured")]', $dt);
-				$matched = array();
-				if (preg_match('/\S+\s+\S+\s+\d+,?\s+\d+\s+\d+:\d+\s+\S+/', $dt->lastChild->textContent, $matches)) {
-					$date = $matches[0];
-					$this->log("Matched date $date");
-					$p['pubDate'] = strtotime($date);
-					
-					if (!$p['pubDate']) {
-						$p['pubDate'] = 0;
-						$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Couldn't parse pulished date for topic '".$p['title']."'");
-					}
+				$author = $xpath->query('*//span[contains(@class, "username-coloured")]', $dt);
+				if ($author->length == 1) {
 
-					if ($p['type'] == 'regular') {
-						if ($lastPubDate && $p['pubDate'] > $lastPubDate) {
-							$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Topics don't seem to be in descending order: last '" . date('r', $lastPubDate) . "' current '".date('r', $p['pubDate']) . "'");
+					$matched = array();
+					#if (preg_match('/\S+\s+\S+\s+\d+,?\s+\d+\s+\d+:\d+\s+\S+/', $dt->lastChild->textContent, $matches)) {
+					if (preg_match('/\S+\s+\S+\s+\d+,?\s+\d+\s+\d+:\d+\s+\S+/', $author->item(0)->parentNode->lastChild->textContent, $matches)) {
+						$date = $matches[0];
+						$this->log("Matched date $date");
+						$p['pubDate'] = strtotime($date);
+						
+						if (!$p['pubDate']) {
+							$p['pubDate'] = 0;
+							$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Couldn't parse published date for topic '".$p['title']."'");
 						}
-						$lastPubDate = $p['pubDate'];
+
+						if ($p['type'] == 'regular') {
+							if ($lastPubDate && $p['pubDate'] > $lastPubDate) {
+								$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Topics don't seem to be in descending order: last '" . date('r', $lastPubDate) . "' current '".date('r', $p['pubDate']) . "'");
+							}
+							$lastPubDate = $p['pubDate'];
+						}
+					} else {
+						$p['pubDate'] = 0;
+						$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Couldn't find published date for topic '".$p['title']."'");
 					}
 				} else {
 					$p['pubDate'] = 0;
-					$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Couldn't find pulished date for topic '".$p['title']."'");
+					$this->sanityWarning(DDUPARSER_WARN_TOPICS, "Couldn't get author for topic '".$p['title']."', hence cannot get published date");
 				}
 			} 
 

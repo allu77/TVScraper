@@ -2,7 +2,7 @@
 
 define('LOCK_TIMEOUT', 300);
 
-require_once('config.php');
+require_once('config-cloud.php');
 
 
 require_once('TVShowScraperDBSQLite.php');

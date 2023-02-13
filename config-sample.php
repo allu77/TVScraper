@@ -14,9 +14,4 @@ define('DDU_PASSWORD', 'YOUR PASSWORD HERE');
 define('DB_FILE', 'lib/myShows.db');
 define('LOG_DIR', 'log');
 
-
-require_once('SimpleBrowser.php');
-SimpleBrowser::initCache(CACHE_USE, CACHE_TTL, CACHE_DIR);
-SimpleBrowser::initCookies(TRUE, COOKIES_DIR);
-SimpleBrowser::initTimeOut(BROWSER_TIMEOUT);
 ?>

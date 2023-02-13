@@ -2,8 +2,6 @@
 
 define('LOCK_TIMEOUT', 300);
 
-require_once('config.php');
-
 
 require_once('TVShowScraperDBSQLite.php');
 require_once('TVShowScraperDDU.php');
@@ -14,6 +12,9 @@ require_once('TVShowScraperTVRage.php');
 require_once('TVShowScraperTVMaze.php');
 require_once('TVShowScraperWikipedia.php');
 require_once('Logger.php');
+
+require_once('SimpleBrowser.php');
+require_once('TVScraperConfig.php');
 
 function postCleanUp($params, $toBeRemoved, $logger) {
 
@@ -58,6 +59,15 @@ function checkPostParameters($post, $validParams, $logger) {
 
 	return $params;
 }
+
+$config = new TVScraperConfig();
+$config->readFromEnv();
+if (file_exists('config.php')) $config->readFromRequire('config.php');
+$options = $config->options;
+
+SimpleBrowser::initCache($options[OPT_CACHE_USE], $options[OPT_CACHE_TTL], $options[OPT_CACHE_DIR]);
+SimpleBrowser::initCookies(TRUE, $options[OPT_COOKIES_DIR]);
+SimpleBrowser::initTimeOut($options[OPT_BROWSER_TIMEOUT]);
 
 set_time_limit(0);
 $startTime = time();
@@ -124,7 +134,7 @@ $simpleMethods = array(
 );
 
 
-$log_file = LOG_DIR . '/api.' .uniqid(). '.log';
+$log_file = $options[OPT_LOG_DIR] . '/api.' .uniqid(). '.log';
 $log_level = LOGGER_DEBUG;
 
 $uuid = uniqid();
@@ -148,12 +158,12 @@ foreach ($_POST as $k => $v) {
 $saveNeeded = FALSE;
 $res = array();
 
-if (! defined('DB_FILE')) {
+if (! $options[OPT_DB_FILE]) {
 	$res['status'] = 'error';
 	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
 } else if (isset($simpleMethods[$action])) {
 
-	$tv = new TVShowScraperDBSQLite(DB_FILE);
+	$tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
 	$tv->setLogger($logger);
 
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
@@ -187,7 +197,7 @@ if (! defined('DB_FILE')) {
 			
 			if (isset($_POST['scraperId'])) {
 					
-				$tv = new TVShowScraperDBSQLite(DB_FILE);
+				$tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
 				$tv->setLogger($logger);
 				$scraper = $tv->getScraper($_POST['scraperId']);
 
@@ -221,7 +231,7 @@ if (! defined('DB_FILE')) {
 							$saveNeeded = TRUE;
 							break;
 						case 'DDU':
-							$ddu = new TVShowScraperDDU($tv, DDU_LOGIN, DDU_PASSWORD);
+							$ddu = new TVShowScraperDDU($tv, $options['DDU_LOGIN'], $options['DDU_PASSWORD']);
 							$ddu->setLogger($logger);
 								
 							$res['status'] = 'ok';
@@ -288,7 +298,7 @@ if (! defined('DB_FILE')) {
 	}
 }
 
-if ($saveNeeded) $tv->save(DB_FILE);
+if ($saveNeeded) $tv->save($options[OPT_DB_FILE]);
 
 ob_start();
 var_dump($res);

@@ -231,7 +231,7 @@ if (! $options[OPT_DB_FILE]) {
 							$saveNeeded = TRUE;
 							break;
 						case 'DDU':
-							$ddu = new TVShowScraperDDU($tv, $options['DDU_LOGIN'], $options['DDU_PASSWORD']);
+							$ddu = new TVShowScraperDDU($tv, $options[OPT_DDU_LOGIN], $options[OPT_DDU_PASSWORD]);
 							$ddu->setLogger($logger);
 								
 							$res['status'] = 'ok';

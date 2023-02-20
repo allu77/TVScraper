@@ -3,7 +3,6 @@
 define('LOCK_TIMEOUT', 300);
 
 
-require_once('TVShowScraperDBSQLite.php');
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
 require_once('TVShowScraperRSS.php');
@@ -15,6 +14,9 @@ require_once('Logger.php');
 
 require_once('SimpleBrowser.php');
 require_once('TVScraperConfig.php');
+
+require_once('modules/DB/TVShowScraperDB.php');
+
 
 function postCleanUp($params, $toBeRemoved, $logger) {
 
@@ -163,7 +165,8 @@ if (! $options[OPT_DB_FILE]) {
 	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
 } else if (isset($simpleMethods[$action])) {
 
-	$tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
+	// $tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
+	$tv = TVShowScraperDB::getInstance(TVShowScraperDB::DBTYPE_SQLITE, array('dbFileName' => $options[OPT_DB_FILE]));
 	$tv->setLogger($logger);
 
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
@@ -298,7 +301,7 @@ if (! $options[OPT_DB_FILE]) {
 	}
 }
 
-if ($saveNeeded) $tv->save($options[OPT_DB_FILE]);
+if ($saveNeeded) $tv->save();
 
 ob_start();
 var_dump($res);

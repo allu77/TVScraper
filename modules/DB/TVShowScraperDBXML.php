@@ -8,26 +8,8 @@ class TVShowScraperDB  {
 	protected $pDom;
 	protected $xPath;
 	
-	protected $logger;
-	
-	
-	public function setLogger($logger) {
-		$this->logger = $logger;
-	}
-	
-	public function setLogFile($logFile, $severity = LOGGER_DEBUG) {
-		$this->logger = new Logger($logFile, $severity);
-	}
-	
-	protected function log($msg, $severity = LOGGER_DEBUG) {
-		if ($this->logger) $this->logger->log($msg, $severity);
-	}
-	
-	protected function error($msg) {
-		if ($this->logger) $this->logger->error($msg);
-	}
-	
-	public function __construct($fileName) {
+	public function __construct($params) {
+		$fileName = $params['dbFileName'];
 		if (file_exists($fileName)) {
 			$this->pDom = DOMDocument::load($fileName);
 			$this->xPath = new DOMXPath($this->pDom);
@@ -40,18 +22,19 @@ class TVShowScraperDB  {
 		}
 	}
 	
-	public function save($fileName) {
+	public function save() {
 		$this->log("Saving data to $fileName");
 		$this->pDom->save($fileName);
 	}
 	
 	
+
 	
 	
-	
-	
-	
-	protected function addElement($tag, $baseXPath) {
+	# protected function addElement($tag, $baseXPath) {
+	protected function addElement($elementStore, $parentKey, $keyValue, $params) {
+		
+		$baseXPath = '/tvscraper';
 		
 		$this->log("Searching for xpath $baseXPath");
 		$x = $this->xPath->query($baseXPath);
@@ -64,9 +47,24 @@ class TVShowScraperDB  {
 		$this->log("Single root entry found, creating new element");
 		$root = $x->item(0);
 		$newId = uniqid();
-		$newElement = $this->pDom->createElement($tag);
+		$newElement = $this->pDom->createElement($elementStore);
 		$newElement->setAttribute('id', $newId);
 		$root->appendChild($newElement);
+		
+		/*
+		
+		TO BE IMPLEMENTED GENERIC 
+		
+		$newShow = $this->setTVShow($newId, $p);
+
+		if (! $newShow) {
+			$this->removeTVShow($newId);
+			return FALSE;
+		}
+		
+		return $newShow;
+
+		*/
 
 		return $newId;
 	}
@@ -117,6 +115,7 @@ class TVShowScraperDB  {
 	
 	// TVSHOW
 	
+	/*
 	public function addTVShow($p) {
 		
 		$newId = $this->addElement('tvshow', '/tvscraper');
@@ -134,6 +133,7 @@ class TVShowScraperDB  {
 		
 		return $newShow;
 	}
+	*/
 	
 	public function removeTVShow($id) {
 		$seasons = $this->getTVShowSeasons($id);

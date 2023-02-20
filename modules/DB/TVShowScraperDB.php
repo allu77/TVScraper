@@ -3,11 +3,18 @@
 require_once('Logger.php');
 require_once('TVShowUtils.php');
 
-class TVShowScraperDBSQLite  {
+abstract class TVShowScraperDB  {
+	
+	public const DBTYPE_SQLITE = 'TVShowScraperDBSQLite';
+	public const DBTYPE_XML = 'TVShowScraperDBXML';
 
 	protected $db;
 	protected $logger;
-
+	
+	public static function getInstance($class, $params) {
+		require_once("$class.php");
+		return new $class($params);
+	}
 	
 	public function setLogger($logger) {
 		$this->logger = $logger;
@@ -32,127 +39,24 @@ class TVShowScraperDBSQLite  {
 		} else {
 			// CREATE new DB
 			$this->db = new PDO("sqlite:$fileName", null, null, array());
-			$buildSql = file_get_contents("TVShowScraperDB.sql");
+			$buildSql = file_get_contents("TVShowScraperDBSQLite.sql");
 			$this->db->exec($buildSql);
 		}
 		$this->db->exec("PRAGMA foreign_keys = 'ON'");
 	}
 
-	public function beginTransaction() {
-		return $this->db->beginTransaction();
-	}
+	abstract public function beginTransaction();
+	abstract public function inTransaction();
+	abstract public function rollBack();
+	abstract public function commit();
 	
-	public function save($fileName = null) {
-		return $this->db->inTransaction() ? $this->db->commit() : TRUE;
-	}
+	abstract public function save($fileName = null);
 	
-	protected function addElementDB($table, $parentKey, $parentValue, $params) {
-
-		$columnList = '';
-		$placeholderList = '';
-
-		foreach ($params as $k => $v) {
-			$columnList .= "$k,";
-			$placeholderList .= ":$k,";
-		}
-
-		if ($parentKey != null) {
-			$columnList .= $parentKey;
-			$placeholderList .= ":$parentKey";
-		} else {
-			$columnList = rtrim($columnList, ",");
-			$placeholderList = rtrim($placeholderList, ",");
-		}
-
-		$query = "INSERT INTO $table($columnList) VALUES($placeholderList)";
-		$this->log("Preparing query $query");
-		$st = $this->db->prepare($query);
-		if ($st == null) {
-			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
-		}
-		if ($parentKey != null) {
-			$this->log("Executing with params $parentValue, " . implode(', ', $params));
-			if (! $st->execute(array_merge(array($parentKey => $parentValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-		} else {
-			$this->log("Executing with params " . implode(', ', $params));
-			if (! $st->execute($params)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-		}
-		if ($st->rowCount() == 1) {
-			return array_merge(array('id' => $this->db->lastInsertId()), $params);
-		}
-		return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-	}
-
-	protected function setElementDB($table, $key, $value, $params) {
-		$query = "UPDATE $table SET ";
-		$p = array( $key => $value );
-		foreach ($params as $k => $v) {
-			$query .= "$k = :$k,";
-			$p[$k] = $v == '_REMOVE_' ? null : $v;
-		}
-		$query = rtrim($query, ",");
-		$query .= " WHERE $key = :$key";
-
-		$wasInTransaction = $this->db->inTransaction();
-		if (! $wasInTransaction) $this->db->beginTransaction();
-
-		$this->log("Preparing query $query");
-		$st = $this->db->prepare($query);
-		if ($st == null) {
-			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
-		}
-
-		$this->log("Executing with params " . implode(', ', $params) . ", $value");
-		if (! $st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-
-		if ($st->rowCount() != 1) {
-			if (! $wasInTransaction) $this->db->rollBack();
-			return $this->error("Set query affected ". $st->rowCount() ." rows, expected 1!");
-		} else {
-			if (! $wasInTransaction) $this->db->commit();
-			return TRUE;
-		}
-	}
-
-	protected function removeElementDB($table, $key, $value) {
-		$query = "DELETE FROM $table WHERE $key = ?";
-
-		$this->log("Preparing query $query");
-		$st = $this->db->prepare($query);
-		if ($st == null) {
-			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
-		}
-		$this->log("Executing with param $value");
-		if (! $st->execute(array($value))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-
-		return TRUE;
-	}
-
-	protected function getElementDB($q, $p) {
-		$this->log("Prepary query $q");
-
-		$st = $this->db->prepare($q);
-		if ($st == null) {
-			$this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
-			return FALSE;
-		}
-
-		$this->log("Executing with params " . implode(', ', $p));
-		if (! $st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-
-		$res = array();
-
-		while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
-			foreach ($r as $k => $v) {
-				if ($v == null) unset($r[$k]);
-			}
-			$res[] = $r;
-		}
-
-		return $res;
-	}
-
-
+	abstract protected function addElement($elementStore, $parentKey, $keyValue, $params);
+	abstract protected function setElement($elementStore, $elementKey, $keyValue, $params);
+	abstract protected function removeElement($elementStore, $elementKey, $keyValue);
+	# abstract protected function getElement($elementStore, )
+	
 	protected function validateParams($params, $validParams) {
 		foreach ($params as $k => $v) {
 			if (! isset($validParams[$k])) {
@@ -178,31 +82,31 @@ class TVShowScraperDBSQLite  {
 	}
 	
 	public function addTVShow($p) {
-		return $this->validateParams($p, $this->validParamsTVShow()) ? $this->addElementDB('tvshows', null, null, $p) : FALSE;
+		return $this->validateParams($p, $this->validParamsTVShow()) ? $this->addElement('tvshows', null, null, $p) : FALSE;
 	}
 	
 	public function removeTVShow($id) {
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		$this->log("Removing any TVShow Scraper for show $id");
-		if (! $this->removeElementDB('tvShowScrapers', 'tvShow', $id)) {
+		if (! $this->removeElement('tvShowScrapers', 'tvShow', $id)) {
 			$this->error("Failed removing TVShow Scrapers");
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (! $this->removeElementDB('tvshows', 'id', $id)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+		if (! $this->removeElement('tvshows', 'id', $id)) {
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (!$wasInTransaction) $this->db->commit();
+		if (!$wasInTransaction) $this->commit();
 		return TRUE;
 	}
 	
 	public function setTVShow($id, $p) {
-		if ( $this->validateParams($p, $this->validParamsTVShow()) && $this->setElementDB('tvshows', 'id', $id, $p) ) {
+		if ( $this->validateParams($p, $this->validParamsTVShow()) && $this->setElement('tvshows', 'id', $id, $p) ) {
 			$this->log("TVshow succesfully updated");
 			return $this->getTVShow($id);
 		} else {
@@ -273,12 +177,12 @@ class TVShowScraperDBSQLite  {
 		$this->log("Removing any Season Scraper for season $id");
 		if (! $this->removeElementDB('seasonScrapers', 'season', $id)) {
 			$this->error("Failed removing Season Scrapers");
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
 		if (! $this->removeElementDB('seasons', 'id', $id)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
@@ -345,7 +249,7 @@ class TVShowScraperDBSQLite  {
 
 		if (isset($p['bestSticky']) && ($p['bestSticky'] == '0' || $p['bestSticky'] == '_REMOVE_')) {
 			if (!$this->resetEpisodeBestFile($id, TRUE)) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
@@ -417,7 +321,7 @@ class TVShowScraperDBSQLite  {
 		$newScraper = $this->addElementDB('scrapers', null, null, $p);
 
 		if ($newScraper === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
@@ -431,7 +335,7 @@ class TVShowScraperDBSQLite  {
 		}
 
 		if ($newLink === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
@@ -459,7 +363,7 @@ class TVShowScraperDBSQLite  {
 
 			if (isset($p['delay']) && isset($scraper['season'])) {
 				if (! $this->resetBestFilesForSeason($scraper['season'])) {
-					if (!$wasInTransaction) $this->db->rollBack();
+					if (!$wasInTransaction) $this->rollBack();
 					return FALSE;
 				}
 			}
@@ -467,7 +371,7 @@ class TVShowScraperDBSQLite  {
 			if (!$wasInTransaction) $this->db->commit();
 			return $scraper;
 		} else {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 	}
@@ -536,19 +440,19 @@ class TVShowScraperDBSQLite  {
 		if (isset($p['discard'])) {
 			$oldFile = $this->getFile($id);
 			if ($oldFile === FALSE) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			} 
 			if (! $this->resetEpisodeBestFile($oldFile['episode'])) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
 		if (!$this->setElementDB('files', 'id', $id, $p)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		} else {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			$this->log("File $id successfully updated");
 			return TRUE;
 		}
@@ -772,7 +676,7 @@ class TVShowScraperDBSQLite  {
 			$this->log("Season $n does not exist yet. Creating...");
 			$season = $this->addSeason($scraper['tvshow'], array('n' => $scrapedSeason['n'], 'status' => 'watched'));
 			if ($season === FALSE) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
@@ -784,12 +688,12 @@ class TVShowScraperDBSQLite  {
 		));
 
 		if ($newScraper === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
 		if (!$this->setScrapedSeason($id, array('hide' => '1'))) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 

@@ -57,11 +57,21 @@ abstract class TVShowScraperDB  {
 	abstract protected function removeElement($elementStore, $elementKey, $keyValue);
 	# abstract protected function getElement($elementStore, )
 	
-	protected function validateParams($params, $validParams) {
+	protected function validateParams($params, $validParams, $isAdd = FALSE) {
 		foreach ($params as $k => $v) {
 			if (! isset($validParams[$k])) {
 				$this->error("Unknown parameter $k");
 				return FALSE;
+			}
+		}
+		
+		if ($isAdd) {
+			// If creating a new element, let's check mandatory parameters
+			foreach ($validParams as $k => $v) {
+				if ($v && ! isset($params[$k])) {
+					$this->error("Missing mandatory parameter $k");
+					return FALSE;
+				} 
 			}
 		}
 
@@ -73,16 +83,16 @@ abstract class TVShowScraperDB  {
 
 	protected function validParamsTVShow() {
 		return array(
-			'title' => 1,
-			'alternateTitle' => 1,
-			'lang' => 1,
-			'nativeLang' => 1,
-			'res' => 1
+			'title' 			=> TRUE,
+			'alternateTitle'	=> FALSE,
+			'lang'				=> TRUE,
+			'nativeLang'		=> TRUE,
+			'res'				=> TRUE
 		);
 	}
 	
 	public function addTVShow($p) {
-		return $this->validateParams($p, $this->validParamsTVShow()) ? $this->addElement('tvshows', null, null, $p) : FALSE;
+		return $this->validateParams($p, $this->validParamsTVShow(), TRUE) ? $this->addElement('tvshows', null, null, $p) : FALSE;
 	}
 	
 	public function removeTVShow($id) {

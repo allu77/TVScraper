@@ -27,6 +27,7 @@ final class TVShowScraperDBSQLiteTest extends TestCase {
     
     public function tvShowsProvider() { return $this->genericProvider('tvshows-add.csv'); }
     public function tvShowsProviderSet() { return $this->genericProvider('tvshows-set.csv'); }
+    public static function tvShowRefereceId() { return array_values(self::$referenceTVShowIds)[0]; }
     
 
     
@@ -81,19 +82,16 @@ final class TVShowScraperDBSQLiteTest extends TestCase {
      * @dataProvider tvShowsProviderSet
      */
     public function testSetTVShow($label, $expect, array $params) {
-        $labelOnAdd = $params['id'];
-        unset($params['id']);
-        
-        $id = $labelOnAdd == '_INVALID_' ? '_INVALID_' : self::$referenceTVShowIds[$labelOnAdd];
+        $id = self::tvShowRefereceId();
         
         $result = self::$tvDB->setTVShow($id, $params);
         if ($expect === 'KO') {
             $this->assertFalse($result);
         } else if ($expect === 'OK') {
-            $this->assertEquals($result['id'], self::$referenceTVShowIds[$labelOnAdd]);
+            $this->assertEquals($result['id'], $id);
             foreach ($params as $p => $v) {
                 if ($v == '_REMOVE_') {
-                    $this->assertFalse(array_key_exists($result, $p));
+                    $this->assertFalse(array_key_exists($p, $result));
                 } else {
                     $this->assertEquals($result[$p], $v);
                 }
@@ -102,10 +100,17 @@ final class TVShowScraperDBSQLiteTest extends TestCase {
     }
 
     /**
+     * @depends testCreateDBSQLite
+     */
+    public function testSetTVShowInvalidId() {
+        $this->assertFalse(self::$tvDB->setTVShow('_INVALID', [ 'title' => 'test']));
+    }
+
+    /**
      * @depends testSetTVShow
      */
     public function testRemoveTvShow() {
-        $this->assertTrue(self::$tvDB->removeTVShow(array_values(self::$referenceTVShowIds)[0]));
+        $this->assertTrue(self::$tvDB->removeTVShow(self::tvShowRefereceId()));
         $this->assertEquals(count(self::$tvDB->getAllTVShows()), count(self::$referenceTVShowIds) - 1);
     }
     

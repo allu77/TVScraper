@@ -1,4 +1,3 @@
-Invalid ID,KO,id,_INVALID_,title,test
-Invalid parameter,KO,id,Title/lang/nativeLang/res/alternateTitle,invalidPram,any
-Change Title Only,OK,id,Title/lang/nativeLang/res/alternateTitle,title,New Title
-Change Title and res,OK,id,Title/lang/nativeLang/res/alternateTitle,title,New Title,res,sd
+Invalid parameter,KO,invalidPram,any
+Change Title Only,OK,title,New Title
+Change Title and res,OK,title,New Title,res,sd

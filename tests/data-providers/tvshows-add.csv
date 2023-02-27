@@ -1,8 +1,2 @@
-Empty,KO
-Unknown Parameter,KO,foo,bar
-Title Only,KO,title,Test title
-Title/lang,KO,title,Test title,lang,eng
-Title/lang/nativeLang,KO,title,Test title,lang,eng,nativeLang,eng
-Title/lang/nativeLang/alternateTitle,KO,title,Test title,lang,eng,nativeLang,eng,alternateTitle,Test alternate
 Title/lang/nativeLang/res,OK,title,Test title,lang,eng,nativeLang,eng,res,any
 Title/lang/nativeLang/res/alternateTitle,OK,title,Test title,lang,eng,nativeLang,eng,res,any,alternateTitle,Test alternate

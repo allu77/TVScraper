@@ -12,7 +12,7 @@ abstract class TVShowScraperDB
 	protected $db;
 	protected $logger;
 
-	public static function getInstance($class, $params)
+	public static function getInstance($class, $params): TVShowScraperDB
 	{
 		require_once("$class.php");
 		return new $class($params);

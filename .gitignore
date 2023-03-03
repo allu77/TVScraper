@@ -1,4 +1,6 @@
 config.php
 .project
 .settings
+.DS_Store
+.php-cs-fixer.cache
 vendor/*

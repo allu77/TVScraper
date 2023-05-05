@@ -1,0 +1,58 @@
+{
+    "tvShows": [
+        {
+            "properties" : {
+                "title": "Lost",
+                "lang": "ita",
+                "nativeLang": "eng",
+                "res": "any"
+            },
+            "scrapers" : [
+                {
+                    "properties" : {
+                        "uri": "https://it.wikipedia.org/wiki/Lost_(serie_televisiva)",
+                        "source": "wikipedia"
+                    },
+                    "scrapedSeasons": [
+                        {
+                            "properties": {
+                                "n": "2",
+                                "uri": "test"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "seasons" : [
+                {
+                    "properties": {
+                        "n": "1",
+                        "status": "ignored"
+                    },
+                    "scrapers": [
+                        {
+                            "properties" : {
+                                "uri": "aaaa",
+                                "source": "txt"
+                            },
+                            "files": [
+                                {
+                                    "properties": {},
+                                    "episode": "1"
+                                }
+                            ]
+                        }
+            
+                    ],
+                    "episodes": [
+                        {
+                            "properties": {
+                                "n": "1"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

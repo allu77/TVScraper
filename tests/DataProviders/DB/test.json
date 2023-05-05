@@ -37,7 +37,11 @@
                             },
                             "files": [
                                 {
-                                    "properties": {},
+                                    "properties": {
+                                        "uri": "tesst",
+                                        "pubDate": "1",
+                                        "type": "torrent"
+                                    },
                                     "episode": "1"
                                 }
                             ]

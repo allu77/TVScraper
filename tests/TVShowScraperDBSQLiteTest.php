@@ -1,72 +1,40 @@
 <?php
 
 declare(strict_types=1);
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'test-autoloader.php');
+require_once(__DIR__ . '/../modules/DB/TVShowScraperDB.php'); // TODO: Implement autoloader for main project
 
-use PHPUnit\Framework\TestCase;
+use DataProviders\DB\DBContent as DBContent;
+use DataProviders\DB\GenericItem as DBContentItem;
 
-require_once(__DIR__ . '/../modules/DB/TVShowScraperDB.php');
-
-final class TVShowScraperDBSQLiteTest extends TestCase
+final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 {
 
     protected static string $dbName;
     protected static TVShowScraperDBSQLite $tvDB;
-    protected static array $referenceTVShowIds = [];
-    protected static array $referenceSeasonIds = [];
 
-
-    protected function genericProvider(string $fileName): array
-    {
-
-        $file = fopen(__DIR__ . '/data-providers/' . $fileName, 'r');
-
-        $data = [];
-        while ($row = fgetcsv($file)) {
-            $data[$row[0]] = [$row[0], $row[1], []];
-            for ($i = 2; $i < count($row); $i += 2) {
-                $data[$row[0]][2][$row[$i]] = $row[$i + 1];
-            }
-        }
-        fclose($file);
-
-        return $data;
-    }
-
-    public function tvShowsProvider(): array
-    {
-        return $this->genericProvider('tvshows-add.csv');
-    }
-    public function tvShowsProviderSet(): array
-    {
-        return $this->genericProvider('tvshows-set.csv');
-    }
-    public static function tvShowReferenceId(): string
-    {
-        return array_values(self::$referenceTVShowIds)[0];
-    }
-
-    public function seasonsProvider(): array
-    {
-        return $this->genericProvider('seasons-add.csv');
-    }
-
-    public function seasonsProviderSet(): array
-    {
-        return $this->genericProvider('seasons-set.csv');
-    }
-    public static function seasonReferenceId(): string
-    {
-        return array_values(self::$referenceSeasonIds)[0];
-    }
+    protected static DataProviders\DB\DBContent $dbContent;
 
     public static function setUpBeforeClass(): void
     {
         self::$dbName = __DIR__ . '/' . uniqid() . '.db';
+        self::$dbContent = DBContent::createFromJSON(file_get_contents(__DIR__ . '/DataProviders/DB/test.json'));
     }
 
     public static function tearDownAfterClass(): void
     {
-        if (file_exists(self::$dbName)) unlink(self::$dbName);
+        // if (file_exists(self::$dbName)) unlink(self::$dbName);
+    }
+
+    protected static function assertAddResult(DBContentItem $added, array $result, array $ignoreKeys = ['id'], string $message = ''): void
+    {
+        self::assertIsArray($result, $message);
+        self::assertArrayHasKey('id', $result, $message);
+        foreach ($ignoreKeys as $ignoreKey) {
+            unset($result[$ignoreKey]);
+        }
+
+        self::assertEqualsCanonicalizing($added->getProperties(), $result, $message);
     }
 
     public function testCreateDBSQLite(): void
@@ -74,142 +42,94 @@ final class TVShowScraperDBSQLiteTest extends TestCase
         self::$tvDB = TVShowScraperDB::getInstance(TVShowScraperDB::DBTYPE_SQLITE, array('dbFileName' => self::$dbName));
         $this->assertInstanceOf(TVShowScraperDBSQLite::class, self::$tvDB);
 
-        // self::$tvDB->setLogFile('test.log');
-    }
-
-    /**
-     * @depends testCreateDBSQLite
-     * @dataProvider tvShowsProvider
-     */
-    public function testAddTVShow(string $label, string $expect, array $params): void
-    {
-        $result = self::$tvDB->addTVShow($params);
-        if ($expect == 'KO') $this->assertNotTrue($result, "addTVShow was expected to fail and it didn't");
-        else if ($expect == 'OK') {
-            $this->assertNotFalse($result, "addTVShow returned an error");
-            $this->assertArrayHasKey('id', $result, "addTVShow returned an array without id");
-            self::$referenceTVShowIds[$label] = $result['id'];
-        }
-    }
-
-    /**
-     * @depends testAddTVShow
-     */
-    public function testGetTVShow(): void
-    {
-        foreach (self::$referenceTVShowIds as $id) {
-            $result = self::$tvDB->getTVShow($id);
-            $this->assertNotFalse($result, "getTVShow returned an error");
-            $this->assertArrayHasKey('episodesWithFile', $result, 'getTVShow missing expected key episodesWithFile');
-            $this->assertSame(0, $result['episodesWithFile'], 'getTVShow was exptected to return 0 files at this stage');
-        }
-    }
-
-    // TODO: getTVShow  -> once files are added - need to check episodesWithFile
-
-    /**
-     * @depends testAddTVShow
-     */
-    public function testGetAllTVShows(): void
-    {
-        $result = self::$tvDB->getAllTVShows();
-        $this->assertEquals(count($result), count(self::$referenceTVShowIds));
-    }
-
-    /**
-     * @depends testAddTVShow
-     * @dataProvider tvShowsProviderSet
-     */
-    public function testSetTVShow(string $label, string $expect, array $params): void
-    {
-        $id = self::tvShowReferenceId();
-
-        $result = self::$tvDB->setTVShow($id, $params);
-        if ($expect === 'KO') {
-            $this->assertFalse($result);
-        } else if ($expect === 'OK') {
-            $this->assertEquals($result['id'], $id);
-            foreach ($params as $p => $v) {
-                if ($v == '_REMOVE_') {
-                    $this->assertFalse(array_key_exists($p, $result));
-                } else {
-                    $this->assertEquals($result[$p], $v);
-                }
-            }
-        }
+        self::$tvDB->setLogFile('test.log');
     }
 
     /**
      * @depends testCreateDBSQLite
      */
-    public function testSetTVShowInvalidId(): void
+    public function testAddTVShow(): void
     {
-        $this->assertFalse(self::$tvDB->setTVShow('_INVALID', ['title' => 'test']));
+        foreach (self::$dbContent->getTVShows() as $tvShow) {
+            $result = self::$tvDB->addTVShow($tvShow->getProperties());
+            $this->assertAddResult($tvShow, $result);
+            $tvShow->setId($result['id']);
+        }
     }
 
     /**
-     * @depends testGetSeason
+     * @depends testAddTVShow
      */
-    public function testRemoveTvShow(): void
+    public function testAddSeason(): void
     {
-        $this->assertTrue(self::$tvDB->removeTVShow(self::tvShowReferenceId()));
-        $this->assertEquals(count(self::$tvDB->getAllTVShows()), count(self::$referenceTVShowIds) - 1);
+        foreach (self::$dbContent->getSeasons() as $season) {
+            $result = self::$tvDB->addSeason($season->getParentId(), $season->getProperties());
+            $this->assertAddResult($season, $result);
+            $season->setId($result['id']);
+        }
     }
 
     /**
-     * @depends testSetTVShow
-     * @dataProvider seasonsProvider
+     * @depends testAddTVShow
      */
-    public function testAddSeason(string $label, string $expect, array $params): void
+    public function testAddTVShowScraper(): void
     {
-        $result = self::$tvDB->addSeason(self::tvShowReferenceId(), $params);
-        if ($expect == 'KO') $this->assertNotTrue($result);
-        else if ($expect == 'OK') {
-            $this->assertArrayHasKey('id', $result);
-            self::$referenceSeasonIds[$label] = $result['id'];
+        foreach (self::$dbContent->getTVShowScrapers() as $scraper) {
+            $result = self::$tvDB->addScraper($scraper->getParentId(), 'tvShow', $scraper->getProperties());
+            $this->assertAddResult($scraper, $result, ['id', 'tvShow']);
+            $this->assertArrayHasKey('tvShow', $result);
+            $this->assertSame($scraper->getParentId(), $result['tvShow']);
+            $scraper->setId($result['id']);
+        }
+    }
+
+    /**
+     * @depends testAddTVShowScraper
+     */
+    public function testAddScrapedSeason(): void
+    {
+        foreach (self::$dbContent->getScrapedSeasons() as $scrapedSeason) {
+            $result = self::$tvDB->addScrapedSeason($scrapedSeason->getScraperId(), $scrapedSeason->getProperties());
+            $this->assertAddResult($scrapedSeason, $result);
+            $scrapedSeason->setId($result['id']);
         }
     }
 
     /**
      * @depends testAddSeason
-     * @dataProvider seasonsProviderSet
      */
-    public function testSetSeason(string $label, string $expect, array $params): void
+    public function testAddEpisodes(): void
     {
-        $id = self::seasonReferenceId();
-        $result = self::$tvDB->setSeason($id, $params);
-
-        if ($expect === 'KO') {
-            $this->assertFalse($result);
-        } else if ($expect === 'OK') {
-            $this->assertEquals($result['id'], $id);
-            foreach ($params as $p => $v) {
-                if ($v == '_REMOVE_') {
-                    $this->assertFalse(array_key_exists($p, $result));
-                } else {
-                    $this->assertEquals($result[$p], $v);
-                }
-            }
+        foreach (self::$dbContent->getEpisodes() as $episode) {
+            $result = self::$tvDB->addEpisode($episode->getParentId(), $episode->getProperties());
+            $this->assertAddResult($episode, $result);
+            $episode->setId($result['id']);
         }
     }
-
-    /*
-	public function getSeason($id)
-	public function getSeasonFromN($showId, $n)
-	public function getTVShowSeasons($showId)
-	public function getAllWatchedSeasons()
-    */
 
     /**
      * @depends testAddSeason
      */
-    public function testGetSeason(): void
+    public function testAddSeasonScrapers(): void
     {
-        $id = self::seasonReferenceId();
-        $season = self::$tvDB->getSeason($id);
-        $this->assertNotFalse($season, "getSeason failed on reference id $id");
+        foreach (self::$dbContent->getSeasonScrapers() as $scraper) {
+            $result = self::$tvDB->addScraper($scraper->getParentId(), 'season', $scraper->getProperties());
+            $this->assertAddResult($scraper, $result, ['id', 'season']);
+            $scraper->setId($result['id']);
+        }
+    }
 
-        $seasonFromN = self::$tvDB->getSeasonFromN($season['tvshow'], $season['n']);
-        $this->assertEqualsCanonicalizing($season, $seasonFromN, "getSeason and getSeasonFromN return different values");
+    /** 
+     * @depends testAddSeasonScrapers
+     * @depends testAddEpisodes
+     */
+    public function testAddFiles(): void
+    {
+        foreach (self::$dbContent->getFiles() as $file) {
+            $result = self::$tvDB->addFile($file->getParentId(), array_merge($file->getProperties(), ['scraper' => $file->getScraperId()]));
+            $this->assertAddResult($file, $result, ['id', 'scraper']);
+            $this->assertSame($file->getScraperId(), $result['scraper']);
+            $file->setId($result['id']);
+        }
     }
 }

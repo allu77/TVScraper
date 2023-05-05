@@ -6,8 +6,8 @@ namespace DataProviders\DB;
 
 class TVShow extends GenericItem
 {
-    private array $seasons;
-    private array $scrapers;
+    private array $seasons = [];
+    private array $scrapers = [];
 
     public function __construct(array $properties, array $seasons = [], $scrapers = [])
     {
@@ -48,12 +48,18 @@ class TVShow extends GenericItem
     {
         return new TVShow(
             $tvShow['properties'],
-            array_map(function ($season) {
-                return Season::buildFromArray($season);
-            }, $tvShow['seasons']),
-            array_map(function ($scraper) {
-                return TVShowScraper::buildFromArray($scraper);
-            }, $tvShow['scrapers'])
+            array_key_exists('seasons', $tvShow) ?
+                array_map(function ($season) {
+                    return Season::buildFromArray($season);
+                }, $tvShow['seasons'])
+                :
+                [],
+            array_key_exists('scrapers', $tvShow) ?
+                array_map(function ($scraper) {
+                    return TVShowScraper::buildFromArray($scraper);
+                }, $tvShow['scrapers'])
+                :
+                []
         );
     }
 }

@@ -60,6 +60,24 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
     /**
      * @depends testAddTVShow
      */
+
+    public function testSetTVShow(): void
+    {
+        $tvShow = self::$dbContent->getTVShows()[0];
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => 'New Title']);
+        $this->assertSame('New Title', $result['title']);
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['alternateTitle' => '_REMOVE_']);
+        $this->assertArrayNotHasKey('alternateTitle', $result);
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @depends testAddTVShow
+     */
     public function testAddSeason(): void
     {
         foreach (self::$dbContent->getSeasons() as $season) {

@@ -18,6 +18,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 			$buildSql = file_get_contents(__DIR__ . "/TVShowScraperDBSQLite.sql");
 			$this->db->exec($buildSql);
 		}
+		$this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 		$this->db->exec("PRAGMA foreign_keys = 'ON'");
 	}
 
@@ -74,15 +75,15 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 		if ($parentKey != null) {
 			$this->log("Executing with params $parentValue, " . implode(', ', $params));
-			if (!$st->execute(array_merge(array($parentKey => $parentValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
+			if (!$st->execute(array_merge(array($parentKey => $parentValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 		} else {
 			$this->log("Executing with params " . implode(', ', $params));
-			if (!$st->execute($params)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
+			if (!$st->execute($params)) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 		}
 		if ($st->rowCount() == 1) {
 			return array_merge(array('id' => $this->db->lastInsertId()), $params);
 		}
-		return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
+		return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 	}
 
 	protected function setElementDB($table, $key, $value, $params)
@@ -102,12 +103,15 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		$this->log("Preparing query $query");
 		$st = $this->db->prepare($query);
 		if ($st == null) {
+			if (!$wasInTransaction) $this->db->rollBack();
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 
 		$this->log("Executing with params " . implode(', ', $params) . ", $value");
-		if (!$st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
-
+		if (!$st->execute($p)) {
+			if (!$wasInTransaction) $this->db->rollBack();
+			return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
+		}
 		if ($st->rowCount() != 1) {
 			if (!$wasInTransaction) $this->db->rollBack();
 			return $this->error("Set query affected " . $st->rowCount() . " rows, expected 1!");
@@ -127,7 +131,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 		$this->log("Executing with param $value");
-		if (!$st->execute(array($value))) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
+		if (!$st->execute(array($value))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 
 		return TRUE;
 	}
@@ -143,7 +147,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 
 		$this->log("Executing with params " . implode(', ', $p));
-		if (!$st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $this->db->errorInfo()));
+		if (!$st->execute($p)) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 
 		$res = array();
 

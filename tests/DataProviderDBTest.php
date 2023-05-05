@@ -46,34 +46,34 @@ final class DataProviderDBTest extends \PHPUnit\Framework\TestCase
 
     public function testGetTVShows(): void
     {
-        $this->assertDBGet(1, 'DataProviders\DB\TVShow', self::$dbContent->getTVShows());
+        $this->assertDBGet(2, 'DataProviders\DB\TVShow', self::$dbContent->getTVShows());
     }
 
     public function testGetSeasons(): void
     {
         $seasons = self::$dbContent->getSeasons();
-        $this->assertDBGet(1, 'DataProviders\DB\Season', $seasons);
+        $this->assertDBGet(4, 'DataProviders\DB\Season', $seasons);
         $this->assertAllParentInstanceOf('DataProviders\DB\TVShow', $seasons);
     }
 
     public function testGetEpisodes(): void
     {
         $episodes = self::$dbContent->getEpisodes();
-        $this->assertDBGet(1, 'DataProviders\DB\Episode', $episodes);
+        $this->assertDBGet(5, 'DataProviders\DB\Episode', $episodes);
         $this->assertAllParentInstanceOf('DataProviders\DB\Season', $episodes);
     }
 
     public function testGetSeasonScrapers(): void
     {
         $scrapers = self::$dbContent->getSeasonScrapers();
-        $this->assertDBGet(1, 'DataProviders\DB\SeasonScraper', $scrapers);
+        $this->assertDBGet(4, 'DataProviders\DB\SeasonScraper', $scrapers);
         $this->assertAllParentInstanceOf('DataProviders\DB\Season', $scrapers);
     }
 
     public function testGetFiles(): void
     {
         $files = self::$dbContent->getFiles();
-        $this->assertDBGet(1, 'DataProviders\DB\File', $files);
+        $this->assertDBGet(4, 'DataProviders\DB\File', $files);
         $this->assertAllParentInstanceOf('DataProviders\DB\Episode', $files);
     }
 

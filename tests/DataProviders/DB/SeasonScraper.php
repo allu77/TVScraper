@@ -27,9 +27,12 @@ class SeasonScraper extends Scraper
     {
         return new SeasonScraper(
             $seasonScraper['properties'],
-            array_map(function ($file) {
-                return File::buildFromArray($file);
-            }, $seasonScraper['files'])
+            array_key_exists('files', $seasonScraper) ?
+                array_map(function ($file) {
+                    return File::buildFromArray($file);
+                }, $seasonScraper['files'])
+                :
+                []
         );
     }
 

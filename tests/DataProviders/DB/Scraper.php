@@ -9,7 +9,7 @@ use DataProviders\DB\ScrapedItem as File;
 
 class Scraper extends GenericItem
 {
-    private array $scrapedItems;
+    private array $scrapedItems = [];
 
     public function __construct(array $properties, array $scrapedItems = [])
     {

@@ -11,12 +11,20 @@ class DBContent
 
     public static function createFromJSON(string $jsonString): DBContent
     {
+        $jsonArray = json_decode($jsonString, true);
+        return self::createFromArray($jsonArray);
+    }
+
+    public static function createFromArray(array $dbContent): DBContent
+    {
         $db = new DBContent();
-        $json = json_decode($jsonString, true);
 
         $db->tvShows = array_map(function ($tvShow) {
             return TVShow::buildFromArray($tvShow);
-        }, $json['tvShows']);
+        }, $dbContent['tvShows']);
+
+        $db->actualizeDates();
+        $db->setBestFiles();
 
         return $db;
     }
@@ -50,14 +58,14 @@ class DBContent
     public function getEpisodes(): array
     {
         return array_merge(...array_map(function ($season) {
-            return $season->episodes;
+            return $season->getEpisodes();
         }, $this->getSeasons()));
     }
 
     public function getSeasonScrapers(): array
     {
         return array_merge(...array_map(function ($season) {
-            return $season->scrapers;
+            return $season->getScrapers();
         }, $this->getSeasons()));
     }
 
@@ -66,5 +74,22 @@ class DBContent
         return array_merge(...array_map(function ($scraper) {
             return $scraper->getScrapedItems();
         }, $this->getSeasonScrapers()));
+    }
+
+    private function actualizeDates(): void
+    {
+        $now = time();
+        foreach ($this->getTVShows() as $tvShow) $tvShow->actualizeDates($now);
+        foreach ($this->getEpisodes() as $episode) $episode->actualizeDates($now);
+        foreach ($this->getFiles() as $file) $file->actualizeDates($now);
+    }
+
+    private function setBestFiles(): void
+    {
+        foreach ($this->getFiles() as $file) {
+            if ($file->isBestFile()) {
+                $file->getParentItem()->setBestFile($file);
+            }
+        }
     }
 }

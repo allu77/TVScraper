@@ -6,8 +6,8 @@ namespace DataProviders\DB;
 
 class Season extends GenericItem
 {
-    public array $episodes = [];
-    public array $scrapers = [];
+    private array $episodes = [];
+    private array $scrapers = [];
 
     public function __construct(array $properties, array $episodes = [], $scrapers = [])
     {
@@ -59,5 +59,21 @@ class Season extends GenericItem
                 :
                 []
         );
+    }
+
+    /**
+     * Get the value of scrapers
+     */
+    public function getScrapers(): array
+    {
+        return $this->scrapers;
+    }
+
+    /**
+     * Get the value of episodes
+     */
+    public function getEpisodes(): array
+    {
+        return $this->episodes;
     }
 }

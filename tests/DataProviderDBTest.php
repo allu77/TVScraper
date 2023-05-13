@@ -46,20 +46,20 @@ final class DataProviderDBTest extends \PHPUnit\Framework\TestCase
 
     public function testGetTVShows(): void
     {
-        $this->assertDBGet(2, 'DataProviders\DB\TVShow', self::$dbContent->getTVShows());
+        $this->assertDBGet(4, 'DataProviders\DB\TVShow', self::$dbContent->getTVShows());
     }
 
     public function testGetSeasons(): void
     {
         $seasons = self::$dbContent->getSeasons();
-        $this->assertDBGet(4, 'DataProviders\DB\Season', $seasons);
+        $this->assertDBGet(5, 'DataProviders\DB\Season', $seasons);
         $this->assertAllParentInstanceOf('DataProviders\DB\TVShow', $seasons);
     }
 
     public function testGetEpisodes(): void
     {
         $episodes = self::$dbContent->getEpisodes();
-        $this->assertDBGet(5, 'DataProviders\DB\Episode', $episodes);
+        $this->assertDBGet(9, 'DataProviders\DB\Episode', $episodes);
         $this->assertAllParentInstanceOf('DataProviders\DB\Season', $episodes);
     }
 

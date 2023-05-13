@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace DataProviders\DB;
 
+use SebastianBergmann\Type\GenericObjectType;
+
 class GenericItem
 {
     private array $properties;
-    private string $id;
+    private ?string $id = null;
     private GenericItem $parentItem;
 
     public function __construct(array $properties)
@@ -20,7 +22,7 @@ class GenericItem
         $this->id = $id;
     }
 
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -45,8 +47,28 @@ class GenericItem
         return $this->properties;
     }
 
-    public function getProperty(string $property): string
+    public function getProperty(string $property): mixed
     {
         return $this->properties[$property];
+    }
+
+    /**
+     * Converts all airDate and pubDate from relative to actual - WARNING can be called only once
+     * @param ?int $now - time to actualized dates to, defaults to time() if not specified
+     * @return GenericItem - self
+     */
+
+    public function actualizeDates(?int $now = null): GenericItem
+    {
+        if ($now === null) $now = time();
+
+        if (array_key_exists('airDate', $this->properties)) {
+            $this->properties['airDate'] = $now + intval($this->properties['airDate']);
+        }
+        if (array_key_exists('pubDate', $this->properties)) {
+            $this->properties['pubDate'] = $now + intval($this->properties['pubDate']);
+        }
+
+        return $this;
     }
 }

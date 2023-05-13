@@ -1,5 +1,6 @@
 {
     "tvShows": [
+        {   "properties": { "title": "Empty Show", "lang": "eng", "nativeLang": "eng", "res": "any" } },
         {
             "properties": {
                 "title": "Il Racconto dell'Ancella",
@@ -8,31 +9,44 @@
                 "nativeLang":"eng",
                 "res": "720p+"
             },
+            "missingCount": 1,
+            "lastAiredEpisodeIndex": 9,
+            "lastAirDate": -172800,
+            "nextAirDate": 86400,
+            "firstMissingIndex": 6,
+            "latestMissingIndex": 6,
+            "lastEpisodeIndex": 11,
+            "airedEpisodesCount": 4,
+            "lastPubDate": -1000,
+            "episodesWithFile": 3,
             "seasons": [
                 { "properties": { "n": "3", "status":"ignored" } },
                 {
                     "properties": { "n": "4", "status":"complete" },
-                    "episodes": [ { "properties": { "n": "10", "airDate": "2666216800" } } ]
+                    "episodes": [ { "properties": { "n": "10", "airDate": "-12096000" } } ]
                 },
                 {
                     "properties": { "n": "5", "status":"watched" },
                     "episodes": [
-                        { "properties": { "n": "7", "airDate": "1666216800" } },
-                        { "properties": { "n": "8", "airDate": "1666821600" } },
-                        { "properties": { "n": "9", "airDate": "1667430000" } }
+                        { "properties": { "n": "6", "airDate": "-1209600" } },
+                        { "properties": { "n": "7", "airDate": "-1209600" } },
+                        { "properties": { "n": "8", "airDate": "-604800" } },
+                        { "properties": { "n": "9", "airDate": "-172800" } },
+                        { "properties": { "n": "10", "airDate": "86400" } },
+                        { "properties": { "n": "11", "airDate": "172800" } }
                     ],
                     "scrapers": [
                         { 
                             "properties": { "uri": "http://www.example.com/1", "source": "txt" },
                             "files": [
-                                { "properties": { "uri": "xxx", "pubDate": "1666216810", "type": "torrent" }, "episode": "7" },
-                                { "properties": { "uri": "xxx", "pubDate": "1666821610", "type": "torrent" }, "episode": "8" }
+                                { "properties": { "uri": "xxx", "pubDate": "-1000000", "type": "torrent" }, "episode": "7", "isBestFile": "true" },
+                                { "properties": { "uri": "xxx", "pubDate": "-500000", "type": "torrent" }, "episode": "8" }
                             ]
                         },
                         { 
                             "properties": { "uri": "http://www.example.com/2", "source": "txt" },
                             "files": [
-                                { "properties": { "uri": "xxx", "pubDate": "1667430010", "type": "ed2k" }, "episode": "9" }
+                                { "properties": { "uri": "xxx", "pubDate": "-1000", "type": "ed2k" }, "episode": "9", "isLatest": "true", "isBestFile": "true" }
                             ]
 
                         },
@@ -51,6 +65,11 @@
                 "nativeLang": "eng",
                 "res": "any"
             },
+            "nextAirDate": 100,
+            "lastEpisodeIndex": 1,
+            "lastPubDate": 1,
+            "episodesWithFile": 1,
+            "pendingScrapedSeasons": 1,
             "scrapers" : [
                 {
                     "properties" : {

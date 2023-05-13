@@ -24,6 +24,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 	public function beginTransaction()
 	{
+		$this->log("Beginning transaction");
 		return $this->db->beginTransaction();
 	}
 
@@ -35,18 +36,20 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 	public function rollBack()
 	{
+		$this->log("Rolling back transaction");
 		return $this->db->rollBack();
 	}
 
 	public function commit()
 	{
+		$this->log("Committing transaction");
 		return $this->db->commit();
 	}
 
 
 	public function save($fileName = null)
 	{
-		return $this->db->inTransaction() ? $this->db->commit() : TRUE;
+		return $this->inTransaction() ? $this->commit() : TRUE;
 	}
 
 	protected function addElementDB($table, $parentKey, $parentValue, $params)
@@ -97,26 +100,26 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		$query = rtrim($query, ",");
 		$query .= " WHERE $key = :$key";
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		$this->log("Preparing query $query");
 		$st = $this->db->prepare($query);
 		if ($st == null) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 
 		$this->log("Executing with params " . implode(', ', $params) . ", $value");
 		if (!$st->execute($p)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 		}
 		if ($st->rowCount() != 1) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return $this->error("Set query affected " . $st->rowCount() . " rows, expected 1!");
 		} else {
-			if (!$wasInTransaction) $this->db->commit();
+			if (!$wasInTransaction) $this->commit();
 			return TRUE;
 		}
 	}
@@ -196,22 +199,22 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 	public function removeTVShow($id)
 	{
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		$this->log("Removing any TVShow Scraper for show $id");
 		if (!$this->removeElementDB('tvShowScrapers', 'tvShow', $id)) {
 			$this->error("Failed removing TVShow Scrapers");
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
 		if (!$this->removeElementDB('tvshows', 'id', $id)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (!$wasInTransaction) $this->db->commit();
+		if (!$wasInTransaction) $this->commit();
 		return TRUE;
 	}
 
@@ -287,22 +290,22 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 	public function removeSeason($id)
 	{
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		$this->log("Removing any Season Scraper for season $id");
 		if (!$this->removeElementDB('seasonScrapers', 'season', $id)) {
 			$this->error("Failed removing Season Scrapers");
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
 		if (!$this->removeElementDB('seasons', 'id', $id)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (!$wasInTransaction) $this->db->commit();
+		if (!$wasInTransaction) $this->commit();
 		return TRUE;
 	}
 
@@ -369,19 +372,19 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 	public function setEpisode($id, $p)
 	{
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		if (isset($p['bestSticky']) && ($p['bestSticky'] == '0' || $p['bestSticky'] == '_REMOVE_')) {
 			if (!$this->resetEpisodeBestFile($id, TRUE)) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
 
 		if ($this->validateParams($p, $this->validParamsEpisode()) && $this->setElementDB('episodes', 'id', $id, $p)) {
 			$this->log("Episode succesfully updated");
-			if (!$wasInTransaction) $this->db->commit();
+			if (!$wasInTransaction) $this->commit();
 			return $this->getEpisode($id);
 		} else {
 			return FALSE;
@@ -445,13 +448,13 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 		if (isset($p['preference']) && $p['preference'] == '') unset($p['preference']); // Empty non null preference causes issues with scraper sorting during getBestFile
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		$newScraper = $this->addElementDB('scrapers', null, null, $p);
 
 		if ($newScraper === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
@@ -465,11 +468,11 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 
 		if ($newLink === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (!$wasInTransaction) $this->db->commit();
+		if (!$wasInTransaction) $this->commit();
 		$this->log("New $type scraper successfully created");
 
 		$newScraper[$type] = $rootId;
@@ -486,24 +489,24 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 		if (isset($p['preference']) && $p['preference'] == '') $p['preference'] = '_REMOVE_'; // Empty non null preference causes issues with scraper sorting during getBestFile
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		if ($this->validateParams($p, $this->validParamsScraper()) && $this->setElementDB('scrapers', 'id', $id, $p)) {
 			$this->log("Scraper succesfully updated");
 			$scraper = $this->getScraper($id);
 
-			if (isset($p['delay']) && isset($scraper['season'])) {
+			if ((isset($p['delay']) || isset($p['preference'])) && isset($scraper['season'])) {
 				if (!$this->resetBestFilesForSeason($scraper['season'])) {
-					if (!$wasInTransaction) $this->db->rollBack();
+					if (!$wasInTransaction) $this->rollBack();
 					return FALSE;
 				}
 			}
 
-			if (!$wasInTransaction) $this->db->commit();
+			if (!$wasInTransaction) $this->commit();
 			return $scraper;
 		} else {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 	}
@@ -561,7 +564,25 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 	public function addFile($episodeId, $p)
 	{
-		return $this->validateParams($p, $this->validParamsFile()) ? $this->addElementDB('files', 'episode', $episodeId, $p) : FALSE;
+		if (!$this->validateParams($p, $this->validParamsFile())) return FALSE;
+
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
+
+		$newFile = $this->addElementDB('files', 'episode', $episodeId, $p);
+		if ($newFile === FALSE) {
+			if (!$wasInTransaction) $this->rollBack();
+			return FALSE;
+		}
+
+		if (!$this->resetEpisodeBestFile($episodeId)) {
+			if (!$wasInTransaction) $this->rollBack();
+			return FALSE;
+		}
+
+		if (!$wasInTransaction) $this->commit();
+
+		return $newFile;
 	}
 
 	public function removeFile($id)
@@ -575,25 +596,25 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 		if (!$this->validateParams($p, $this->validParamsFile())) return FALSE;
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
-		if (isset($p['discard'])) {
+		if (isset($p['discard']) || isset($p['pubDate'])) {
 			$oldFile = $this->getFile($id);
 			if ($oldFile === FALSE) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 			if (!$this->resetEpisodeBestFile($oldFile['episode'])) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
 		if (!$this->setElementDB('files', 'id', $id, $p)) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		} else {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->commit();
 			$this->log("File $id successfully updated");
 			return TRUE;
 		}
@@ -672,6 +693,8 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 		$scraperId = $res[0]['id'];
 
+		$this->log("Selected best scraper $scraperId for episode $id");
+
 		$q = "
 		SELECT files.*
 		FROM files
@@ -693,6 +716,8 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 
 		$best = $res[0];
+
+		$this->log("Selected best file " . $best['id'] . " for episode $id");
 
 		if (!$this->setEpisode($id, array('bestFile' => $best['id']))) return FALSE;
 		return $best;
@@ -826,14 +851,14 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 
 		if ($season === FALSE) return FALSE;
 
-		$wasInTransaction = $this->db->inTransaction();
-		if (!$wasInTransaction) $this->db->beginTransaction();
+		$wasInTransaction = $this->inTransaction();
+		if (!$wasInTransaction) $this->beginTransaction();
 
 		if ($season == NULL) {
 			$this->log("Season " . $scrapedSeason['n'] . " does not exist yet. Creating...");
 			$season = $this->addSeason($scraper['tvshow'], array('n' => $scrapedSeason['n'], 'status' => 'watched'));
 			if ($season === FALSE) {
-				if (!$wasInTransaction) $this->db->rollBack();
+				if (!$wasInTransaction) $this->rollBack();
 				return FALSE;
 			}
 		}
@@ -845,16 +870,16 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		));
 
 		if ($newScraper === FALSE) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
 		if (!$this->setScrapedSeason($id, array('hide' => '1'))) {
-			if (!$wasInTransaction) $this->db->rollBack();
+			if (!$wasInTransaction) $this->rollBack();
 			return FALSE;
 		}
 
-		if (!$wasInTransaction) $this->db->commit();
+		if (!$wasInTransaction) $this->commit();
 		return $newScraper['id'];
 	}
 }

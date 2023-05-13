@@ -220,6 +220,117 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
     }
 
     /**
+     * @depends testAddFiles
+     */
+    public function testGetAllTVShows(): void
+    {
+        $result = self::$tvDB->getAllTVShows();
+        $this->assertIsArray($result);
+        $this->assertSameSize(self::$dbContent->getTVShows(), $result);
+    }
+
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetSeason(): void
+    {
+        foreach (self::$dbContent->getSeasons() as $season) {
+            $result = self::$tvDB->getSeason($season->getId());
+            $this->assertGetResult($season, $result, ['tvshow']);
+            $this->assertArrayHasKey('tvshow', $result);
+            $this->assertSame($season->getParentId(), $result['tvshow']);
+        }
+    }
+
+    /** 
+     * @depends testAddFiles
+     */
+    public function testGetSeasonFromN(): void
+    {
+        foreach (self::$dbContent->getSeasons() as $season) {
+            $result = self::$tvDB->getSeasonFromN($season->getParentId(), $season->getProperty('n'));
+            $this->assertIsArray($result);
+            $this->assertSame($season->getId(), $result['id']);
+        }
+    }
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetTVShowSeasons(): void
+    {
+        foreach (self::$dbContent->getTVShows() as $tvShow) {
+            $seasons = $tvShow->getSeasons();
+            $seasonIds = array_map(function ($season) {
+                return $season->getId();
+            }, $seasons);
+            $result = self::$tvDB->getTVShowSeasons($tvShow->getId());
+            $this->assertIsArray($result);
+            $this->assertSameSize($seasons, $result);
+            foreach ($result as $seasonResult) {
+                $this->assertContains($seasonResult['id'], $seasonIds);
+            }
+        }
+    }
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetAllWatchedSeasons(): void
+    {
+        $watchedSeasonsIds = array_map(
+            function ($season) {
+                return $season->getId();
+            },
+            array_filter(self::$dbContent->getSeasons(), function (
+                $season
+            ) {
+                return $season->getProperty('status') == 'watched';
+            })
+        );
+        $result = self::$tvDB->getAllWatchedSeasons();
+        $this->assertIsArray($result);
+        $this->assertSameSize($watchedSeasonsIds, $result);
+        foreach ($result as $seasonResult) {
+            $this->assertContains($seasonResult['id'], $watchedSeasonsIds);
+        }
+    }
+
+
+    /**
+     * @depends testAddFiles
+     */
+
+    public function testGetEpisode(): void
+    {
+        foreach (self::$dbContent->getEpisodes() as $episode) {
+            $result = self::$tvDB->getEpisode($episode->getId());
+            $this->assertGetResult($episode, $result, ['season']);
+            $this->assertArrayHasKey('season', $result);
+            $this->assertSame($episode->getParentId(), $result['season']);
+        }
+    }
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetFile(): void
+    {
+        foreach (self::$dbContent->getFiles() as $file) {
+            $result = self::$tvDB->getFile($file->getId());
+            $this->assertGetResult($file, $result, ['episode', 'scraper', 'discard']);
+            $this->assertArrayHasKey('episode', $result);
+            $this->assertSame($file->getParentId(), $result['episode']);
+            $this->assertArrayHasKey('scraper', $result);
+            $this->assertSame($file->getScraperId(), $result['scraper']);
+            // TODO: What to do with discard?
+        }
+    }
+
+
+
+    /**
      * To be executed after testGetTVShow to avoid messing with stats.
      * - Create a new TVShow
      * - Create a new Season

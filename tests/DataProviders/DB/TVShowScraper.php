@@ -10,9 +10,16 @@ class TVShowScraper extends Scraper
     {
         return new TVShowScraper(
             $tvShowScraper['properties'],
-            array_map(function ($scrapedSeason) {
-                return ScrapedSeason::buildFromArray($scrapedSeason);
-            }, $tvShowScraper['scrapedSeasons'])
+            array_map(
+                function ($scrapedSeason) {
+                    return ScrapedSeason::buildFromArray($scrapedSeason);
+                },
+                array_key_exists('scrapedSeasons', $tvShowScraper) ?
+                    $tvShowScraper['scrapedSeasons']
+                    :
+                    []
+            )
+
         );
     }
 }

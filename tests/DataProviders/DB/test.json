@@ -1,6 +1,20 @@
 {
     "tvShows": [
         {   "properties": { "title": "Empty Show", "lang": "eng", "nativeLang": "eng", "res": "any" } },
+        {   "properties": { "title": "Many Scrapers", "lang": "eng", "nativeLang": "eng", "res": "any" },
+            "scrapers": [
+                { "properties": { "uri": "http://www.example.com/1", "source": "txt" } },
+                { "properties": { "uri": "http://www.example.com/2", "source": "txt", "delay": 1000, "autoAdd": 1, "notify": 1 } }
+            ],
+            "seasons": [
+                { "properties": { "n": 1, "status": "complete" } },
+                { "properties": { "n": 2, "status": "watched" },
+                  "scrapers": [
+                    { "properties": { "uri": "http://www.example.com/1", "source": "txt" } },
+                    { "properties": { "uri": "http://www.example.com/2", "source": "txt", "delay": 1000, "autoAdd": 1, "notify": 1 } }
+                ] }
+            ]
+        },
         {
             "properties": {
                 "title": "Il Racconto dell'Ancella",
@@ -40,7 +54,7 @@
                             "properties": { "uri": "http://www.example.com/1", "source": "txt" },
                             "files": [
                                 { "properties": { "uri": "xxx", "pubDate": "-1000000", "type": "torrent" }, "episode": "7", "isBestFile": "true" },
-                                { "properties": { "uri": "xxx", "pubDate": "-500000", "type": "torrent" }, "episode": "8" }
+                                { "properties": { "uri": "xxx", "pubDate": "-500000", "type": "torrent" }, "episode": "8", "isBestFile": "true"  }
                             ]
                         },
                         { 

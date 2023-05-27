@@ -18,6 +18,9 @@ class Scraper extends GenericItem
         foreach ($scrapedItems as $scrapedItem) {
             $this->attachScrapedItem($scrapedItem);
         }
+        if (!array_key_exists('delay', $properties)) $this->setProperty('delay', 0);
+        if (!array_key_exists('autoAdd', $properties)) $this->setProperty('autoAdd', 0);
+        if (!array_key_exists('notify', $properties)) $this->setProperty('notify', 0);
     }
 
     public function attachScrapedItem(ScrapedItem $scrapedItem)

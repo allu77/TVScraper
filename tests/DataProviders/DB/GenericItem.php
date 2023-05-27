@@ -51,6 +51,10 @@ class GenericItem
     {
         return $this->properties[$property];
     }
+    public function setProperty(string $property, mixed $value): void
+    {
+        $this->properties[$property] = $value;
+    }
 
     /**
      * Converts all airDate and pubDate from relative to actual - WARNING can be called only once

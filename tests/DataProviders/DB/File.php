@@ -9,7 +9,6 @@ class File extends ScrapedItem
     private Season $season;
     private string $episodeN;
     private bool $isBestFile = false;
-    private bool $isLatest = false;
 
     public static function buildFromArray(array $file): File
     {

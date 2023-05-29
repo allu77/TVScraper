@@ -7,6 +7,7 @@ require_once(__DIR__ . '/../modules/DB/TVShowScraperDB.php'); // TODO: Implement
 use DataProviders\DB\DBContent as DBContent;
 use DataProviders\DB\GenericItem;
 use DataProviders\DB\TVShow as TVShow;
+use DataProviders\DB\File as File;
 
 final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 {
@@ -34,7 +35,7 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         $expectedProperties = $expected->getProperties();
         foreach ($expectedProperties as $key => $value) {
             self::assertArrayHasKey($key, $result, $message ?: "Result missing expected key: $key");
-            self::assertEquals($value, $result[$key], $message ?: "Result value for proerty $key does not match expected one");
+            self::assertEquals($value, $result[$key], $message ?: "Result value for property $key does not match expected one");
         }
         foreach ($result as $key => $value) {
             if (in_array($key, $ignoreKeys)) continue;
@@ -60,6 +61,44 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
     /**
      * @depends testCreateDBSQLite
      */
+    public function testTransactions(): void
+    {
+        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertTrue(self::$tvDB->beginTransaction());
+        $this->assertTrue(self::$tvDB->inTransaction());
+        $newTVShow = self::$tvDB->addTVShow([
+            'title'         => 'Test Transactions Rollback',
+            'lang'          => 'eng',
+            'nativeLang'    => 'eng',
+            'res'           => 'any'
+        ]);
+        $newSeason = self::$tvDB->addSeason($newTVShow['id'], ['n' => 1, 'status' => 'complete']);
+        $this->assertTrue(self::$tvDB->rollBack());
+        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertFalse(self::$tvDB->getTVShow($newTVShow['id']));
+
+        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertTrue(self::$tvDB->beginTransaction());
+        $this->assertTrue(self::$tvDB->inTransaction());
+        $newTVShow = self::$tvDB->addTVShow([
+            'title'         => 'Test Transactions Commit',
+            'lang'          => 'eng',
+            'nativeLang'    => 'eng',
+            'res'           => 'any'
+        ]);
+        $newSeason = self::$tvDB->addSeason($newTVShow['id'], ['n' => 1, 'status' => 'complete']);
+        $this->assertTrue(self::$tvDB->commit());
+        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertIsArray(self::$tvDB->getTVShow($newTVShow['id']));
+        $this->assertIsArray(self::$tvDB->getTVShow($newSeason['id']));
+        // CLEANUP
+        $this->assertTrue(self::$tvDB->removeTVShow($newTVShow['id']));
+    }
+
+
+    /**
+     * @depends testCreateDBSQLite
+     */
     public function testAddTVShow(): void
     {
         foreach (self::$dbContent->getTVShows() as $tvShow) {
@@ -70,25 +109,6 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
     }
 
 
-    /**
-     * @depends testAddTVShow
-     */
-
-    /*
-    public function testSetTVShow(): void
-    {
-        $tvShow = self::$dbContent->getTVShows()[0];
-
-        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => 'New Title']);
-        $this->assertSame('New Title', $result['title']);
-
-        $result = self::$tvDB->setTVShow($tvShow->getId(), ['alternateTitle' => '_REMOVE_']);
-        $this->assertArrayNotHasKey('alternateTitle', $result);
-
-        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => '_REMOVE_']);
-        $this->assertFalse($result);
-    }
-    */
 
     /**
      * @depends testAddTVShow
@@ -231,6 +251,31 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 
 
     /**
+     * @depends testGetTVShow
+     * @depends testGetAllTVShows
+     */
+
+
+    public function testSetTVShow(): void
+    {
+        $tvShow = self::$dbContent->getTVShows()[0];
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => 'New Title', 'alternateTitle' => 'New Alternate Title']);
+        $this->assertSame('New Title', $result['title']);
+        $this->assertSame('New Alternate Title', $result['alternateTitle']);
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['alternateTitle' => '_REMOVE_']);
+        $this->assertArrayNotHasKey('alternateTitle', $result);
+
+        $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => '_REMOVE_']);
+        $this->assertFalse($result);
+
+        // Cleanup
+        // $result = self::$tvDB->setTVShow($tvShow->getId(), ['title' => $tvShow->getProperty('title')]);
+    }
+
+
+    /**
      * @depends testAddFiles
      */
     public function testGetSeason(): void
@@ -297,6 +342,23 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         }
     }
 
+    /**
+     * @depends testGetSeason
+     * @depends testGetSeasonFromN
+     * @depends testGetTVShowSeasons
+     * @depends testGetAllWatchedSeasons
+     */
+    public function testSetSeason(): void
+    {
+        $season = self::$dbContent->getSeasons()[0];
+        $result = self::$tvDB->setSeason($season->getId(), ['n' => 99, 'status' => 'ignored']);
+        $this->assertIsArray($result);
+        $this->assertEquals(99, $result['n']);
+        $this->assertSame('ignored', $result['status']);
+        $result = self::$tvDB->setSeason($season->getId(), ['n' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @depends testAddFiles
@@ -342,6 +404,31 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
                 $this->assertContains($episodeResult['id'], $episodesIds);
             }
         }
+    }
+
+    /**
+     * @depends testGetEpisode
+     * @depends testGetEpisodeFromIndex
+     * @depends testSeasonEpisodes
+     */
+
+    public function testSetEpisode(): void
+    {
+        $episode = self::$dbContent->getEpisodes()[0];
+        $result = self::$tvDB->setEpisode(
+            $episode->getId(),
+            [
+                'n' => 99,
+                'bestSticky' => 1,
+                'airDate' => 10000
+            ]
+        );
+        $this->assertIsArray($result);
+        $this->assertEquals(99, $result['n']);
+        $this->assertEquals(1, $result['bestSticky']);
+        $this->assertEquals(10000, $result['airDate']);
+        $result = self::$tvDB->setEpisode($episode->getId(), ['n' => '_REMOVE_']);
+        $this->assertFalse($result);
     }
 
     /**
@@ -423,20 +510,63 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         }
     }
 
-
     /**
-     * @depends testAddFiles
+     * @depends testGetScraper
+     * @depends testGetSeasonScrapers
+     * @depends testGetTVShowScrapers
+     * @depends testGetActiveScrapers
      */
+    public function testSetScraper(): void
+    {
+        $scraper = self::$dbContent->getTVShowScrapers()[0];
+        $result = self::$tvDB->setScraper($scraper->getId(), [
+            'preference'        => 10,
+            'delay'             => 20,
+            'uri'               => 'http://example.com/new-uri',
+            'source'            => 'rss',
+            'autoAdd'           => 1,
+            'notify'            => 1
+        ]);
+        $this->assertIsArray($result);
+        $this->assertEquals(10, $result['preference']);
+        $this->assertEquals(20, $result['delay']);
+        $this->assertEquals('http://example.com/new-uri', $result['uri']);
+        $this->assertEquals('rss', $result['source']);
+        $this->assertEquals(1, $result['autoAdd']);
+        $this->assertEquals(1, $result['notify']);
+
+        $result = self::$tvDB->setScraper($scraper->getId(), ['preference' => '_REMOVE_']);
+        $this->assertIsArray($result);
+        $this->assertArrayNotHasKey('preference', $result);
+
+        $result = self::$tvDB->setScraper($scraper->getId(), ['delay' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
+
+    public static function assertResultWithDefaultValue(GenericItem $item, string $property, mixed $defaultValue, array $result, string $message = ''): void
+    {
+        self::assertArrayHasKey($property, $result);
+        self::assertEquals(
+            array_key_exists($property, $result) ? $result[$property] : $defaultValue,
+            $result[$property],
+            $message
+        );
+    }
+
+    public static function assertGetFile(File $file, array $result, string $message = ''): void
+    {
+        self::assertGetResult($file, $result, ['episode', 'scraper', 'discard']);
+        self::assertArrayHasKey('episode', $result);
+        self::assertSame($file->getParentId(), $result['episode']);
+        self::assertArrayHasKey('scraper', $result);
+        self::assertSame($file->getScraperId(), $result['scraper']);
+        self::assertResultWithDefaultValue($file, 'discard', 0, $result);
+    }
+
     public function testGetFile(): void
     {
         foreach (self::$dbContent->getFiles() as $file) {
-            $result = self::$tvDB->getFile($file->getId());
-            $this->assertGetResult($file, $result, ['episode', 'scraper', 'discard']);
-            $this->assertArrayHasKey('episode', $result);
-            $this->assertSame($file->getParentId(), $result['episode']);
-            $this->assertArrayHasKey('scraper', $result);
-            $this->assertSame($file->getScraperId(), $result['scraper']);
-            // TODO: What to do with discard?
+            $this->assertGetFile($file, self::$tvDB->getFile($file->getId()));
         }
     }
 
@@ -517,12 +647,7 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         foreach (self::$dbContent->getEpisodes() as $episode) {
             $result = self::$tvDB->getBestFileForEpisode($episode->getId());
             if ($bestFile = $episode->getBestFile()) {
-                $this->assertGetResult($bestFile, $result, ['episode', 'scraper', 'discard']);
-                $this->assertArrayHasKey('episode', $result);
-                $this->assertSame($bestFile->getParentId(), $result['episode']);
-                $this->assertArrayHasKey('scraper', $result);
-                $this->assertSame($bestFile->getScraperId(), $result['scraper']);
-                // TODO: What to do with discard?
+                $this->assertGetFile($bestFile, $result);
             } else {
                 $this->assertNull($result);
             }
@@ -574,6 +699,122 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         }
     }
 
+    /**
+     * @depends testGetFile
+     * @depends testGetBestFileForEpisode
+     * @depends testGetBestFilesForSeason
+     * @depends testGetAllWatchedBestFiles
+     * @depends testGetFilesForEpisode
+     * @depends testGetFilesForSeason
+     * @depends testGetFilesForScraper
+     */
+    public function testSetFile(): void
+    {
+        $file = self::$dbContent->getFiles()[0];
+        $result = self::$tvDB->setFile($file->getId(), [
+            'discard'        => 1,
+            'uri'            => 'http://www.example.com/new-uri',
+            'pubDate'        => 1000,
+            'type'            => 'torrent',
+            'scraper'        => self::$dbContent->getSeasonScrapers()[0]->getId()
+        ]);
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['discard']);
+        $this->assertEquals('http://www.example.com/new-uri', $result['uri']);
+        $this->assertEquals(1000, $result['pubDate']);
+        $this->assertEquals('torrent', $result['type']);
+        $this->assertEquals(self::$dbContent->getSeasonScrapers()[0]->getId(), $result['scraper']);
+
+        $result = self::$tvDB->setFile($file->getId(), ['uri' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetScrapedSeason(): void
+    {
+        foreach (self::$dbContent->getScrapedSeasons() as $scrapedSeason) {
+            $result = self::$tvDB->getScrapedSeason($scrapedSeason->getId());
+            $this->assertGetResult($scrapedSeason, $result, ['scraper', 'hide', 'source']);
+
+            $this->assertArrayHasKey('scraper', $result);
+            $this->assertSame($scrapedSeason->getScraperId(), $result['scraper']);
+
+            $this->assertArrayHasKey('source', $result);
+            $this->assertSame($scrapedSeason->getScraper()->getProperty('source'), $result['source']);
+
+            $this->assertResultWithDefaultValue($scrapedSeason, 'hide', 0, $result);
+        }
+    }
+
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetScrapedSeasonFromUri(): void
+    {
+        foreach (self::$dbContent->getScrapedSeasons() as $scrapedSeason) {
+            $result = self::$tvDB->getScrapedSeasonFromUri($scrapedSeason->getScraperId(), $scrapedSeason->getProperty('uri'), $scrapedSeason->getProperty('n'));
+            $this->assertIsArray($result);
+            $this->assertArrayHasKey('id', $result);
+            $this->assertSame($scrapedSeason->getId(), $result['id']);
+        }
+    }
+
+
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetScrapedSeasonsTBN(): void
+    {
+        $scrapedSeasonsTBN = array_map(
+            function ($scrapedSeason) {
+                return $scrapedSeason->getId();
+            },
+            array_filter(
+                self::$dbContent->getScrapedSeasons(),
+                function ($scrapedSeason) {
+                    return array_key_exists('tbn', $scrapedSeason->getProperties()) && $scrapedSeason->getProperties()['tbn'];
+                }
+            )
+        );
+
+        $result = self::$tvDB->getScrapedSeasonsTBN();
+        $this->assertIsArray($result);
+        $this->assertSameSize($scrapedSeasonsTBN, $result);
+        foreach ($result as $scrapedSeasonResult) {
+            $this->assertContains($scrapedSeasonResult['id'], $scrapedSeasonsTBN);
+        }
+    }
+
+    /**
+     * @depends testGetScrapedSeason
+     * @depends testGetScrapedSeasonFromUri
+     * @depends testGetScrapedSeasonsTBN
+     */
+    public function testSetScrapedSeason(): void
+    {
+        $scrapedSeason = self::$dbContent->getScrapedSeasons()[0];
+        $result = self::$tvDB->setScrapedSeason($scrapedSeason->getId(), [
+            'n'     => 99,
+            'hide'  => 1,
+            'uri'   => 'http://www.example.com/new-uri',
+            'tbn'   => 1
+        ]);
+        $this->assertIsArray($result);
+        $this->assertEquals(99, $result['n']);
+        $this->assertEquals(1, $result['hide']);
+        $this->assertEquals('http://www.example.com/new-uri', $result['uri']);
+        $this->assertEquals(1, $result['tbn']);
+
+        $result = self::$tvDB->setScrapedSeason($scrapedSeason->getId(), ['tbn' => '_REMOVE_']);
+        $this->assertIsArray($result);
+        $this->assertArrayNotHasKey('tbn', $result);
+
+        $result = self::$tvDB->setScrapedSeason($scrapedSeason->getId(), ['n' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
 
     /**
      * To be executed after testGetTVShow to avoid messing with stats.
@@ -707,5 +948,8 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         $this->assertNotFalse($result);
         $bestFile = $db->getBestFileForEpisode($episode['id']);
         $this->assertEquals($file_3['id'], $bestFile['id']);
+
+
+        // TODO: Tests with discard and sticky files
     }
 }

@@ -1,8 +1,12 @@
 <?php
 
+namespace modules\DB;
+
 require_once('Logger.php');
 require_once('TVShowUtils.php');
 require_once('TVShowScraperDB.php');
+
+use \PDO;
 
 class TVShowScraperDBSQLite extends TVShowScraperDB
 {

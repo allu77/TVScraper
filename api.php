@@ -2,6 +2,7 @@
 
 define('LOCK_TIMEOUT', 300);
 
+require_once(__DIR__ . '/modules/autoload.php');
 
 require_once('TVShowScraperDDU.php');
 require_once('TVShowScraperTVU.php');
@@ -15,17 +16,19 @@ require_once('Logger.php');
 require_once('SimpleBrowser.php');
 require_once('TVScraperConfig.php');
 
-require_once('modules/DB/TVShowScraperDB.php');
+use modules\DB\TVShowScraperDB;
+use modules\DB\TVShowScraperDBSQLite;
 
-
-function postCleanUp($params, $toBeRemoved, $logger) {
+function postCleanUp($params, $toBeRemoved, $logger)
+{
 
 	ob_start();
-	var_dump($params);var_dump($toBeRemoved);
+	var_dump($params);
+	var_dump($toBeRemoved);
 	$d = ob_get_clean();
 	$logger->log($d);
-	
-	
+
+
 	$newParams = array();
 	foreach ($params as $p => $v) {
 		if (!in_array($p, $toBeRemoved) && $p != 'action' && $p != 'format') {
@@ -36,7 +39,8 @@ function postCleanUp($params, $toBeRemoved, $logger) {
 	return $newParams;
 }
 
-function checkPostParameters($post, $validParams, $logger) {
+function checkPostParameters($post, $validParams, $logger)
+{
 	$params = array();
 
 	foreach ($validParams as $p) {
@@ -98,45 +102,46 @@ values =
 */
 
 $simpleMethods = array(
-/* method */ 'getAllTVShows' 			=> array( ),
-/* method */ 'getActiveScrapers'		=> array( ),
-/* method */ 'addTVShow' 				=> array( 'save' => TRUE,	'params' => array( '+title', '_other' )),
-/* method */ 'addSeason' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '+n', '_other' )),
-/* method */ 'addScraper' 				=> array( 'save' => TRUE,	'params' => array( 'rootId', 'type', '+source', '+uri', '_other' )),
-/* method */ 'removeEpisode' 			=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
-/* method */ 'removeFile'	 			=> array( 'save' => TRUE,	'params' => array( 'fileId' )),
-/* method */ 'removeTVShow' 			=> array( 'save' => TRUE,	'params' => array( 'showId' )),
-/* method */ 'removeSeason' 			=> array( 'save' => TRUE,	'params' => array( 'seasonId' )),
-/* method */ 'removeScraper' 			=> array( 'save' => TRUE,	'params' => array( 'scraperId' )),
-/* method */ 'removeScrapedSeason' 		=> array( 'save' => TRUE,	'params' => array( 'scrapedSeasonId' )),
-/* method */ 'getAllWatchedSeasons'		=> array( 'save' => FALSE,	'params' => array(  )),
-/* method */ 'getBestFilesForSeason'	=> array( 'save' => TRUE,	'params' => array( 'seasonId' )),
-/* method */ 'getBestFileForEpisode'	=> array( 'save' => TRUE,	'params' => array( 'episodeId' )),
-/* method */ 'getEpisode' 				=> array( 'save' => FALSE,	'params' => array( 'episodeId' )),
-/* method */ 'getFile' 					=> array( 'save' => FALSE,	'params' => array( 'fileId' )),
-/* method */ 'getTVShow' 				=> array( 'save' => FALSE,	'params' => array( 'showId' )),
-/* method */ 'getTVShowSeasons'			=> array( 'save' => FALSE,	'params' => array( 'showId' )),
-/* method */ 'getTVShowScrapers'		=> array( 'save' => FALSE,	'params' => array( 'showId' )),
-/* method */ 'getSeasonEpisodes'		=> array( 'save' => FALSE,	'params' => array( 'seasonId' )),
-/* method */ 'getSeasonScrapers'		=> array( 'save' => FALSE,	'params' => array( 'seasonId' )),
-/* method */ 'getScrapedSeasons'		=> array( 'save' => FALSE,	'params' => array( 'showId' )),
-/* method */ 'getScrapedSeasonsTBN'		=> array( ),
-		
-/* method */ 'createSeasonScraperFromScraped'		=> array( 'save' => TRUE,	'params' => array( 'scrapedSeasonId' )),
-/* method */ 'getFile'	 				=> array( 'save' => FALSE,	'params' => array( 'fileId' )),
-/* method */ 'getFilesForEpisode'		=> array( 'save' => FALSE,	'params' => array( 'episodeId' )),
-/* method */ 'getScraper' 				=> array( 'save' => FALSE,	'params' => array( 'scraperId' )),
-/* method */ 'getSeason' 				=> array( 'save' => FALSE,	'params' => array( 'seasonId' )),
-/* method */ 'setEpisode' 				=> array( 'save' => TRUE,	'params' => array( 'episodeId', '_other' )),
-/* method */ 'setFile'	 				=> array( 'save' => TRUE,	'params' => array( 'fileId', '_other' )),
-/* method */ 'setSeason' 				=> array( 'save' => TRUE,	'params' => array( 'seasonId', '_other' )),
-/* method */ 'setScrapedSeason'			=> array( 'save' => TRUE,	'params' => array( 'scrapedSeasonId', '_other' )),
-/* method */ 'setScraper' 				=> array( 'save' => TRUE,	'params' => array( 'scraperId', '_other' )),
-/* method */ 'setTVShow' 				=> array( 'save' => TRUE,	'params' => array( 'showId', '_other' ))
+	/* method */
+	'getAllTVShows' 			=> array(),
+	/* method */ 'getActiveScrapers'		=> array(),
+	/* method */ 'addTVShow' 				=> array('save' => TRUE,	'params' => array('+title', '_other')),
+	/* method */ 'addSeason' 				=> array('save' => TRUE,	'params' => array('showId', '+n', '_other')),
+	/* method */ 'addScraper' 				=> array('save' => TRUE,	'params' => array('rootId', 'type', '+source', '+uri', '_other')),
+	/* method */ 'removeEpisode' 			=> array('save' => TRUE,	'params' => array('episodeId')),
+	/* method */ 'removeFile'	 			=> array('save' => TRUE,	'params' => array('fileId')),
+	/* method */ 'removeTVShow' 			=> array('save' => TRUE,	'params' => array('showId')),
+	/* method */ 'removeSeason' 			=> array('save' => TRUE,	'params' => array('seasonId')),
+	/* method */ 'removeScraper' 			=> array('save' => TRUE,	'params' => array('scraperId')),
+	/* method */ 'removeScrapedSeason' 		=> array('save' => TRUE,	'params' => array('scrapedSeasonId')),
+	/* method */ 'getAllWatchedSeasons'		=> array('save' => FALSE,	'params' => array()),
+	/* method */ 'getBestFilesForSeason'	=> array('save' => TRUE,	'params' => array('seasonId')),
+	/* method */ 'getBestFileForEpisode'	=> array('save' => TRUE,	'params' => array('episodeId')),
+	/* method */ 'getEpisode' 				=> array('save' => FALSE,	'params' => array('episodeId')),
+	/* method */ 'getFile' 					=> array('save' => FALSE,	'params' => array('fileId')),
+	/* method */ 'getTVShow' 				=> array('save' => FALSE,	'params' => array('showId')),
+	/* method */ 'getTVShowSeasons'			=> array('save' => FALSE,	'params' => array('showId')),
+	/* method */ 'getTVShowScrapers'		=> array('save' => FALSE,	'params' => array('showId')),
+	/* method */ 'getSeasonEpisodes'		=> array('save' => FALSE,	'params' => array('seasonId')),
+	/* method */ 'getSeasonScrapers'		=> array('save' => FALSE,	'params' => array('seasonId')),
+	/* method */ 'getScrapedSeasons'		=> array('save' => FALSE,	'params' => array('showId')),
+	/* method */ 'getScrapedSeasonsTBN'		=> array(),
+
+	/* method */ 'createSeasonScraperFromScraped'		=> array('save' => TRUE,	'params' => array('scrapedSeasonId')),
+	/* method */ 'getFile'	 				=> array('save' => FALSE,	'params' => array('fileId')),
+	/* method */ 'getFilesForEpisode'		=> array('save' => FALSE,	'params' => array('episodeId')),
+	/* method */ 'getScraper' 				=> array('save' => FALSE,	'params' => array('scraperId')),
+	/* method */ 'getSeason' 				=> array('save' => FALSE,	'params' => array('seasonId')),
+	/* method */ 'setEpisode' 				=> array('save' => TRUE,	'params' => array('episodeId', '_other')),
+	/* method */ 'setFile'	 				=> array('save' => TRUE,	'params' => array('fileId', '_other')),
+	/* method */ 'setSeason' 				=> array('save' => TRUE,	'params' => array('seasonId', '_other')),
+	/* method */ 'setScrapedSeason'			=> array('save' => TRUE,	'params' => array('scrapedSeasonId', '_other')),
+	/* method */ 'setScraper' 				=> array('save' => TRUE,	'params' => array('scraperId', '_other')),
+	/* method */ 'setTVShow' 				=> array('save' => TRUE,	'params' => array('showId', '_other'))
 );
 
 
-$log_file = $options[OPT_LOG_DIR] . '/api.' .uniqid(). '.log';
+$log_file = $options[OPT_LOG_DIR] . '/api.' . uniqid() . '.log';
 $log_level = LOGGER_DEBUG;
 
 $uuid = uniqid();
@@ -153,14 +158,14 @@ $format = isset($_POST['format']) ? $_POST['format'] : 'json';
 $paramString = "";
 foreach ($_POST as $k => $v) {
 	if ($k != 'action') {
-        $paramString .= "$k=$v ";
+		$paramString .= "$k=$v ";
 	}
 }
 
 $saveNeeded = FALSE;
 $res = array();
 
-if (! $options[OPT_DB_FILE]) {
+if (!$options[OPT_DB_FILE]) {
 	$res['status'] = 'error';
 	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
 } else if (isset($simpleMethods[$action])) {
@@ -180,7 +185,7 @@ if (! $options[OPT_DB_FILE]) {
 			$res['status'] = 'error';
 			$res['errmsg'] = $logger->errmsg();
 		}
-	} 
+	}
 
 	if (!isset($res['status'])) {
 		$ret = call_user_func_array(array($tv, $action), $params);
@@ -193,34 +198,32 @@ if (! $options[OPT_DB_FILE]) {
 			$saveNeeded = (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) ? TRUE : FALSE;
 		}
 	}
-
 } else {
 	switch ($action) {
 		case /* method */ 'runScraper':
-			
+
 			if (isset($_POST['scraperId'])) {
-					
-				$tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
+
+				$tv = new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]);
 				$tv->setLogger($logger);
 				$scraper = $tv->getScraper($_POST['scraperId']);
 
 				$showOnlyNew = (isset($_POST['showOnlyNew']) && $_POST['showOnlyNew'] == 'false' ? FALSE : TRUE);
 				$saveResults = (isset($_POST['saveResults']) && $_POST['saveResults'] == 'false' ? FALSE : TRUE);
 
-					
+
 				if ($scraper === FALSE) {
 					$res['status'] = 'error';
 					$res['errmsg'] = 'Cannot find scraper ' . $_POST['scraperId'];
-					
 				} else {
-						
+
 					$tv->beginTransaction();
 
-					switch($scraper['source']) {
+					switch ($scraper['source']) {
 						case 'tvmaze':
 							$tvrage = new TVShowScraperTVMaze($tv);
 							$tvrage->setLogger($logger);
-								
+
 							$res['status'] = 'ok';
 							$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
@@ -228,7 +231,7 @@ if (! $options[OPT_DB_FILE]) {
 						case 'tvrage':
 							$tvrage = new TVShowScraperTVRage($tv);
 							$tvrage->setLogger($logger);
-								
+
 							$res['status'] = 'ok';
 							$res['result'] = $tvrage->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
@@ -236,7 +239,7 @@ if (! $options[OPT_DB_FILE]) {
 						case 'DDU':
 							$ddu = new TVShowScraperDDU($tv, $options[OPT_DDU_LOGIN], $options[OPT_DDU_PASSWORD]);
 							$ddu->setLogger($logger);
-								
+
 							$res['status'] = 'ok';
 							$res['result'] = $ddu->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
@@ -268,7 +271,7 @@ if (! $options[OPT_DB_FILE]) {
 						case 'wikipedia':
 							$wiki = new TVShowScraperWikipedia($tv);
 							$wiki->setLogger($logger);
-							
+
 							$res['status'] = 'ok';
 							$res['result'] = $wiki->runScraper($_POST['scraperId'], $showOnlyNew, $saveResults);
 							$saveNeeded = TRUE;
@@ -287,17 +290,15 @@ if (! $options[OPT_DB_FILE]) {
 				}
 
 				$saveNeeded = $saveNeeded && $saveResults;
-
 			} else {
 				$res['status'] = 'error';
 				$res['errmsg'] = 'scraperId not provided';
 			}
 			break;
-			
+
 		default:
 			$res['status'] = 'error';
 			$res['errmsg'] = "unknown action '$action'";
-			
 	}
 }
 
@@ -324,6 +325,3 @@ switch ($format) {
 		var_dump($res);
 		break;
 }
-
-
-?>

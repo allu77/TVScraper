@@ -1,42 +1,55 @@
 <?php
 
+namespace modules\DB;
+
 require_once('Logger.php');
 require_once('TVShowUtils.php');
 
+require_once(__DIR__ . '/../autoload.php');
+
+use modules\DB\TVShowScraperDBSQLite;
+
+interface TVShowScraperDBInterface
+{
+	public function beginTransaction();
+	public function inTransaction();
+	public function rollBack();
+	public function commit();
+
+	public function save($fileName = null);
+
+	public function addElement($elementStore, $parentKey, $keyValue, $params);
+	public function setElement($elementStore, $elementKey, $keyValue, $params);
+	public function removeElement($elementStore, $elementKey, $keyValue);
+	public function getElementByKey($elementStore, $elementKey);
+	public function getElementByParentKey($elementStore, $parentKey);
+	public function getElementByAttribute($elementStore, $attribute, $value);
+}
+
 abstract class TVShowScraperDB
 {
+	use \modules\Logger\LoggerApplicationTrait;
 
-	public const DBTYPE_SQLITE = 'TVShowScraperDBSQLite';
+	public const DBTYPE_SQLITE = 'modules\DB\TVShowScraperDBSQLite';
 	public const DBTYPE_XML = 'TVShowScraperDBXML';
 
 	protected $db;
-	protected $logger;
+
+	protected TVShowScraperDBInterface $dbInterface;
+
+	public function setDbInterface(TVShowScraperDBInterface $dbInterface): TVShowScraperDB
+	{
+		$this->dbInterface = $dbInterface;
+
+		return $this;
+	}
+
+
 
 	public static function getInstance($class, $params): TVShowScraperDB
 	{
-		require_once("$class.php");
+		// require_once("$class.php");
 		return new $class($params);
-	}
-
-	public function setLogger($logger)
-	{
-		$this->logger = $logger;
-	}
-
-	public function setLogFile($logFile, $severity = LOGGER_DEBUG)
-	{
-		$this->logger = new Logger($logFile, $severity);
-	}
-
-	protected function log($msg, $severity = LOGGER_DEBUG)
-	{
-		if ($this->logger) $this->logger->log($msg, $severity);
-	}
-
-	protected function error($msg)
-	{
-		if ($this->logger) $this->logger->error($msg);
-		return FALSE;
 	}
 
 	abstract public function beginTransaction();

@@ -1,15 +1,14 @@
 <?php
 
-namespace modules\DB;
+namespace modules\DB\Engines;
 
-require_once('Logger.php');
-require_once('TVShowUtils.php');
-require_once('TVShowScraperDB.php');
+require_once(__DIR__ . '/../../autoload.php');
+
 
 use modules\Logger\LoggerApplicationTrait;
 use \PDO;
 
-class TVShowScraperDBSQLite implements TVShowScraperDBInterface
+class SQLite implements DBInterface
 {
 	use LoggerApplicationTrait;
 
@@ -23,7 +22,7 @@ class TVShowScraperDBSQLite implements TVShowScraperDBInterface
 		} else {
 			// CREATE new DB
 			$this->db = new PDO("sqlite:$fileName", null, null, array());
-			$buildSql = file_get_contents(__DIR__ . "/TVShowScraperDBSQLite.sql");
+			$buildSql = file_get_contents(__DIR__ . "/SQLite.sql");
 			$this->db->exec($buildSql);
 		}
 		$this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);

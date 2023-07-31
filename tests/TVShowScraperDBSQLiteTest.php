@@ -10,14 +10,14 @@ use \DataProviders\DB\TVShow as TVShow;
 use \DataProviders\DB\File as File;
 
 use  \modules\DB\TVShowScraperDB;
-use  \modules\DB\TVShowScraperDBSQLite;
+use  \modules\DB\Engines\SQLite;
 
 final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 {
 
     protected static string $dbName;
     protected static TVShowScraperDB $tvDB;
-    protected static TVShowScraperDBSQLite $tvDBSQLite;
+    protected static SQLite $tvDBSQLite;
 
     protected static DataProviders\DB\DBContent $dbContent;
 
@@ -56,8 +56,8 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 
     public function testCreateDBSQLite(): void
     {
-        self::$tvDBSQLite = new TVShowScraperDBSQLite(['dbFileName' => self::$dbName]);
-        $this->assertInstanceOf(TVShowScraperDBSQLite::class, self::$tvDBSQLite);
+        self::$tvDBSQLite = new SQLite(['dbFileName' => self::$dbName]);
+        $this->assertInstanceOf(SQLite::class, self::$tvDBSQLite);
 
         self::$tvDB = new TVShowScraperDB(self::$tvDBSQLite);
         self::$tvDB->setLogFile('test.log');

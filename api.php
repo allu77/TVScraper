@@ -17,7 +17,7 @@ require_once('SimpleBrowser.php');
 require_once('TVScraperConfig.php');
 
 use modules\DB\TVShowScraperDB;
-use modules\DB\TVShowScraperDBSQLite;
+use modules\DB\Engines\SQLite;
 
 function postCleanUp($params, $toBeRemoved, $logger)
 {
@@ -170,8 +170,9 @@ $res = array();
 
 if (isset($simpleMethods[$action])) {
 
-	// $tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
-	$tv->setDB(new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]));
+	$db = new SQLite(['dbFileName' => $options[OPT_DB_FILE]]);
+	$db->setLogger($logger);
+	$tv->setDB($db);
 
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
 		$tv->beginTransaction();
@@ -203,7 +204,10 @@ if (isset($simpleMethods[$action])) {
 
 			if (isset($_POST['scraperId'])) {
 
-				$tv->setDB(new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]));
+				$db = new SQLite(['dbFileName' => $options[OPT_DB_FILE]]);
+				$db->setLogger($logger);
+				$tv->setDB($db);
+
 				$scraper = $tv->getScraper($_POST['scraperId']);
 
 				$showOnlyNew = (isset($_POST['showOnlyNew']) && $_POST['showOnlyNew'] == 'false' ? FALSE : TRUE);

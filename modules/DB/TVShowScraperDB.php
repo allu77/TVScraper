@@ -195,10 +195,10 @@ abstract class TVShowScraperDB
 		$seasons = $this->getTVShowSeasons($showId);
 		if ($seasons === FALSE) return FALSE;
 
-		$seaonsByN = array_filter($seasons, function ($s) use ($n) {
+		$seasonsByN = array_filter($seasons, function ($s) use ($n) {
 			return $s['n'] == $n;
 		});
-		return count($seaonsByN) == 1 ? array_values($seaonsByN)[0] : null;
+		return count($seasonsByN) == 1 ? array_values($seasonsByN)[0] : null;
 	}
 
 	public function setSeason($id, $p)
@@ -261,14 +261,16 @@ abstract class TVShowScraperDB
 	public function getEpisodeFromIndex($showId, $season, $episode)
 	{
 		$res = $this->getSeasonFromN($showId, $season);
-		if ($res === FALSE) return FALSE;
+		if ($res === FALSE || $res === null) return FALSE;
+
 		$res = $this->getSeasonEpisodes($res['id']);
 		if ($res === FALSE) return FALSE;
 
 		$episodeByN = array_filter($res, function ($e) use ($episode) {
 			return $e['n'] == $episode;
 		});
-		return count($episodeByN) == 1 ? array_values($episodeByN)[0] : null;
+
+		return count($episodeByN) == 1 ? array_values($episodeByN)[0] : FALSE;
 	}
 
 

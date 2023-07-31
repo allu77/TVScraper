@@ -342,22 +342,6 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @depends testGetSeason
-     * @depends testGetSeasonFromN
-     * @depends testGetTVShowSeasons
-     * @depends testGetAllWatchedSeasons
-     */
-    public function testSetSeason(): void
-    {
-        $season = self::$dbContent->getSeasons()[0];
-        $result = self::$tvDB->setSeason($season->getId(), ['n' => 99, 'status' => 'ignored']);
-        $this->assertIsArray($result);
-        $this->assertEquals(99, $result['n']);
-        $this->assertSame('ignored', $result['status']);
-        $result = self::$tvDB->setSeason($season->getId(), ['n' => '_REMOVE_']);
-        $this->assertFalse($result);
-    }
 
 
     /**
@@ -385,6 +369,38 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         }
     }
 
+    /**
+     * @depends testAddFiles
+     */
+    public function testGetEpisodeFromIndexEmpty(): void
+    {
+        $referenceSeason = self::$dbContent->getSeasons()[0];
+
+        $result = self::$tvDB->getEpisodeFromIndex($referenceSeason->getParentId(), $referenceSeason->getProperty('n'), 999);
+        $this->assertFalse($result);
+
+        $result = self::$tvDB->getEpisodeFromIndex($referenceSeason->getParentId(), 999, 999);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @depends testGetSeason
+     * @depends testGetSeasonFromN
+     * @depends testGetTVShowSeasons
+     * @depends testGetAllWatchedSeasons
+     * @depends testGetEpisodeFromIndexEmpty
+     */
+    public function testSetSeason(): void
+    {
+        $season = self::$dbContent->getSeasons()[0];
+        $result = self::$tvDB->setSeason($season->getId(), ['n' => 99, 'status' => 'ignored']);
+        $this->assertIsArray($result);
+        $this->assertEquals(99, $result['n']);
+        $this->assertSame('ignored', $result['status']);
+        $result = self::$tvDB->setSeason($season->getId(), ['n' => '_REMOVE_']);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @depends testAddFiles
@@ -409,6 +425,7 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
     /**
      * @depends testGetEpisode
      * @depends testGetEpisodeFromIndex
+     * @depends testGetEpisodeFromIndexEmpty
      * @depends testSeasonEpisodes
      */
 

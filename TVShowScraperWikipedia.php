@@ -3,15 +3,17 @@
 require_once('MediaWikiAPI.php');
 require_once('TVShowScraper.php');
 
-class TVShowScraperWikipedia extends TVShowScraper {
+class TVShowScraperWikipedia extends TVShowScraper
+{
 
-	protected function runScraperTVShow($scraper, $showOnlyNew = false, $saveResults = false) {
-		$m = Array();
+	protected function runScraperTVShow($scraper, $showOnlyNew = false, $saveResults = false)
+	{
+		$m = array();
 		$wiki = new MediaWikiAPI("http://it.wikipedia.org/w/api.php");
 		$wiki->setLogger($this->logger);
 		if (preg_match('/\/([^\/]+)$/', $scraper['uri'], $m)) {
 
-			$res = Array();
+			$res = array();
 
 			$pageTitle = $m[1];
 			$pageId = $wiki->getPageIdByTitle($pageTitle);
@@ -19,31 +21,72 @@ class TVShowScraperWikipedia extends TVShowScraper {
 
 
 			foreach ($links as $l) {
-				$matches = Array();
+				$matches = array();
 				if (preg_match('/episodi.d[ie].*[^a-z]([a-z]+).stagione/i', $l, $matches)) {
 					$n = '';
 					switch (strtolower($matches[1])) {
-						case 'prima':		$n = 1; break;
-						case 'seconda':		$n = 2; break;
-						case 'terza':		$n = 3; break;
-						case 'quarta':		$n = 4; break;
-						case 'quinta':		$n = 5; break;
-						case 'sesta':		$n = 6; break;
-						case 'settima':		$n = 7; break;
-						case 'ottava':		$n = 8; break;
-						case 'nona':		$n = 9; break;
-						case 'decima':		$n = 10; break;
-						case 'undicesima':	$n = 11; break;
-						case 'dodicesima':	$n = 12; break;
-						case 'tredicesima':	$n = 13; break;
-						case 'quattordicesima':	$n = 14; break;
-						case 'quindicesima':	$n = 15; break;
-						case 'sedicesima':	$n = 16; break;
-						case 'diciassettesima':	$n = 17; break;
-						case 'diciottesima':	$n = 18; break;
-						case 'diciannovesima':	$n = 19; break;
-						case 'ventesima':	$n = 20; break;
-						default: $n = -1;
+						case 'prima':
+							$n = 1;
+							break;
+						case 'seconda':
+							$n = 2;
+							break;
+						case 'terza':
+							$n = 3;
+							break;
+						case 'quarta':
+							$n = 4;
+							break;
+						case 'quinta':
+							$n = 5;
+							break;
+						case 'sesta':
+							$n = 6;
+							break;
+						case 'settima':
+							$n = 7;
+							break;
+						case 'ottava':
+							$n = 8;
+							break;
+						case 'nona':
+							$n = 9;
+							break;
+						case 'decima':
+							$n = 10;
+							break;
+						case 'undicesima':
+							$n = 11;
+							break;
+						case 'dodicesima':
+							$n = 12;
+							break;
+						case 'tredicesima':
+							$n = 13;
+							break;
+						case 'quattordicesima':
+							$n = 14;
+							break;
+						case 'quindicesima':
+							$n = 15;
+							break;
+						case 'sedicesima':
+							$n = 16;
+							break;
+						case 'diciassettesima':
+							$n = 17;
+							break;
+						case 'diciottesima':
+							$n = 18;
+							break;
+						case 'diciannovesima':
+							$n = 19;
+							break;
+						case 'ventesima':
+							$n = 20;
+							break;
+						default:
+							$n = -1;
 					}
 					$title = $l;
 					$uri = "http://it.wikipedia.org/wiki/" . rawurlencode($l);
@@ -62,8 +105,9 @@ class TVShowScraperWikipedia extends TVShowScraper {
 		}
 	}
 
-	protected function runScraperSeason($scraper, $showOnlyNew = false, $saveResults = false) {
-		$m = Array();
+	protected function runScraperSeason($scraper, $showOnlyNew = false, $saveResults = false)
+	{
+		$m = array();
 		$wiki = new MediaWikiAPI("http://it.wikipedia.org/w/api.php");
 		$wiki->setLogger($this->logger);
 
@@ -71,16 +115,16 @@ class TVShowScraperWikipedia extends TVShowScraper {
 			$seasonData = $this->tvdb->getSeason($scraper['season']);
 			$pageTitle = $m[1];
 			$pageId = $wiki->getPageIdByTitle($pageTitle);
-			
-			$content = $wiki->getContentByPageId($pageId);
-			$res = Array();
 
-			$tables = Array();
+			$content = $wiki->getContentByPageId($pageId);
+			$res = array();
+
+			$tables = array();
 			#if (preg_match_all('/\{\|[^\}]+\|\}/', $content, $tables)) {
 			if (preg_match_all('/\{\|.*?\|\}/s', $content, $tables)) {
 				$this->log("Found " . sizeof($tables[0]) . " tables");
 				foreach ($tables[0] as $t) {
-				
+
 					$headerStart = strpos($t, "\n!");
 					if ($headerStart === FALSE) {
 						$this->log("Table has no header. Skipping...");
@@ -130,7 +174,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 
 					for ($i = 0; $i < sizeof($rows); $i++) {
 						#$this->log("Checking row $i");
-						if (! isset($table[$i])) $table[$i] = array();
+						if (!isset($table[$i])) $table[$i] = array();
 						$j = 0;
 						$r = trim($rows[$i], " \t\n\r\0\x0B|");
 						$rcols = explode("\n|", $r);
@@ -165,7 +209,7 @@ class TVShowScraperWikipedia extends TVShowScraper {
 										$table[$i + $rs][$j + $cs] = $c;
 									}
 								}
-								$j+= $colspan;
+								$j += $colspan;
 							}
 						}
 					}
@@ -173,11 +217,12 @@ class TVShowScraperWikipedia extends TVShowScraper {
 					for ($i = 0; $i < sizeof($table); $i++) {
 						$ep = $table[$i][$nIndex];
 						$strDate = $table[$i][$airIndex];
-						
-						$this->log("ep $ep - strDate $strdate");
+						$date = null;
+
+						$this->log("ep $ep - strDate $strDate");
 
 						$ep = trim(preg_replace('/<ref[^>]*>.*<\/ref>/i', '', $ep));
-						if (! preg_match('/^\d+$/', $ep)) {
+						if (!preg_match('/^\d+$/', $ep)) {
 							#$this->log("Not a valid episode index $ep, skipping row...");
 							continue;
 						}
@@ -189,49 +234,74 @@ class TVShowScraperWikipedia extends TVShowScraper {
 						$this->log("Episode: $ep, prima TV Italia: $strDate");
 
 						$retVal = !$showOnlyNew;
-							
+
 						$episodeDB = $this->tvdb->getEpisodeFromIndex($seasonData['tvshow'], $seasonData['n'], $ep);
+						$this->log("episodeDB: " . var_export($episodeDB, TRUE));
 						if ($episodeDB === FALSE) {
 							if ($saveResults) {
 								$this->log("Creating episode $ep");
-								$episodeDB = $this->tvdb->addEpisode($seasonData['id'], Array('n' => $ep));
+								$episodeDB = $this->tvdb->addEpisode($seasonData['id'], array('n' => $ep));
 								$retVal = TRUE;
 							}
 							if ($showOnlyNew) {
 								$retVal = TRUE;
 							}
 						}
-						if ($episodeDB && $strDate != FALSE && strlen($strDate > 0)) {
-							$dateItems = Array();
+						if ($episodeDB && $strDate != FALSE && strlen($strDate) > 0) {
+							$dateItems = array();
 							if (preg_match('/(\d+)\s+([A-Za-z]+)\s?(\d\d\d\d)\b/', $strDate, $dateItems)) {
-								switch(substr(strtolower($dateItems[2]), 0, 3)) {
-									case 'gen': $dateItems[2] = 1; break;
-									case 'feb': $dateItems[2] = 2; break;
-									case 'mar': $dateItems[2] = 3; break;
-									case 'apr': $dateItems[2] = 4; break;
-									case 'mag': $dateItems[2] = 5; break;
-									case 'giu': $dateItems[2] = 6; break;
-									case 'lug': $dateItems[2] = 7; break;
-									case 'ago': $dateItems[2] = 8; break;
-									case 'set': $dateItems[2] = 9; break;
-									case 'ott': $dateItems[2] = 10; break;
-									case 'nov': $dateItems[2] = 11; break;
-									case 'dic': $dateItems[2] = 12; break;
+								switch (substr(strtolower($dateItems[2]), 0, 3)) {
+									case 'gen':
+										$dateItems[2] = 1;
+										break;
+									case 'feb':
+										$dateItems[2] = 2;
+										break;
+									case 'mar':
+										$dateItems[2] = 3;
+										break;
+									case 'apr':
+										$dateItems[2] = 4;
+										break;
+									case 'mag':
+										$dateItems[2] = 5;
+										break;
+									case 'giu':
+										$dateItems[2] = 6;
+										break;
+									case 'lug':
+										$dateItems[2] = 7;
+										break;
+									case 'ago':
+										$dateItems[2] = 8;
+										break;
+									case 'set':
+										$dateItems[2] = 9;
+										break;
+									case 'ott':
+										$dateItems[2] = 10;
+										break;
+									case 'nov':
+										$dateItems[2] = 11;
+										break;
+									case 'dic':
+										$dateItems[2] = 12;
+										break;
 								}
 								$date = strtotime("$dateItems[3]-$dateItems[2]-$dateItems[1]");
-								
+
 								$this->log("airDate ($dateItems[3]-$dateItems[2]-$dateItems[1]) in seconds: $date");
-									
-								if (! isset($episodeDB['airDate']) || $episodeDB['airDate'] != $date) {
+
+								if (!isset($episodeDB['airDate']) || $episodeDB['airDate'] != $date) {
 									if ($saveResults) {
-										$this->tvdb->setEpisode($episodeDB['id'], Array('airDate' => $date));
+										$this->tvdb->setEpisode($episodeDB['id'], array('airDate' => $date));
 										$retVal = TRUE;
 									}
 								}
-							}	
+							}
 						}
 						if ($retVal) {
-							$res[] = Array('n' => $ep, 'airDate' => $date);
+							$res[] = array('n' => $ep, 'airDate' => $date);
 						}
 					}
 				}
@@ -242,5 +312,3 @@ class TVShowScraperWikipedia extends TVShowScraper {
 		}
 	}
 }
-
-?>

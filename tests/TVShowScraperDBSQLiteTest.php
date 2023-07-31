@@ -1,19 +1,23 @@
 <?php
 
 declare(strict_types=1);
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'test-autoloader.php');
-require_once(__DIR__ . '/../modules/DB/TVShowScraperDB.php'); // TODO: Implement autoloader for main project
+require_once(__DIR__ . '/test-autoloader.php');
+require_once(__DIR__ . '/../modules/autoload.php');
 
-use DataProviders\DB\DBContent as DBContent;
-use DataProviders\DB\GenericItem;
-use DataProviders\DB\TVShow as TVShow;
-use DataProviders\DB\File as File;
+use \DataProviders\DB\DBContent as DBContent;
+use \DataProviders\DB\GenericItem;
+use \DataProviders\DB\TVShow as TVShow;
+use \DataProviders\DB\File as File;
+
+use  \modules\DB\TVShowScraperDB;
+use  \modules\DB\TVShowScraperDBSQLite;
 
 final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 {
 
     protected static string $dbName;
-    protected static TVShowScraperDBSQLite $tvDB;
+    protected static TVShowScraperDB $tvDB;
+    protected static TVShowScraperDBSQLite $tvDBSQLite;
 
     protected static DataProviders\DB\DBContent $dbContent;
 
@@ -52,9 +56,10 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
 
     public function testCreateDBSQLite(): void
     {
-        self::$tvDB = TVShowScraperDB::getInstance(TVShowScraperDB::DBTYPE_SQLITE, array('dbFileName' => self::$dbName));
-        $this->assertInstanceOf(TVShowScraperDBSQLite::class, self::$tvDB);
+        self::$tvDBSQLite = new TVShowScraperDBSQLite(['dbFileName' => self::$dbName]);
+        $this->assertInstanceOf(TVShowScraperDBSQLite::class, self::$tvDBSQLite);
 
+        self::$tvDB = new TVShowScraperDB(self::$tvDBSQLite);
         self::$tvDB->setLogFile('test.log');
     }
 
@@ -63,9 +68,9 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
      */
     public function testTransactions(): void
     {
-        $this->assertFalse(self::$tvDB->inTransaction());
-        $this->assertTrue(self::$tvDB->beginTransaction());
-        $this->assertTrue(self::$tvDB->inTransaction());
+        $this->assertFalse(self::$tvDBSQLite->inTransaction());
+        $this->assertTrue(self::$tvDBSQLite->beginTransaction());
+        $this->assertTrue(self::$tvDBSQLite->inTransaction());
         $newTVShow = self::$tvDB->addTVShow([
             'title'         => 'Test Transactions Rollback',
             'lang'          => 'eng',
@@ -73,13 +78,13 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
             'res'           => 'any'
         ]);
         $newSeason = self::$tvDB->addSeason($newTVShow['id'], ['n' => 1, 'status' => 'complete']);
-        $this->assertTrue(self::$tvDB->rollBack());
-        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertTrue(self::$tvDBSQLite->rollBack());
+        $this->assertFalse(self::$tvDBSQLite->inTransaction());
         $this->assertFalse(self::$tvDB->getTVShow($newTVShow['id']));
 
-        $this->assertFalse(self::$tvDB->inTransaction());
-        $this->assertTrue(self::$tvDB->beginTransaction());
-        $this->assertTrue(self::$tvDB->inTransaction());
+        $this->assertFalse(self::$tvDBSQLite->inTransaction());
+        $this->assertTrue(self::$tvDBSQLite->beginTransaction());
+        $this->assertTrue(self::$tvDBSQLite->inTransaction());
         $newTVShow = self::$tvDB->addTVShow([
             'title'         => 'Test Transactions Commit',
             'lang'          => 'eng',
@@ -87,8 +92,8 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
             'res'           => 'any'
         ]);
         $newSeason = self::$tvDB->addSeason($newTVShow['id'], ['n' => 1, 'status' => 'complete']);
-        $this->assertTrue(self::$tvDB->commit());
-        $this->assertFalse(self::$tvDB->inTransaction());
+        $this->assertTrue(self::$tvDBSQLite->commit());
+        $this->assertFalse(self::$tvDBSQLite->inTransaction());
         $this->assertIsArray(self::$tvDB->getTVShow($newTVShow['id']));
         $this->assertIsArray(self::$tvDB->getTVShow($newSeason['id']));
         // CLEANUP

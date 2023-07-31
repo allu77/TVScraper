@@ -12,7 +12,7 @@ use \Logger;
 
 trait LoggerApplicationTrait
 {
-    protected NewLogger $logger;
+    protected ?NewLogger $logger = null;
 
     public function setLogger(Logger $logger): void
     {

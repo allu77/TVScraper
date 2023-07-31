@@ -162,17 +162,16 @@ foreach ($_POST as $k => $v) {
 	}
 }
 
+$tv = new TVShowScraperDB();
+$tv->setLogger($logger);
+
 $saveNeeded = FALSE;
 $res = array();
 
-if (!$options[OPT_DB_FILE]) {
-	$res['status'] = 'error';
-	$res['errmsg'] = 'TVScraper is now using SQLite database. Check README.md for instructions on how to migrate';
-} else if (isset($simpleMethods[$action])) {
+if (isset($simpleMethods[$action])) {
 
 	// $tv = new TVShowScraperDBSQLite($options[OPT_DB_FILE]);
-	$tv = TVShowScraperDB::getInstance(TVShowScraperDB::DBTYPE_SQLITE, array('dbFileName' => $options[OPT_DB_FILE]));
-	$tv->setLogger($logger);
+	$tv->setDB(new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]));
 
 	if (isset($simpleMethods[$action]['save']) && $simpleMethods[$action]['save'] === TRUE) {
 		$tv->beginTransaction();
@@ -204,8 +203,7 @@ if (!$options[OPT_DB_FILE]) {
 
 			if (isset($_POST['scraperId'])) {
 
-				$tv = new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]);
-				$tv->setLogger($logger);
+				$tv->setDB(new TVShowScraperDBSQLite(['dbFileName' => $options[OPT_DB_FILE]]));
 				$scraper = $tv->getScraper($_POST['scraperId']);
 
 				$showOnlyNew = (isset($_POST['showOnlyNew']) && $_POST['showOnlyNew'] == 'false' ? FALSE : TRUE);
@@ -216,8 +214,6 @@ if (!$options[OPT_DB_FILE]) {
 					$res['status'] = 'error';
 					$res['errmsg'] = 'Cannot find scraper ' . $_POST['scraperId'];
 				} else {
-
-					$tv->beginTransaction();
 
 					switch ($scraper['source']) {
 						case 'tvmaze':

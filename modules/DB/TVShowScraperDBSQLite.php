@@ -6,10 +6,14 @@ require_once('Logger.php');
 require_once('TVShowUtils.php');
 require_once('TVShowScraperDB.php');
 
+use modules\Logger\LoggerApplicationTrait;
 use \PDO;
 
-class TVShowScraperDBSQLite extends TVShowScraperDB
+class TVShowScraperDBSQLite implements TVShowScraperDBInterface
 {
+	use LoggerApplicationTrait;
+
+	private PDO $db;
 
 	public function __construct($params)
 	{
@@ -26,37 +30,37 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		$this->db->exec("PRAGMA foreign_keys = 'ON'");
 	}
 
-	public function beginTransaction()
+	public function beginTransaction(): bool
 	{
 		$this->log("Beginning transaction");
 		return $this->db->beginTransaction();
 	}
 
-	public function inTransaction()
+	public function inTransaction(): bool
 	{
 		return $this->db->inTransaction();
 	}
 
 
-	public function rollBack()
+	public function rollBack(): bool
 	{
 		$this->log("Rolling back transaction");
 		return $this->db->rollBack();
 	}
 
-	public function commit()
+	public function commit(): bool
 	{
 		$this->log("Committing transaction");
 		return $this->db->commit();
 	}
 
 
-	public function save($fileName = null)
+	public function save(): bool
 	{
 		return $this->inTransaction() ? $this->commit() : TRUE;
 	}
 
-	protected function addElement($table, $parentKey, $parentValue, $params)
+	public function addElement(string $elementStore, ?string $parentKey = null, ?string $keyValue = null, array $params): array|bool
 	{
 		$columnList = '';
 		$placeholderList = '';
@@ -74,15 +78,15 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 			$placeholderList = rtrim($placeholderList, ",");
 		}
 
-		$query = "INSERT INTO $table($columnList) VALUES($placeholderList)";
+		$query = "INSERT INTO $elementStore($columnList) VALUES($placeholderList)";
 		$this->log("Preparing query $query");
 		$st = $this->db->prepare($query);
 		if ($st == null) {
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 		if ($parentKey != null) {
-			$this->log("Executing with params $parentValue, " . implode(', ', $params));
-			if (!$st->execute(array_merge(array($parentKey => $parentValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
+			$this->log("Executing with params $keyValue, " . implode(', ', $params));
+			if (!$st->execute(array_merge(array($parentKey => $keyValue), $params))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 		} else {
 			$this->log("Executing with params " . implode(', ', $params));
 			if (!$st->execute($params)) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
@@ -93,21 +97,16 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 	}
 
-	protected function setElementDB($table, $key, $value, $params)
+	public function setElement(string $elementStore, string $elementKey, string $keyValue, array $params): array|bool
 	{
-		return $this->setElement($table, $key, $value, $params);
-	}
-
-	protected function setElement($table, $key, $value, $params)
-	{
-		$query = "UPDATE $table SET ";
-		$p = array($key => $value);
+		$query = "UPDATE $elementStore SET ";
+		$p = array($elementKey => $keyValue);
 		foreach ($params as $k => $v) {
 			$query .= "$k = :$k,";
 			$p[$k] = $v == '_REMOVE_' ? null : $v;
 		}
 		$query = rtrim($query, ",");
-		$query .= " WHERE $key = :$key";
+		$query .= " WHERE $elementKey = :$elementKey";
 
 		$wasInTransaction = $this->inTransaction();
 		if (!$wasInTransaction) $this->beginTransaction();
@@ -119,7 +118,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
 
-		$this->log("Executing with params " . implode(', ', $params) . ", $value");
+		$this->log("Executing with params " . implode(', ', $params) . ", $keyValue");
 		if (!$st->execute($p)) {
 			if (!$wasInTransaction) $this->rollBack();
 			return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
@@ -133,64 +132,64 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		}
 	}
 
-	protected function removeElement($table, $key, $value)
+	public function removeElement(string $elementStore, string $elementKey, string $keyValue): array|bool
 	{
-		$query = "DELETE FROM $table WHERE $key = ?";
+		$query = "DELETE FROM $elementStore WHERE $elementKey = ?";
 
 		$this->log("Preparing query $query");
 		$st = $this->db->prepare($query);
 		if ($st == null) {
 			return $this->error("Failed to prepare query: " . implode(', ', $this->db->errorInfo()));
 		}
-		$this->log("Executing with param $value");
-		if (!$st->execute(array($value))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
+		$this->log("Executing with param $keyValue");
+		if (!$st->execute(array($keyValue))) return $this->error("Failed to execute query: " . implode(', ', $st->errorInfo()));
 
 		return TRUE;
 	}
 
-	protected function getElementByKey($table, $key = null)
+	public function getElementByKey(string $elementStore, ?string $keyValue = null): array|bool
 	{
-		return $this->getElementByAttribute($table, 'id', $key);
+		return $this->getElementByAttribute($elementStore, 'id', $keyValue);
 	}
 
-	protected function getElementByParentKey($table, $parentKey)
+	public function getElementByParentKey(string $elementStore, string $parentKey): array|bool
 	{
-		switch ($table) {
+		switch ($elementStore) {
 			case 'seasons':
-				return $this->getElementByAttribute($table, 'tvShow', $parentKey);
+				return $this->getElementByAttribute($elementStore, 'tvShow', $parentKey);
 			case 'episodes':
-				return $this->getElementByAttribute($table, 'season', $parentKey);
+				return $this->getElementByAttribute($elementStore, 'season', $parentKey);
 			case 'files':
-				return $this->getElementByAttribute($table, 'episode', $parentKey);
+				return $this->getElementByAttribute($elementStore, 'episode', $parentKey);
 			default:
-				return $this->error("getElementByParentKey not implemented for $table");
+				return $this->error("getElementByParentKey not implemented for $elementStore");
 		}
 	}
 
 
-	protected function getElementByAttribute($table, $column, $value = null)
+	public function getElementByAttribute(string $elementStore, ?string $attribute = null, ?string $value = null): array|bool
 	{
 		$q = null;
 		$p = array();
 
-		switch ($table) {
+		switch ($elementStore) {
 			case 'tvShows':
-				$table = 'tvShowsWithStats';
+				$elementStore = 'tvShowsWithStats';
 				break;
 			case 'scrapers':
-				$table = 'scrapersWithParents';
-				if ($column == 'active' && $value) {
+				$elementStore = 'scrapersWithParents';
+				if ($attribute == 'active' && $value) {
 					$q = "SELECT scrapersWithParents.* FROM scrapersWithParents LEFT JOIN seasons on scrapersWithParents.season = seasons.id WHERE seasons.status = 'watched' OR scrapersWithParents.tvShow IS NOT NULL";
 				}
 				break;
 			case 'files':
-				if ($column == 'season') {
+				if ($attribute == 'season') {
 					$q = "SELECT files.* FROM files JOIN episodes ON episode = episodes.id WHERE season = :season";
 					$p['season'] = $value;
 				}
 				break;
 			case 'scrapedSeasons':
-				if ($column == 'tvShow') {
+				if ($attribute == 'tvShow') {
 					$q = "
 					SELECT scrapedSeasons.*, scrapers.source 
 					FROM scrapedSeasons 
@@ -204,23 +203,23 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 				} else {
 					$q = "SELECT scrapedSeasons.*, scrapers.source FROM scrapedSeasons JOIN scrapers ON scrapedSeasons.scraper = scrapers.id ";
 					if ($value !== null) {
-						$q .= "WHERE scrapedSeasons.$column = :$column";
-						$p[$column] = $value;
+						$q .= "WHERE scrapedSeasons.$attribute = :$attribute";
+						$p[$attribute] = $value;
 					}
 				}
 				break;
 			case 'episodes':
-				if ($column == 'seasonStatus') {
+				if ($attribute == 'seasonStatus') {
 					$q = "SELECT episodes.id FROM episodes JOIN seasons ON episodes.season = seasons.id WHERE seasons.status = :seasonStatus";
-					$p[$column] = $value;
+					$p[$attribute] = $value;
 				}
 				break;
 		}
 
 		if ($q === null) {
-			$q = "SELECT * FROM $table ";
+			$q = "SELECT * FROM $elementStore ";
 			if ($value !== null) {
-				$q .= "WHERE $column = :value";
+				$q .= "WHERE $attribute = :value";
 				$p['value'] = $value;
 			}
 		}
@@ -228,7 +227,7 @@ class TVShowScraperDBSQLite extends TVShowScraperDB
 		$res = $this->getElementDB($q, $p);
 		if ($res === FALSE) return FALSE;
 
-		if ($table == 'tvShowsWithStats') {
+		if ($elementStore == 'tvShowsWithStats') {
 			for ($i = 0; $i < count($res); $i++) {
 				if (!isset($res[$i]['episodesWithFile'])) $res[$i]['episodesWithFile'] = 0;
 			}

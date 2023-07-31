@@ -874,7 +874,7 @@ final class TVShowScraperDBSQLiteTest extends PHPUnit\Framework\TestCase
         */
 
         $file_1 = $db->addFile($episode['id'], ['scraper' => $scraper_1['id'], 'uri' => 'file-1', 'pubDate' => time() - 10000, 'type' => 'ed2k']);
-        $file_2 = $db->addFile($episode['id'], ['scraper' => $scraper_2['id'], 'uri' => 'file-1', 'pubDate' => time() - 8000, 'type' => 'ed2k']);
+        $file_2 = $db->addFile($episode['id'], ['scraper' => $scraper_2['id'], 'uri' => 'file-2', 'pubDate' => time() - 8000, 'type' => 'ed2k']);
         $this->assertNotFalse($file_1);
         $this->assertNotFalse($file_2);
 

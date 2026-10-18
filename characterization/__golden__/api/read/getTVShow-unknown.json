@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getTVShow",
+    "showId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing getTVShow - Found 0 matches for show 999"
+    }
+  },
+  "dbDiff": {}
+}

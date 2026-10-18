@@ -1,0 +1,56 @@
+{
+  "request": {
+    "action": "getBestFilesForSeason",
+    "seasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 2,
+          "episode": 1,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x01",
+          "pubDate": 946684800,
+          "type": "torrent"
+        },
+        {
+          "id": 4,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02a",
+          "pubDate": 947376000,
+          "type": "torrent"
+        }
+      ]
+    }
+  },
+  "dbDiff": {
+    "episodes": {
+      "removed": [
+        {
+          "id": 1,
+          "season": 2,
+          "n": 1,
+          "airDate": 946684800,
+          "title": "Seven Thirty-Seven",
+          "bestFile": null,
+          "bestSticky": null
+        }
+      ],
+      "added": [
+        {
+          "id": 1,
+          "season": 2,
+          "n": 1,
+          "airDate": 946684800,
+          "title": "Seven Thirty-Seven",
+          "bestFile": 2,
+          "bestSticky": null
+        }
+      ]
+    }
+  }
+}

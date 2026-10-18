@@ -1,0 +1,31 @@
+{
+  "request": {
+    "action": "getScrapedSeasons",
+    "showId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 1,
+          "scraper": 1,
+          "n": 3,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=30",
+          "tbn": 1,
+          "source": "DDU"
+        },
+        {
+          "id": 2,
+          "scraper": 1,
+          "n": 1,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=10",
+          "hide": 1,
+          "source": "DDU"
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

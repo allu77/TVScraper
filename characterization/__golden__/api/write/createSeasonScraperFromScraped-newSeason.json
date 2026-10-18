@@ -1,0 +1,71 @@
+{
+  "request": {
+    "action": "createSeasonScraperFromScraped",
+    "scrapedSeasonId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": "9"
+    }
+  },
+  "dbDiff": {
+    "scrapedSeasons": {
+      "removed": [
+        {
+          "id": 1,
+          "scraper": 1,
+          "n": 3,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=30",
+          "hide": 0,
+          "tbn": 1
+        }
+      ],
+      "added": [
+        {
+          "id": 1,
+          "scraper": 1,
+          "n": 3,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=30",
+          "hide": 1,
+          "tbn": 1
+        }
+      ]
+    },
+    "scrapers": {
+      "removed": [],
+      "added": [
+        {
+          "id": 9,
+          "preference": null,
+          "delay": 0,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=30",
+          "source": "DDU",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ]
+    },
+    "seasonScrapers": {
+      "removed": [],
+      "added": [
+        {
+          "season": 5,
+          "scraper": 9
+        }
+      ]
+    },
+    "seasons": {
+      "removed": [],
+      "added": [
+        {
+          "id": 5,
+          "tvshow": 1,
+          "n": 3,
+          "status": "watched"
+        }
+      ]
+    }
+  }
+}

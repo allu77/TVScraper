@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getSeason",
+    "seasonId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing getSeason - Found 0 matches for season 999"
+    }
+  },
+  "dbDiff": {}
+}

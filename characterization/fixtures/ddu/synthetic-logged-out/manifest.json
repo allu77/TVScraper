@@ -1,0 +1,6 @@
+{
+  "synthetic": true,
+  "scraper": { "type": "tvShow", "uri": "https://ddunlimited.net/viewforum.php?f=1" },
+  "show": { "title": "Breaking Bad", "lang": "ita", "nativeLang": "eng", "res": "any" },
+  "pages": [ { "url": "https://ddunlimited.net/viewforum.php?f=1&start=0", "file": "board.html", "kind": "board" } ]
+}

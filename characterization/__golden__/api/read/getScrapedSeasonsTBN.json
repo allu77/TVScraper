@@ -1,0 +1,12 @@
+{
+  "request": {
+    "action": "getScrapedSeasonsTBN"
+  },
+  "response": {
+    "httpStatus": 500,
+    "body": {
+      "raw": ""
+    }
+  },
+  "dbDiff": {}
+}

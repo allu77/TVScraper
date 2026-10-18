@@ -1,0 +1,7 @@
+{
+  "synthetic": true,
+  "scraper": { "type": "season", "uri": "https://ddunlimited.net/viewtopic.php?f=1&t=103" },
+  "show": { "title": "Breaking Bad", "lang": "ita", "nativeLang": "eng", "res": "720p" },
+  "seasons": [ { "n": 3, "status": "watched" } ],
+  "pages": [ { "url": "https://ddunlimited.net/viewtopic.php?f=1&t=103", "file": "topic.html", "kind": "topic" } ]
+}

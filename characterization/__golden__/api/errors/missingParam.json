@@ -1,0 +1,12 @@
+{
+  "request": {
+    "action": "getTVShow"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Expected parameter showId not found"
+    }
+  }
+}

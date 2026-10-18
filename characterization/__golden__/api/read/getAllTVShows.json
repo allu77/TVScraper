@@ -1,0 +1,55 @@
+{
+  "request": {
+    "action": "getAllTVShows"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 1,
+          "title": "Breaking Bad",
+          "alternateTitle": "Breaking Bad (US)",
+          "lang": "ita",
+          "nativeLang": "eng",
+          "res": "720p",
+          "lastAirDate": 947289600,
+          "lastAiredEpisodeIndex": 2,
+          "airedEpisodesCount": 2,
+          "lastEpisodeIndex": 4,
+          "lastPubDate": 4102444800,
+          "pendingScrapedSeasons": 1,
+          "episodesWithFile": 3,
+          "nextAirDate": 4102444800
+        },
+        {
+          "id": 2,
+          "title": "Dark",
+          "lang": "ita",
+          "nativeLang": "deu",
+          "res": "any",
+          "lastAirDate": 947289600,
+          "lastAiredEpisodeIndex": 2,
+          "airedEpisodesCount": 2,
+          "missingCount": 1,
+          "firstMissingIndex": 2,
+          "latestMissingIndex": 2,
+          "lastEpisodeIndex": 2,
+          "lastPubDate": 946771200,
+          "pendingScrapedSeasons": 1,
+          "episodesWithFile": 1
+        },
+        {
+          "id": 3,
+          "title": "Empty Show",
+          "lang": "eng",
+          "nativeLang": "eng",
+          "res": "any",
+          "episodesWithFile": 0
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

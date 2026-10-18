@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getEpisode",
+    "episodeId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing getEpisode - Found 0 matches for episode 999"
+    }
+  },
+  "dbDiff": {}
+}

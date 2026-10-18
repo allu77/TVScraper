@@ -1,0 +1,17 @@
+{
+  "request": {
+    "action": "addScraper",
+    "rootId": 3,
+    "type": "bogus",
+    "source": "DDU",
+    "uri": "x"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing addScraper - Invalid scraper type bogus"
+    }
+  },
+  "dbDiff": {}
+}

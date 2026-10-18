@@ -1,0 +1,29 @@
+{
+  "request": {
+    "action": "getTVShow",
+    "showId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 1,
+        "title": "Breaking Bad",
+        "alternateTitle": "Breaking Bad (US)",
+        "lang": "ita",
+        "nativeLang": "eng",
+        "res": "720p",
+        "lastAirDate": 947289600,
+        "lastAiredEpisodeIndex": 2,
+        "airedEpisodesCount": 2,
+        "lastEpisodeIndex": 4,
+        "lastPubDate": 4102444800,
+        "pendingScrapedSeasons": 1,
+        "episodesWithFile": 3,
+        "nextAirDate": 4102444800
+      }
+    }
+  },
+  "dbDiff": {}
+}

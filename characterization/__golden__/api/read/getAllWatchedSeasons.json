@@ -1,0 +1,26 @@
+{
+  "request": {
+    "action": "getAllWatchedSeasons"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 2,
+          "tvshow": 1,
+          "n": 2,
+          "status": "watched"
+        },
+        {
+          "id": 3,
+          "tvshow": 2,
+          "n": 1,
+          "status": "watched"
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

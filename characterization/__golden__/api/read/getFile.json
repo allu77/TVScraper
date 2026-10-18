@@ -1,0 +1,21 @@
+{
+  "request": {
+    "action": "getFile",
+    "fileId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 1,
+        "episode": 1,
+        "scraper": 2,
+        "uri": "ed2k://|file|Breaking.Bad.2x01.720p.mkv|100|AAAA|/",
+        "pubDate": 946771200,
+        "type": "ed2k"
+      }
+    }
+  },
+  "dbDiff": {}
+}

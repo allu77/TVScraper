@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getScraper",
+    "scraperId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing getScraper - Found 0 matches for season 999"
+    }
+  },
+  "dbDiff": {}
+}

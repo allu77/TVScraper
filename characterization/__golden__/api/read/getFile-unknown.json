@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getFile",
+    "fileId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing getFile - Can't fine unique file 999"
+    }
+  },
+  "dbDiff": {}
+}

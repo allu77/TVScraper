@@ -1,0 +1,45 @@
+{
+  "request": {
+    "action": "setScraper",
+    "scraperId": 3,
+    "delay": 0
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 3,
+        "uri": "http://example.invalid/feed.rss",
+        "source": "RSS",
+        "season": 2
+      }
+    }
+  },
+  "dbDiff": {
+    "scrapers": {
+      "removed": [
+        {
+          "id": 3,
+          "preference": null,
+          "delay": 3600,
+          "uri": "http://example.invalid/feed.rss",
+          "source": "RSS",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ],
+      "added": [
+        {
+          "id": 3,
+          "preference": null,
+          "delay": 0,
+          "uri": "http://example.invalid/feed.rss",
+          "source": "RSS",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "action": "getSeason",
+    "seasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "tvshow": 1,
+        "n": 2,
+        "status": "watched"
+      }
+    }
+  },
+  "dbDiff": {}
+}

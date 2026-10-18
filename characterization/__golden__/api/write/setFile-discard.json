@@ -1,0 +1,40 @@
+{
+  "request": {
+    "action": "setFile",
+    "fileId": 5,
+    "discard": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": true
+    }
+  },
+  "dbDiff": {
+    "files": {
+      "removed": [
+        {
+          "id": 5,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02b",
+          "pubDate": 947462400,
+          "type": "torrent",
+          "discard": 0
+        }
+      ],
+      "added": [
+        {
+          "id": 5,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02b",
+          "pubDate": 947462400,
+          "type": "torrent",
+          "discard": 1
+        }
+      ]
+    }
+  }
+}

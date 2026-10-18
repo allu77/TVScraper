@@ -1,0 +1,35 @@
+{
+  "request": {
+    "action": "getSeasonScrapers",
+    "seasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 2,
+          "preference": 1,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+          "source": "DDU",
+          "season": 2
+        },
+        {
+          "id": 3,
+          "delay": 3600,
+          "uri": "http://example.invalid/feed.rss",
+          "source": "RSS",
+          "season": 2
+        },
+        {
+          "id": 7,
+          "uri": "http://services.tvrage.com/x?sid=1",
+          "source": "tvrage",
+          "season": 2
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

@@ -1,0 +1,238 @@
+{
+  "pages": {
+    "board-0.html": {
+      "ok": {
+        "topics": [
+          {
+            "type": "regular",
+            "title": "Breaking Bad - Stagione speciale",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=107",
+            "description": "",
+            "pubDate": 1199648820
+          },
+          {
+            "type": "regular",
+            "title": "Dark (CittÃ ) - Stagione 2",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=106",
+            "description": "WEB-DL, Serie TV, 720p, x264, ITA AC3, DEU AC3, MKV, 2GB",
+            "pubDate": 1199735220
+          },
+          {
+            "type": "regular",
+            "title": "Better Call Saul - Stagione 1",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=105",
+            "description": "WEB-DL, Serie TV, 1080p, x264, ITA AC3, MKV, 2GB",
+            "pubDate": 1199821620
+          },
+          {
+            "type": "regular",
+            "title": "Breaking Bad (US) - Stagione 02",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=104",
+            "description": "HDTV, Serie TV, XviD, ITA MP3, AVI, 350MB",
+            "pubDate": 1199908020
+          },
+          {
+            "type": "regular",
+            "title": "Breaking Bad - Stagione 3",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=103",
+            "description": "HDTV, Serie TV, 720p, x264, ITA AC3, ENG AC3, SUB ITA-ENG, MKV, 1.2GB",
+            "pubDate": 1199994420
+          },
+          {
+            "type": "regular",
+            "title": "Breaking Bad - Stagione 4",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=108",
+            "description": "HDTV, Serie TV, 720p, x264, AC3 ITA-ENG, SUB ITA, MKV, 1.2GB",
+            "pubDate": 1200080820
+          },
+          {
+            "type": "regular",
+            "title": "Lost - Stagione 6",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=102",
+            "description": "",
+            "pubDate": 1262289600
+          },
+          {
+            "type": "sticky",
+            "title": "Breaking Bad - Stagione 1",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=101",
+            "description": "HDTV, Serie TV, 720p, x264, ITA AC3, MKV, 1GB",
+            "pubDate": 1262376000
+          }
+        ],
+        "warnings": [
+          []
+        ]
+      }
+    },
+    "board-n.html": {
+      "ok": {
+        "topics": [
+          {
+            "type": "regular",
+            "title": "Unrelated Show - Stagione 1",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=200",
+            "description": "",
+            "pubDate": 1199562420
+          }
+        ],
+        "warnings": [
+          []
+        ]
+      }
+    }
+  },
+  "runAll": {
+    "ok": [
+      {
+        "n": "2",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=104",
+        "res": "sd",
+        "lang": [
+          "mp"
+        ]
+      },
+      {
+        "n": "3",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=103",
+        "res": "720p",
+        "lang": [
+          "ac",
+          "ac"
+        ]
+      },
+      {
+        "n": "4",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=108",
+        "res": "720p",
+        "lang": [
+          "ita",
+          "eng"
+        ]
+      },
+      {
+        "n": "1",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=101",
+        "res": "720p",
+        "lang": [
+          "ac"
+        ]
+      }
+    ],
+    "phpWarnings": [
+      "TVShowScraperDDU.php: Undefined array key 6",
+      "TVShowScraperDDU.php: Undefined array key 9",
+      "TVShowScraperDDU.php: Undefined array key 8",
+      "TVShowScraperDDU.php: Undefined array key 7"
+    ]
+  },
+  "runNew": {
+    "error": "TypeError: sizeof(): Argument #1 ($value) must be of type Countable|array, true given",
+    "phpWarnings": [
+      "TVShowScraperDDU.php: Undefined array key 6",
+      "TVShowScraperDDU.php: Undefined array key 9",
+      "TVShowScraperDDU.php: Undefined array key 8",
+      "TVShowScraperDDU.php: Undefined array key 7"
+    ]
+  },
+  "runAllPhp7": {
+    "ok": [
+      {
+        "n": "2",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=104",
+        "res": "sd",
+        "lang": [
+          "mp"
+        ]
+      },
+      {
+        "n": "3",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=103",
+        "res": "720p",
+        "lang": [
+          "ac",
+          "ac"
+        ]
+      },
+      {
+        "n": "4",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=108",
+        "res": "720p",
+        "lang": [
+          "ita",
+          "eng"
+        ]
+      },
+      {
+        "n": "1",
+        "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=101",
+        "res": "720p",
+        "lang": [
+          "ac"
+        ]
+      }
+    ],
+    "phpWarnings": [
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 6",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 9",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 8",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 7"
+    ]
+  },
+  "runNewPhp7": {
+    "ok": {
+      "result": [
+        {
+          "n": "4",
+          "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=108",
+          "res": "720p",
+          "lang": [
+            "ita",
+            "eng"
+          ]
+        }
+      ],
+      "db": {
+        "seasons": [
+          {
+            "id": 1,
+            "tvshow": 1,
+            "n": 1,
+            "status": "complete"
+          }
+        ],
+        "episodes": [],
+        "files": [],
+        "scrapedSeasons": [
+          {
+            "id": 1,
+            "scraper": 1,
+            "n": 4,
+            "uri": "https://ddunlimited.net//./viewtopic.php?f=1&t=108",
+            "hide": 0,
+            "tbn": 1
+          }
+        ],
+        "scrapers": [
+          {
+            "id": 1,
+            "preference": null,
+            "delay": 0,
+            "uri": "https://ddunlimited.net/viewforum.php?f=1",
+            "source": "DDU",
+            "autoAdd": 1,
+            "notify": 1
+          }
+        ],
+        "seasonScrapers": []
+      }
+    },
+    "phpWarnings": [
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 6",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 9",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 8",
+      "ddu-scrape.php(56) : eval()'d code: Undefined array key 7",
+      "ddu-scrape.php(56) : eval()'d code: Undefined variable $n"
+    ]
+  }
+}

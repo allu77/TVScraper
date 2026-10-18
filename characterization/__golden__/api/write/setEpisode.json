@@ -1,0 +1,47 @@
+{
+  "request": {
+    "action": "setEpisode",
+    "episodeId": 4,
+    "title": "Down",
+    "airDate": 948499200
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 4,
+        "season": 2,
+        "n": 4,
+        "airDate": 948499200,
+        "title": "Down"
+      }
+    }
+  },
+  "dbDiff": {
+    "episodes": {
+      "removed": [
+        {
+          "id": 4,
+          "season": 2,
+          "n": 4,
+          "airDate": null,
+          "title": null,
+          "bestFile": null,
+          "bestSticky": null
+        }
+      ],
+      "added": [
+        {
+          "id": 4,
+          "season": 2,
+          "n": 4,
+          "airDate": 948499200,
+          "title": "Down",
+          "bestFile": null,
+          "bestSticky": null
+        }
+      ]
+    }
+  }
+}

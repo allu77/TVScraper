@@ -1,0 +1,12 @@
+{
+  "request": {
+    "action": "runScraper"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "scraperId not provided"
+    }
+  }
+}

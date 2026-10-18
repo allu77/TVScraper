@@ -1,0 +1,15 @@
+{
+  "request": {
+    "action": "addTVShow",
+    "title": "X",
+    "bogus": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Error executing addTVShow - Unknown parameter bogus"
+    }
+  },
+  "dbDiff": {}
+}

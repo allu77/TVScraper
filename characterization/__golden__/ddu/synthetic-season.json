@@ -1,0 +1,139 @@
+{
+  "pages": {
+    "topic.html": {
+      "ok": {
+        "ed2kLinks": [
+          {
+            "title": "ed2k://|file|Breaking.Bad.3x01.720p.ITA.mkv|1000|0123456789ABCDEF0123456789ABCDEF|/",
+            "link": "ed2k://|file|Breaking.Bad.3x01.720p.ITA.mkv|1000|0123456789ABCDEF0123456789ABCDEF|/"
+          },
+          {
+            "title": "ed2k://|file|Breaking.Bad.S03E02.720p.ITA.mkv|1000|1123456789ABCDEF0123456789ABCDEF|h=ABC|/",
+            "link": "ed2k://|file|Breaking.Bad.S03E02.720p.ITA.mkv|1000|1123456789ABCDEF0123456789ABCDEF|h=ABC|/"
+          },
+          {
+            "title": "ed2k://|file|Breaking%20Bad%203x03%20720p.mkv|1000|2123456789ABCDEF0123456789ABCDEF|/",
+            "link": "ed2k://|file|Breaking%20Bad%203x03%20720p.mkv|1000|2123456789ABCDEF0123456789ABCDEF|/"
+          },
+          {
+            "title": "ed2k://|file|Breaking.Bad.2x13.720p.ITA.mkv|1000|3123456789ABCDEF0123456789ABCDEF|/",
+            "link": "ed2k://|file|Breaking.Bad.2x13.720p.ITA.mkv|1000|3123456789ABCDEF0123456789ABCDEF|/"
+          },
+          {
+            "title": "ed2k://|file|Breaking.Bad.Extras.mkv|1000|4123456789ABCDEF0123456789ABCDEF|/",
+            "link": "ed2k://|file|Breaking.Bad.Extras.mkv|1000|4123456789ABCDEF0123456789ABCDEF|/"
+          }
+        ],
+        "warnings": []
+      }
+    }
+  },
+  "runAll": {
+    "error": "TypeError: sizeof(): Argument #1 ($value) must be of type Countable|array, string given"
+  },
+  "runNew": {
+    "error": "TypeError: sizeof(): Argument #1 ($value) must be of type Countable|array, string given"
+  },
+  "runAllPhp7": {
+    "ok": [
+      "ed2k://|file|Breaking.Bad.3x01.720p.ITA.mkv|1000|0123456789ABCDEF0123456789ABCDEF|/",
+      "ed2k://|file|Breaking.Bad.S03E02.720p.ITA.mkv|1000|1123456789ABCDEF0123456789ABCDEF|h=ABC|/",
+      "ed2k://|file|Breaking%20Bad%203x03%20720p.mkv|1000|2123456789ABCDEF0123456789ABCDEF|/"
+    ]
+  },
+  "runNewPhp7": {
+    "ok": {
+      "result": [
+        "ed2k://|file|Breaking.Bad.3x01.720p.ITA.mkv|1000|0123456789ABCDEF0123456789ABCDEF|/",
+        "ed2k://|file|Breaking.Bad.S03E02.720p.ITA.mkv|1000|1123456789ABCDEF0123456789ABCDEF|h=ABC|/",
+        "ed2k://|file|Breaking%20Bad%203x03%20720p.mkv|1000|2123456789ABCDEF0123456789ABCDEF|/"
+      ],
+      "db": {
+        "seasons": [
+          {
+            "id": 1,
+            "tvshow": 1,
+            "n": 3,
+            "status": "watched"
+          }
+        ],
+        "episodes": [
+          {
+            "id": 1,
+            "season": 1,
+            "n": 1,
+            "airDate": null,
+            "title": null,
+            "bestFile": null,
+            "bestSticky": null
+          },
+          {
+            "id": 2,
+            "season": 1,
+            "n": 2,
+            "airDate": null,
+            "title": null,
+            "bestFile": null,
+            "bestSticky": null
+          },
+          {
+            "id": 3,
+            "season": 1,
+            "n": 3,
+            "airDate": null,
+            "title": null,
+            "bestFile": null,
+            "bestSticky": null
+          }
+        ],
+        "files": [
+          {
+            "id": 1,
+            "episode": 1,
+            "scraper": 1,
+            "uri": "ed2k://|file|Breaking.Bad.3x01.720p.ITA.mkv|1000|0123456789ABCDEF0123456789ABCDEF|/",
+            "pubDate": "<run time>",
+            "type": "ed2k",
+            "discard": 0
+          },
+          {
+            "id": 2,
+            "episode": 2,
+            "scraper": 1,
+            "uri": "ed2k://|file|Breaking.Bad.S03E02.720p.ITA.mkv|1000|1123456789ABCDEF0123456789ABCDEF|h=ABC|/",
+            "pubDate": "<run time>",
+            "type": "ed2k",
+            "discard": 0
+          },
+          {
+            "id": 3,
+            "episode": 3,
+            "scraper": 1,
+            "uri": "ed2k://|file|Breaking%20Bad%203x03%20720p.mkv|1000|2123456789ABCDEF0123456789ABCDEF|/",
+            "pubDate": "<run time>",
+            "type": "ed2k",
+            "discard": 0
+          }
+        ],
+        "scrapedSeasons": [],
+        "scrapers": [
+          {
+            "id": 1,
+            "preference": null,
+            "delay": 0,
+            "uri": "https://ddunlimited.net/viewtopic.php?f=1&t=103",
+            "source": "DDU",
+            "autoAdd": 0,
+            "notify": 0
+          }
+        ],
+        "seasonScrapers": [
+          {
+            "season": 1,
+            "scraper": 1
+          }
+        ]
+      }
+    }
+  }
+}

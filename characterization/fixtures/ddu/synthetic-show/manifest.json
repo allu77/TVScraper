@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "scraper": { "type": "tvShow", "uri": "https://ddunlimited.net/viewforum.php?f=1", "autoAdd": 1, "notify": 1 },
+  "show": { "title": "Breaking Bad", "alternateTitle": "Breaking Bad (US)", "lang": "ita", "nativeLang": "eng", "res": "720p" },
+  "seasons": [ { "n": 1, "status": "complete" } ],
+  "pages": [
+    { "url": "https://ddunlimited.net/viewforum.php?f=1&start=0",  "file": "board-0.html", "kind": "board" },
+    { "url": "https://ddunlimited.net/viewforum.php?f=1&start=25", "file": "board-n.html", "kind": "board" },
+    { "url": "https://ddunlimited.net/viewforum.php?f=1&start=50", "file": "board-n.html", "kind": "board" },
+    { "url": "https://ddunlimited.net/viewforum.php?f=1&start=75", "file": "board-n.html", "kind": "board" }
+  ]
+}

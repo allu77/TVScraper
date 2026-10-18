@@ -1,0 +1,37 @@
+{
+  "request": {
+    "action": "addTVShow",
+    "title": "Severance",
+    "lang": "ita",
+    "nativeLang": "eng",
+    "res": "1080p"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": "4",
+        "title": "Severance",
+        "lang": "ita",
+        "nativeLang": "eng",
+        "res": "1080p"
+      }
+    }
+  },
+  "dbDiff": {
+    "tvshows": {
+      "removed": [],
+      "added": [
+        {
+          "id": 4,
+          "title": "Severance",
+          "alternateTitle": null,
+          "lang": "ita",
+          "nativeLang": "eng",
+          "res": "1080p"
+        }
+      ]
+    }
+  }
+}

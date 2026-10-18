@@ -1,0 +1,13 @@
+{
+  "request": {
+    "action": "removeScraper",
+    "scraperId": 3
+  },
+  "response": {
+    "httpStatus": 500,
+    "body": {
+      "raw": ""
+    }
+  },
+  "dbDiff": {}
+}

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "action": "runScraper",
+    "scraperId": 999
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Cannot find scraper 999"
+    }
+  }
+}

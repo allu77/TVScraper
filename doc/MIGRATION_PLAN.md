@@ -322,7 +322,7 @@ Rules: no production code without a failing test first; coverage gate of **≥ 9
 
 | # | Phase | Deliverables | Exit criteria |
 |---|---|---|---|
-| **0** | Safety net | Move PHP to `legacy/` with a Docker Compose setup to run it. Capture fixtures for Wikipedia, TVMaze, DDU, RSS and TXT. Golden-master tests (TS/Vitest, over HTTP) for each RPC method against a seeded copy of the SQLite DB. **DDU spike (§4.3):** a throwaway script that logs in and fetches a board and a topic page from Lambda, Workers and a residential IP; capture the full DDU fixture set (§4.4). | Every in-scope RPC method has recorded expected output. **DDU placement decided** from evidence. |
+| **0** | Safety net | Move PHP to `legacy/`, run it with PHP's built-in server (`php -S`). Capture fixtures for Wikipedia, TVMaze, DDU, RSS and TXT. Golden-master tests (TS/Vitest, over HTTP) for each RPC method against a seeded copy of the SQLite DB. **DDU spike (§4.3):** a throwaway script that logs in and fetches a board and a topic page from Lambda, Workers and a residential IP; capture the full DDU fixture set (§4.4). | Every in-scope RPC method has recorded expected output. **DDU placement decided** from evidence. |
 | **1** | Foundation | Monorepo, TS strict, ESLint, Prettier, Vitest, CI. `ports`, `contracts` (zod + OpenAPI), `loadConfig()`. | CI green on the skeleton. |
 | **2** | Domain + parsers | Port `TVShowUtils`, `CandidateFilter` and best-file selection, then each parser as a pure function, **DDU parsers first**. | Parser outputs match golden masters. |
 | **3** | Persistence | Drizzle schema from `TVShowScraperDB.sql`. Repositories with `Clock`. `kv` table. **Data migration script**: existing SQLite → libSQL, removing `tvrage` / `tvu` scrapers together with their scraped seasons and files. | Repository tests green. Stats and best-file queries match the legacy views on real data. |
@@ -362,3 +362,37 @@ Phases 2–4 can overlap. Phase 7 can start once the contracts from phase 5 are 
 | Logic split between SQL views and PHP is lost in the port | Parity tests on a real data copy with a fixed clock |
 | Scope creep in the React rewrite | Strict parity first, improvements tracked separately after cut-over |
 | Cold start on scale-to-zero (DB + function) | Acceptable for a single user. Keep bundles small and use the HTTP DB driver. |
+
+---
+
+## 11. Phase 0 status and findings
+
+### Done
+
+- Legacy app moved to `legacy/`, unchanged.
+- `characterization/`: golden masters of the legacy code, run with `pnpm test:legacy`. They need PHP ≥ 8 with `pdo_sqlite`, and CI runs them on every push.
+  - **API** (54 cases): every RPC method on a deterministic seed DB (`fixtures/seed.sql`). Each case records the response and the row-level DB diff, because several "read" methods write.
+  - **DDU** (offline): `support/php/ddu-scrape.php` runs the real `DDUParser` and `TVShowScraperDDU` against captured pages by pre-filling the legacy file cache. Network access is forced to fail, so a missing page cannot reach the real site. Each run is recorded on the current PHP **and** in a PHP 7-equivalent variant (see below). The fixture sets present today are `synthetic-*` (hand-written markup) and only prove the harness works. A pending `todo` stays visible until real captures exist.
+- `tools/ddu-probe/`: the DDU spike (§4.3) and fixture capture tool. The core (`probe.ts`) uses only `fetch`, so the same code can run on Node, Lambda and Workers. `pnpm ddu-probe` is the Node CLI.
+
+### Blocked
+
+- **Live DDU spike and real fixtures.** The development sandbox's network policy denies `ddunlimited.net`, and no DDU credentials are configured. Run `pnpm ddu-probe` from a machine that can reach DDU, or allow the host and add `DDU_USERNAME` / `DDU_PASSWORD` as environment secrets.
+
+### Legacy behaviour found (all pinned by golden masters)
+
+| # | Finding | Impact on the port |
+|---|---|---|
+| F1 | **DDU season scrapers throw a `TypeError` on PHP ≥ 8**: `TVShowScraperDDU::runScraperSeason` calls `sizeof($page)` on a string. | On PHP 8 no episode links are collected from DDU. The port follows the PHP 7-equivalent behaviour. |
+| F2 | **DDU show scrapers throw a `TypeError` on PHP ≥ 8 in the default mode** (`showOnlyNew=true`) whenever a topic has parseable tags: `sizeof($link['lang'] > 0)` in `TVShowScraper::submitSeasonCandidates` (misplaced parenthesis). | Same as F1. |
+| F3 | **`autoAdd` has never worked**: `$n > 0` uses an undefined variable. | Product decision: implement `autoAdd` as intended or drop the option. |
+| F4 | **The DDU password is written to the log files in plain text**: `SimpleBrowser::directPost` logs the POST body. | Existing `legacy/log/` files should be deleted, and the password rotated if logs were ever shared. The port never logs request bodies or credentials. |
+| F5 | A topic whose `li` class *starts with* `sticky` is treated as regular (`stripos(...) == false`). Sticky and announcement topics are only removed when older than the oldest regular topic, so recent stickies are matched like normal topics. | Reproduce for parity, then decide whether to fix. |
+| F6 | `utf8_encode()` is applied to text that is already UTF-8, so accented titles get double-encoded ("Città" → "CittÃ "). | Check with real captures; titles with accents may never have matched. |
+| F7 | Topic URLs are stored as `https://ddunlimited.net//./viewtopic.php?...` (`DDUParser::getFullURL`). Scraped seasons are de-duplicated by exact URI. | The port must produce the same string, or the data migration must normalize existing URIs. |
+| F8 | Tag parsing reads languages as `<codec> <LANG[-LANG]>` (e.g. `AC3 ITA-ENG`). With `ITA AC3` the language becomes `ac`. Short tag lists produce "undefined index" warnings. | Verify the real DDU tag format with captures. |
+| F9 | Best-file selection: a scraper with **no** preference beats any preference (`IFNULL(preference, -9999)`). A sticky best file wins over newer files. | Business rule to keep, pinned in `api/read`. |
+| F10 | `add*` methods return ids as strings, `get*` return integers. Errors are HTTP 200 with `{"status":"error"}`. | Irrelevant for REST; parity normalizes it. |
+| F11 | `getAllWatchedBestFiles` loops forever (`for (...; count($list); ...)`). It is not exposed by `api.php`. | Not ported as is: `GET /best-files` is reimplemented from the intended behaviour. |
+
+**Decision needed:** which PHP version runs in production today? On PHP 7, F1 and F2 do not occur and the PHP 7 golden masters describe production. On PHP 8, DDU scraping is currently failing in production.

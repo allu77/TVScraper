@@ -1,0 +1,32 @@
+{
+  "pages": {
+    "board.html": {
+      "ok": {
+        "topics": [
+          {
+            "type": "regular",
+            "title": "Unrelated Show - Stagione 1",
+            "link": "https://ddunlimited.net//./viewtopic.php?f=1&t=200",
+            "description": "",
+            "pubDate": 1199562420
+          }
+        ],
+        "warnings": [
+          []
+        ]
+      }
+    }
+  },
+  "runAll": {
+    "error": "ErrorException: Can't execute cURL (Failed to connect to 127.0.0.1 port 9 after 0 ms: Couldn't connect to server)"
+  },
+  "runNew": {
+    "error": "ErrorException: Can't execute cURL (Failed to connect to 127.0.0.1 port 9 after 0 ms: Couldn't connect to server)"
+  },
+  "runAllPhp7": {
+    "error": "ErrorException: Can't execute cURL (Failed to connect to 127.0.0.1 port 9 after 0 ms: Couldn't connect to server)"
+  },
+  "runNewPhp7": {
+    "error": "ErrorException: Can't execute cURL (Failed to connect to 127.0.0.1 port 9 after 0 ms: Couldn't connect to server)"
+  }
+}

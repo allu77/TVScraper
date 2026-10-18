@@ -1,0 +1,52 @@
+{
+  "request": {
+    "action": "removeEpisode",
+    "episodeId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": true
+    }
+  },
+  "dbDiff": {
+    "episodes": {
+      "removed": [
+        {
+          "id": 1,
+          "season": 2,
+          "n": 1,
+          "airDate": 946684800,
+          "title": "Seven Thirty-Seven",
+          "bestFile": null,
+          "bestSticky": null
+        }
+      ],
+      "added": []
+    },
+    "files": {
+      "removed": [
+        {
+          "id": 1,
+          "episode": 1,
+          "scraper": 2,
+          "uri": "ed2k://|file|Breaking.Bad.2x01.720p.mkv|100|AAAA|/",
+          "pubDate": 946771200,
+          "type": "ed2k",
+          "discard": 0
+        },
+        {
+          "id": 2,
+          "episode": 1,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x01",
+          "pubDate": 946684800,
+          "type": "torrent",
+          "discard": 0
+        }
+      ],
+      "added": []
+    }
+  }
+}

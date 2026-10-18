@@ -1,0 +1,21 @@
+{
+  "request": {
+    "action": "getScraper",
+    "scraperId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 1,
+        "uri": "https://ddunlimited.net/viewforum.php?f=1",
+        "source": "DDU",
+        "autoAdd": 1,
+        "notify": 1,
+        "tvshow": 1
+      }
+    }
+  },
+  "dbDiff": {}
+}

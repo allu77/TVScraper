@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "getBestFileForEpisode",
+    "episodeId": 4
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": null
+    }
+  },
+  "dbDiff": {}
+}

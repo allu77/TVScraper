@@ -1,0 +1,28 @@
+{
+  "request": {
+    "action": "removeScrapedSeason",
+    "scrapedSeasonId": 1
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": true
+    }
+  },
+  "dbDiff": {
+    "scrapedSeasons": {
+      "removed": [
+        {
+          "id": 1,
+          "scraper": 1,
+          "n": 3,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=30",
+          "hide": 0,
+          "tbn": 1
+        }
+      ],
+      "added": []
+    }
+  }
+}

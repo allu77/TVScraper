@@ -1,0 +1,20 @@
+{
+  "request": {
+    "action": "getScraper",
+    "scraperId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "preference": 1,
+        "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+        "source": "DDU",
+        "season": 2
+      }
+    }
+  },
+  "dbDiff": {}
+}

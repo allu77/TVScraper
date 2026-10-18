@@ -1,0 +1,38 @@
+{
+  "request": {
+    "action": "createSeasonScraperFromScraped",
+    "scrapedSeasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": "9"
+    }
+  },
+  "dbDiff": {
+    "scrapers": {
+      "removed": [],
+      "added": [
+        {
+          "id": 9,
+          "preference": null,
+          "delay": 0,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=10",
+          "source": "DDU",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ]
+    },
+    "seasonScrapers": {
+      "removed": [],
+      "added": [
+        {
+          "season": 1,
+          "scraper": 9
+        }
+      ]
+    }
+  }
+}

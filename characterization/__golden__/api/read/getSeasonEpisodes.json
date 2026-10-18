@@ -1,0 +1,43 @@
+{
+  "request": {
+    "action": "getSeasonEpisodes",
+    "seasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 1,
+          "season": 2,
+          "n": 1,
+          "airDate": 946684800,
+          "title": "Seven Thirty-Seven"
+        },
+        {
+          "id": 2,
+          "season": 2,
+          "n": 2,
+          "airDate": 947289600,
+          "title": "Grilled",
+          "bestFile": 4,
+          "bestSticky": 1
+        },
+        {
+          "id": 3,
+          "season": 2,
+          "n": 3,
+          "airDate": 4102444800,
+          "title": "Bit by a Dead Bee"
+        },
+        {
+          "id": 4,
+          "season": 2,
+          "n": 4
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

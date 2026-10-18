@@ -1,0 +1,56 @@
+{
+  "request": {
+    "action": "setTVShow",
+    "showId": 2,
+    "alternateTitle": "Dark (DE)",
+    "res": "1080p"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "title": "Dark",
+        "alternateTitle": "Dark (DE)",
+        "lang": "ita",
+        "nativeLang": "deu",
+        "res": "1080p",
+        "lastAirDate": 947289600,
+        "lastAiredEpisodeIndex": 2,
+        "airedEpisodesCount": 2,
+        "missingCount": 1,
+        "firstMissingIndex": 2,
+        "latestMissingIndex": 2,
+        "lastEpisodeIndex": 2,
+        "lastPubDate": 946771200,
+        "pendingScrapedSeasons": 1,
+        "episodesWithFile": 1
+      }
+    }
+  },
+  "dbDiff": {
+    "tvshows": {
+      "removed": [
+        {
+          "id": 2,
+          "title": "Dark",
+          "alternateTitle": null,
+          "lang": "ita",
+          "nativeLang": "deu",
+          "res": "any"
+        }
+      ],
+      "added": [
+        {
+          "id": 2,
+          "title": "Dark",
+          "alternateTitle": "Dark (DE)",
+          "lang": "ita",
+          "nativeLang": "deu",
+          "res": "1080p"
+        }
+      ]
+    }
+  }
+}

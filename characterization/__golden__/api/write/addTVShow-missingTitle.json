@@ -1,0 +1,14 @@
+{
+  "request": {
+    "action": "addTVShow",
+    "lang": "ita"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "Expected parameter title not found"
+    }
+  },
+  "dbDiff": {}
+}

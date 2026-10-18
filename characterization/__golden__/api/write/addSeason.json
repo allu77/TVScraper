@@ -1,0 +1,32 @@
+{
+  "request": {
+    "action": "addSeason",
+    "showId": 3,
+    "n": 1,
+    "status": "watched"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": "5",
+        "n": "1",
+        "status": "watched"
+      }
+    }
+  },
+  "dbDiff": {
+    "seasons": {
+      "removed": [],
+      "added": [
+        {
+          "id": 5,
+          "tvshow": 3,
+          "n": 1,
+          "status": "watched"
+        }
+      ]
+    }
+  }
+}

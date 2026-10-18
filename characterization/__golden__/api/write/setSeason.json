@@ -1,0 +1,39 @@
+{
+  "request": {
+    "action": "setSeason",
+    "seasonId": 2,
+    "status": "complete"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "tvshow": 1,
+        "n": 2,
+        "status": "complete"
+      }
+    }
+  },
+  "dbDiff": {
+    "seasons": {
+      "removed": [
+        {
+          "id": 2,
+          "tvshow": 1,
+          "n": 2,
+          "status": "watched"
+        }
+      ],
+      "added": [
+        {
+          "id": 2,
+          "tvshow": 1,
+          "n": 2,
+          "status": "complete"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "request": {
+    "action": "getActiveScrapers"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 1,
+          "uri": "https://ddunlimited.net/viewforum.php?f=1",
+          "source": "DDU",
+          "autoAdd": 1,
+          "notify": 1,
+          "tvshow": 1
+        },
+        {
+          "id": 2,
+          "preference": 1,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+          "source": "DDU",
+          "season": 2
+        },
+        {
+          "id": 3,
+          "delay": 3600,
+          "uri": "http://example.invalid/feed.rss",
+          "source": "RSS",
+          "season": 2
+        },
+        {
+          "id": 4,
+          "uri": "http://it.wikipedia.org/wiki/Dark",
+          "source": "wikipedia",
+          "season": 3
+        },
+        {
+          "id": 5,
+          "uri": "http://api.tvmaze.com/shows/1/episodes",
+          "source": "tvmaze",
+          "notify": 1,
+          "tvshow": 2
+        },
+        {
+          "id": 7,
+          "uri": "http://services.tvrage.com/x?sid=1",
+          "source": "tvrage",
+          "season": 2
+        },
+        {
+          "id": 8,
+          "preference": 2,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=8",
+          "source": "DDU",
+          "season": 3
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

@@ -1,0 +1,12 @@
+{
+  "request": {
+    "action": "bogus"
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "error",
+      "errmsg": "unknown action 'bogus'"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "request": {
+    "action": "addScraper",
+    "rootId": 3,
+    "type": "season",
+    "source": "RSS",
+    "uri": "http://example.invalid/dark.rss",
+    "preference": ""
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": "9",
+        "source": "RSS",
+        "uri": "http://example.invalid/dark.rss",
+        "season": "3"
+      }
+    }
+  },
+  "dbDiff": {
+    "scrapers": {
+      "removed": [],
+      "added": [
+        {
+          "id": 9,
+          "preference": null,
+          "delay": 0,
+          "uri": "http://example.invalid/dark.rss",
+          "source": "RSS",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ]
+    },
+    "seasonScrapers": {
+      "removed": [],
+      "added": [
+        {
+          "season": 3,
+          "scraper": 9
+        }
+      ]
+    }
+  }
+}

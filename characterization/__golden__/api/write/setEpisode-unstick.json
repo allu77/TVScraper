@@ -1,0 +1,46 @@
+{
+  "request": {
+    "action": "setEpisode",
+    "episodeId": 2,
+    "bestSticky": 0
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "season": 2,
+        "n": 2,
+        "airDate": 947289600,
+        "title": "Grilled"
+      }
+    }
+  },
+  "dbDiff": {
+    "episodes": {
+      "removed": [
+        {
+          "id": 2,
+          "season": 2,
+          "n": 2,
+          "airDate": 947289600,
+          "title": "Grilled",
+          "bestFile": 4,
+          "bestSticky": 1
+        }
+      ],
+      "added": [
+        {
+          "id": 2,
+          "season": 2,
+          "n": 2,
+          "airDate": 947289600,
+          "title": "Grilled",
+          "bestFile": null,
+          "bestSticky": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "request": {
+    "action": "setScraper",
+    "scraperId": 2,
+    "preference": ""
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 2,
+        "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+        "source": "DDU",
+        "season": 2
+      }
+    }
+  },
+  "dbDiff": {
+    "scrapers": {
+      "removed": [
+        {
+          "id": 2,
+          "preference": 1,
+          "delay": 0,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+          "source": "DDU",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ],
+      "added": [
+        {
+          "id": 2,
+          "preference": null,
+          "delay": 0,
+          "uri": "https://ddunlimited.net/viewtopic.php?t=2",
+          "source": "DDU",
+          "autoAdd": 0,
+          "notify": 0
+        }
+      ]
+    }
+  }
+}

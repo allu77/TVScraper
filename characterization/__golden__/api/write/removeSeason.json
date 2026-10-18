@@ -1,0 +1,143 @@
+{
+  "request": {
+    "action": "removeSeason",
+    "seasonId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": true
+    }
+  },
+  "dbDiff": {
+    "episodes": {
+      "removed": [
+        {
+          "id": 1,
+          "season": 2,
+          "n": 1,
+          "airDate": 946684800,
+          "title": "Seven Thirty-Seven",
+          "bestFile": null,
+          "bestSticky": null
+        },
+        {
+          "id": 2,
+          "season": 2,
+          "n": 2,
+          "airDate": 947289600,
+          "title": "Grilled",
+          "bestFile": 4,
+          "bestSticky": 1
+        },
+        {
+          "id": 3,
+          "season": 2,
+          "n": 3,
+          "airDate": 4102444800,
+          "title": "Bit by a Dead Bee",
+          "bestFile": null,
+          "bestSticky": null
+        },
+        {
+          "id": 4,
+          "season": 2,
+          "n": 4,
+          "airDate": null,
+          "title": null,
+          "bestFile": null,
+          "bestSticky": null
+        }
+      ],
+      "added": []
+    },
+    "files": {
+      "removed": [
+        {
+          "id": 1,
+          "episode": 1,
+          "scraper": 2,
+          "uri": "ed2k://|file|Breaking.Bad.2x01.720p.mkv|100|AAAA|/",
+          "pubDate": 946771200,
+          "type": "ed2k",
+          "discard": 0
+        },
+        {
+          "id": 2,
+          "episode": 1,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x01",
+          "pubDate": 946684800,
+          "type": "torrent",
+          "discard": 0
+        },
+        {
+          "id": 3,
+          "episode": 2,
+          "scraper": 2,
+          "uri": "ed2k://|file|Breaking.Bad.2x02.720p.mkv|100|BBBB|/",
+          "pubDate": 947376000,
+          "type": "ed2k",
+          "discard": 1
+        },
+        {
+          "id": 4,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02a",
+          "pubDate": 947376000,
+          "type": "torrent",
+          "discard": 0
+        },
+        {
+          "id": 5,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02b",
+          "pubDate": 947462400,
+          "type": "torrent",
+          "discard": 0
+        },
+        {
+          "id": 6,
+          "episode": 3,
+          "scraper": 2,
+          "uri": "ed2k://|file|Breaking.Bad.2x03.720p.mkv|100|CCCC|/",
+          "pubDate": 4102444800,
+          "type": "ed2k",
+          "discard": 0
+        }
+      ],
+      "added": []
+    },
+    "seasonScrapers": {
+      "removed": [
+        {
+          "season": 2,
+          "scraper": 2
+        },
+        {
+          "season": 2,
+          "scraper": 3
+        },
+        {
+          "season": 2,
+          "scraper": 7
+        }
+      ],
+      "added": []
+    },
+    "seasons": {
+      "removed": [
+        {
+          "id": 2,
+          "tvshow": 1,
+          "n": 2,
+          "status": "watched"
+        }
+      ],
+      "added": []
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "request": {
+    "action": "getTVShow",
+    "showId": 3
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 3,
+        "title": "Empty Show",
+        "lang": "eng",
+        "nativeLang": "eng",
+        "res": "any",
+        "episodesWithFile": 0
+      }
+    }
+  },
+  "dbDiff": {}
+}

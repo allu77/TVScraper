@@ -1,0 +1,21 @@
+{
+  "request": {
+    "action": "getBestFileForEpisode",
+    "episodeId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": {
+        "id": 4,
+        "episode": 2,
+        "scraper": 3,
+        "uri": "magnet:?xt=urn:btih:bb2x02a",
+        "pubDate": 947376000,
+        "type": "torrent"
+      }
+    }
+  },
+  "dbDiff": {}
+}

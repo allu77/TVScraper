@@ -1,0 +1,40 @@
+{
+  "request": {
+    "action": "getFilesForEpisode",
+    "episodeId": 2
+  },
+  "response": {
+    "httpStatus": 200,
+    "body": {
+      "status": "ok",
+      "result": [
+        {
+          "id": 3,
+          "episode": 2,
+          "scraper": 2,
+          "uri": "ed2k://|file|Breaking.Bad.2x02.720p.mkv|100|BBBB|/",
+          "pubDate": 947376000,
+          "type": "ed2k",
+          "discard": 1
+        },
+        {
+          "id": 4,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02a",
+          "pubDate": 947376000,
+          "type": "torrent"
+        },
+        {
+          "id": 5,
+          "episode": 2,
+          "scraper": 3,
+          "uri": "magnet:?xt=urn:btih:bb2x02b",
+          "pubDate": 947462400,
+          "type": "torrent"
+        }
+      ]
+    }
+  },
+  "dbDiff": {}
+}

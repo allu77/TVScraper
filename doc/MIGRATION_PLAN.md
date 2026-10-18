@@ -9,8 +9,8 @@
 |---|---|---|
 | 1 | Cloud target | **Kept open.** The code must run unchanged on AWS Lambda, Cloudflare Workers or plain Node. Provider-specific code is limited to thin entrypoints and adapters. |
 | 2 | Infrastructure | **Must scale to zero.** No always-on servers, containers or provisioned databases. |
-| 3 | Dead sources | **TVRage and TV Underground are dropped.** Their scrapers are not ported, and existing DB rows for them are removed during data migration. DDU, Wikipedia, TVMaze, RSS and TXT are ported. |
-| 4 | API style | **REST.** The `action=` RPC endpoint is not carried over (see §6 for the transition). |
+| 3 | Sources | **TVRage and TV Underground are dropped.** Their scrapers are not ported, and existing DB rows for them are removed during data migration. Wikipedia, TVMaze, RSS and TXT are ported. **DDU is foundational and must work at all times.** It is the critical path of the migration (§4). |
+| 4 | API style | **REST.** The `action=` RPC endpoint is not carried over (see §8 for the transition). |
 | 5 | Auth | **Single user.** |
 
 ---
@@ -160,7 +160,88 @@ Rules:
 
 ---
 
-## 4. REST API design
+## 4. DDU: the critical path
+
+DDU is the source the app exists for. The plan therefore treats it differently from the other sources:
+
+- **It is de-risked first.** Live connectivity from each candidate runtime is proven in phase 0, before any architectural commitment.
+- **It is ported first.** It is the first adapter in phase 4, not the last.
+- **It has its own exit gate.** No cut-over happens until DDU shadow runs match legacy (§8, phase 8).
+- **It can run anywhere.** Its jobs can run in the cloud or on a home runner without code changes.
+
+### 4.1 Behaviour to preserve (from `DDUBrowser.php`, `DDUParser.php`, `TVShowScraperDDU.php`)
+
+| Behaviour | Legacy detail |
+|---|---|
+| Login detection | The page needs login if `div#page-header` contains `a[title="Login"]`. |
+| Login flow | `GET https://ddunlimited.net/ucp.php?mode=login`. Collect **all** `hidden`/`submit` inputs of `form#login`; inputs that share a name become arrays. Add username and password, then `POST` to the same URL. Success means the response no longer needs login. |
+| Re-auth on any page | On every `get`: if login is needed, invalidate the cache for that URL, log in, fetch again. If the page still needs login, it is a hard error. |
+| Session & cache scoping | Cookies and cache are **per user** (keyed by `md5(username)`). |
+| Show scraper | Board URL + `&start=0,25,50,75` (4 pages). Topic list from `div.forumbg ul.topics > li`. Sticky/announcement topics are filtered out and topics are sorted by pubDate. Titles are matched with `"<title> - stagione N"` against title and alternate title (6 regex variants). The description tags are parsed for resolution (`720p/1080i/1080p` else `sd`) and audio/sub languages. |
+| Season scraper | Topic URL. Every `href="ed2k://…"` in the page becomes an episode candidate with `pubDate = now` (now comes from `Clock` in the port). |
+| Sanity warnings | "no topics in DIV", "no regular topics", "latest topic older than 30 days", "no ed2k links". In the new code these become **health signals** instead of log lines. |
+
+### 4.2 Design
+
+```mermaid
+sequenceDiagram
+  participant S as ScraperService
+  participant A as DduAdapter
+  participant C as DduClient
+  participant L as LoginLock (kv lease)
+  participant SS as SessionStore
+  participant H as HttpClient
+  S->>A: findSeasons / findEpisodes
+  A->>C: getPage(url)
+  C->>SS: load cookie jar
+  C->>H: GET url (with cookies)
+  alt page needs login
+    C->>L: acquire lease
+    C->>SS: reload jar (another job may have logged in)
+    C->>H: GET login form → POST credentials
+    C->>SS: save jar
+    C->>L: release lease
+    C->>H: GET url again
+  end
+  C-->>A: html (or DduAuthError / DduLayoutError)
+  A->>A: pure parsers → candidates + health signals
+  A-->>S: candidates
+```
+
+- **Pure parsers**: `parseLoginForm`, `needsLogin`, `parseBoardTopics`, `matchShowTitle`, `parseTopicTags`, `extractEd2kLinks`. The PHP builds regexes from the show title with incomplete escaping; the port uses proper regex escaping, plus table-driven tests built from real titles.
+- **`DduClient`**: cookie jar with `tough-cookie`, serialized into `SessionStore`. Credentials come from secrets and never from the DB or logs.
+- **Single-flight login**: queue fan-out could otherwise trigger many logins at once and risk an account lock. A lease row in the `kv` table serializes logins, and the jar is reloaded after the lease is acquired.
+- **Throttling**: DDU jobs run with **concurrency 1** on a dedicated queue, with a configurable delay between requests. Cache TTL is respected as in legacy.
+- **Typed failures**: `DduAuthError` (bad credentials or login still required after re-auth), `DduLayoutError` (markup changed), `DduBlockedError` (403, challenge page, captcha). Errors are no longer swallowed as `FALSE`.
+
+### 4.3 Placement: cloud or home runner
+
+DDU may block datacenter IPs or sit behind an anti-bot layer. The design makes this a **deployment choice, not a code change**:
+
+- DDU jobs are routed to a dedicated `ddu` queue (source-affinity routing in `JobQueue`).
+- That queue is consumed by **either** the cloud function **or** a **home runner**: the same `apps/api` job handler started with the Node entrypoint on any always-available machine (NAS, Raspberry Pi…). It polls outbound only, so it works behind NAT, needs no open ports, and leaves the cloud side scaling to zero.
+- Phase 0 decides the default placement from live tests: Lambda egress, Workers egress (Workers `fetch` to a Cloudflare-protected origin behaves differently) and residential IP.
+
+### 4.4 Tests (TDD)
+
+| Level | Cases |
+|---|---|
+| Parser unit (fixtures) | board page with sticky + announcement + regular topics; topic page with ed2k links (incl. none); login page with duplicate-name hidden inputs; logged-out page; login-failure page; blocked/challenge page |
+| Title matching (table-driven) | title, alternate title, `Title (Foo)`, `Foo (Title)`, punctuation stripping, regex-special characters in titles, zero-padded season numbers |
+| Tag parsing (table-driven) | SD/720p/1080i/1080p, multiple audio languages, `SUB` languages, short or malformed tag lists |
+| `DduClient` (fakes) | valid session; expired session mid-pagination; login success; wrong password; still-needs-login after login; concurrent jobs share one login; 403/challenge → `DduBlockedError` |
+| Parity | legacy `runScraper` vs new adapter on the same fixtures and fixed clock: identical candidates |
+| Live (nightly, real account) | login + one board page + one topic page from **each configured placement** |
+
+### 4.5 Monitoring and alerting
+
+- Every run records `{source, scraperId, status, error, warnings, durationMs}` in a `scraper_runs` table.
+- `GET /health/sources` reports the last success and current status per source.
+- A `Notifier` port (e.g. email or Telegram adapter) **alerts immediately** on `DduAuthError` / `DduBlockedError`, and when DDU has had no successful run within a configurable window (default 24 h). Layout sanity warnings are alerted at most once per day.
+
+---
+
+## 5. REST API design
 
 Resources replace the RPC methods of `api.php`. Request and response schemas live in `packages/contracts` (zod), and an OpenAPI document is generated from them.
 
@@ -197,7 +278,7 @@ Conventions: JSON only; `PATCH` takes partial bodies validated by zod; errors us
 
 ---
 
-## 5. Single-user auth
+## 6. Single-user auth
 
 - One credential: `ADMIN_PASSWORD_HASH` (argon2/bcrypt) in env.
 - `POST /session` with the password returns an **HttpOnly, Secure, SameSite=Strict** cookie holding a short-lived signed JWT (`SESSION_SECRET`). Being stateless, it needs no session store.
@@ -207,7 +288,7 @@ Conventions: JSON only; `PATCH` takes partial bodies validated by zod; errors us
 
 ---
 
-## 6. TDD strategy
+## 7. TDD strategy
 
 ```mermaid
 flowchart TB
@@ -218,7 +299,7 @@ flowchart TB
   E --> B
 ```
 
-Because the API moves from RPC to REST, parity is checked **at the service level**. The parity harness calls the legacy `action=X` and the equivalent REST route on the same seeded DB copy, normalizes both payloads, and diffs them. The table in §4 doubles as the harness's mapping.
+Because the API moves from RPC to REST, parity is checked **at the service level**. The parity harness calls the legacy `action=X` and the equivalent REST route on the same seeded DB copy, normalizes both payloads, and diffs them. The table in §5 doubles as the harness's mapping.
 
 | Layer | Tools | Scope |
 |---|---|---|
@@ -228,7 +309,7 @@ Because the API moves from RPC to REST, parity is checked **at the service level
 | Repositories | Vitest + in-memory libSQL + `FixedClock` | queries, cascades, the logic previously in views |
 | API | Vitest + `app.request()` (Hono, no server needed) | every route: validation, auth, status codes, problem+json |
 | Jobs | Vitest + `InMemoryJobQueue` | fan-out, retries, idempotency |
-| Parity | Vitest suite against dockerized legacy PHP | §4 mapping on a copy of real data |
+| Parity | Vitest suite against dockerized legacy PHP | §5 mapping on a copy of real data |
 | Frontend | Vitest + Testing Library + MSW (handlers generated from contracts) | components, hooks, forms |
 | E2E | Playwright | add show → add scraper → run → accept scraped season → view best files |
 | Live smoke (non-blocking, nightly) | Vitest tagged `@live` | detects upstream HTML changes early |
@@ -237,19 +318,19 @@ Rules: no production code without a failing test first; coverage gate of **≥ 9
 
 ---
 
-## 7. Phases
+## 8. Phases
 
 | # | Phase | Deliverables | Exit criteria |
 |---|---|---|---|
-| **0** | Safety net | Move PHP to `legacy/` with a Docker Compose setup to run it. Capture fixtures for Wikipedia, TVMaze, DDU, RSS and TXT. Golden-master tests (TS/Vitest, over HTTP) for each RPC method against a seeded copy of the SQLite DB. | Every in-scope RPC method has recorded expected output. |
+| **0** | Safety net | Move PHP to `legacy/` with a Docker Compose setup to run it. Capture fixtures for Wikipedia, TVMaze, DDU, RSS and TXT. Golden-master tests (TS/Vitest, over HTTP) for each RPC method against a seeded copy of the SQLite DB. **DDU spike (§4.3):** a throwaway script that logs in and fetches a board and a topic page from Lambda, Workers and a residential IP; capture the full DDU fixture set (§4.4). | Every in-scope RPC method has recorded expected output. **DDU placement decided** from evidence. |
 | **1** | Foundation | Monorepo, TS strict, ESLint, Prettier, Vitest, CI. `ports`, `contracts` (zod + OpenAPI), `loadConfig()`. | CI green on the skeleton. |
-| **2** | Domain + parsers | Port `TVShowUtils`, `CandidateFilter` and best-file selection, then each parser as a pure function. | Parser outputs match golden masters. |
+| **2** | Domain + parsers | Port `TVShowUtils`, `CandidateFilter` and best-file selection, then each parser as a pure function, **DDU parsers first**. | Parser outputs match golden masters. |
 | **3** | Persistence | Drizzle schema from `TVShowScraperDB.sql`. Repositories with `Clock`. `kv` table. **Data migration script**: existing SQLite → libSQL, removing `tvrage` / `tvu` scrapers together with their scraped seasons and files. | Repository tests green. Stats and best-file queries match the legacy views on real data. |
-| **4** | Adapters + ScraperService | `FetchHttpClient`, `CachingHttpClient`, `KvCache`, `KvSessionStore`, `MediaWikiClient`, `DduClient`, the 5 adapters, registry, composition root. | `run` results match legacy on fixtures. DDU login verified live from a cloud function (egress IP check). |
-| **5** | REST API + auth | Hono routes from §4, auth from §5, problem+json errors, OpenAPI document. Entrypoints `node.ts`, `lambda.ts`, `worker.ts`, each with a smoke test. | Parity suite green. The same app boots on all three entrypoints. |
-| **6** | Jobs + CLI | `scheduled` handler (enqueue one job per active scraper), queue consumer (run a single scraper, idempotent), `notify` and `cleanup` jobs. `apps/cli` (`tvscraper update \| get-best \| find-missing \| …`) over REST with `API_TOKEN`. | A nightly run in staging matches the bash `tvjobs` output. |
+| **4** | Adapters + ScraperService | `FetchHttpClient`, `CachingHttpClient`, `KvCache`, `KvSessionStore`, then **`DduClient` + `DduAdapter` first** (login lease, throttling, typed errors), then `MediaWikiClient` and the remaining adapters, registry, composition root. | All §4.4 DDU tests green. DDU live test passes from the chosen placement. Other adapters match legacy on fixtures. |
+| **5** | REST API + auth | Hono routes from §5, auth from §6, problem+json errors, OpenAPI document. Entrypoints `node.ts`, `lambda.ts`, `worker.ts`, each with a smoke test. | Parity suite green. The same app boots on all three entrypoints. |
+| **6** | Jobs + CLI | `scheduled` handler (enqueue one job per active scraper), queue consumer (run a single scraper, idempotent), dedicated `ddu` queue with concurrency 1, home-runner mode of the Node entrypoint, `scraper_runs` + `/health/sources` + `Notifier` alerts (§4.5), `notify` and `cleanup` jobs. `apps/cli` (`tvscraper update \| get-best \| find-missing \| …`) over REST with `API_TOKEN`. | A nightly run in staging matches the bash `tvjobs` output. |
 | **7** | React frontend | Vite + React + TanStack Query + React Router + a component library (Mantine or shadcn/ui). API client generated from contracts. Screens: login → shows list with stats → show detail (seasons, scrapers, scraped seasons) → season detail (episodes, files, best file) → edit dialogs. | Feature-parity checklist done. Playwright E2E green. |
-| **8** | Deploy + cut-over | IaC for the chosen provider (SST for AWS **or** Wrangler for Cloudflare; the code is the same either way). Production data migration. Retire PHP and delete `legacy/`. | Production running with zero idle cost. Legacy removed. |
+| **8** | Deploy + cut-over | IaC for the chosen provider (SST for AWS **or** Wrangler for Cloudflare; the code is the same either way). **DDU shadow run**: for at least 7 days, the new DDU jobs run in dry-run mode next to legacy, with a daily diff of candidates. Then production data migration. Retire PHP and delete `legacy/`. | **Zero unexplained DDU diffs over the shadow window**, with DDU alerts verified by a forced failure. Production running with zero idle cost. Legacy removed. |
 
 Phases 2–4 can overlap. Phase 7 can start once the contracts from phase 5 are frozen, using MSW mocks.
 
@@ -257,23 +338,27 @@ Phases 2–4 can overlap. Phase 7 can start once the contracts from phase 5 are 
 
 ---
 
-## 8. Serverless checklist (applies to every handler)
+## 9. Serverless checklist (applies to every handler)
 
 - Stateless: no local disk, no module-level mutable state beyond lazily-created clients.
 - All dependencies built in the composition root from `loadConfig()`. No global singletons or static config.
 - Each scraper run fits comfortably within the shortest provider limit. DDU pagination can be split into one job per page if needed.
+- Per-source concurrency limits are honoured (DDU = 1), and shared external sessions use single-flight login.
 - Jobs are idempotent: a retried message must not create duplicate files or episodes (enforced with unique constraints and upserts).
 - Bundles are small and start fast (esbuild; no heavy DI or ORM runtime reflection).
 - Only Web-standard APIs in the core (`fetch`, `Request`/`Response`, `crypto.subtle`), so it runs on both Node and Workers. HTML parsing uses a library that works in both (e.g. `linkedom` or `htmlparser2`).
 
 ---
 
-## 9. Risks
+## 10. Risks
 
 | Risk | Mitigation |
 |---|---|
 | Upstream HTML changes break parsers | Versioned fixtures and a nightly `@live` smoke run |
-| DDU blocks or rate-limits cloud egress IPs | Verify early in phase 4. Respect cache TTL. Fall back to running DDU jobs from the local Node entrypoint if needed. |
+| **DDU blocks cloud egress IPs or adds anti-bot protection** | Spike in phase 0 decides the placement up front. The home runner is a supported mode (§4.3), not a fallback hack. |
+| **DDU account lock from parallel or repeated logins** | Single-flight login lease, concurrency 1, throttling, cache TTL (§4.2) |
+| **DDU breaks silently** (layout change, expired credentials) | Typed errors, health signals, immediate alerts, nightly live test (§4.5) |
+| **DDU behaviour regresses during the port** | DDU-first TDD with real fixtures, parity tests, 7-day shadow run as a cut-over gate |
 | Logic split between SQL views and PHP is lost in the port | Parity tests on a real data copy with a fixed clock |
 | Scope creep in the React rewrite | Strict parity first, improvements tracked separately after cut-over |
 | Cold start on scale-to-zero (DB + function) | Acceptable for a single user. Keep bundles small and use the HTTP DB driver. |

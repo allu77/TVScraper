@@ -375,9 +375,15 @@ Phases 2–4 can overlap. Phase 7 can start once the contracts from phase 5 are 
   - **DDU** (offline): `support/php/ddu-scrape.php` runs the real `DDUParser` and `TVShowScraperDDU` against captured pages by pre-filling the legacy file cache. Network access is forced to fail, so a missing page cannot reach the real site. Each run is recorded on the current PHP **and** in a PHP 7-equivalent variant (see below). The fixture sets present today are `synthetic-*` (hand-written markup) and only prove the harness works. A pending `todo` stays visible until real captures exist.
 - `tools/ddu-probe/`: the DDU spike (§4.3) and fixture capture tool. The core (`probe.ts`) uses only `fetch`, so the same code can run on Node, Lambda and Workers. `pnpm ddu-probe` is the Node CLI.
 
-### Blocked
+### DDU spike result (run from a residential connection)
 
-- **Live DDU spike and real fixtures.** The development sandbox's network policy denies `ddunlimited.net`, and no DDU credentials are configured. Run `pnpm ddu-probe` from a machine that can reach DDU, or allow the host and add `DDU_USERNAME` / `DDU_PASSWORD` as environment secrets.
+- `GET ucp.php?mode=login` → 200, normal login page.
+- `POST ucp.php?mode=login` → **403 Cloudflare challenge** ("Just a moment...").
+
+Scripted username/password login, the way legacy `DDUBrowser` works, is no longer possible: DDU asks non-browser clients for a browser check on login. **The project does not try to get past this check** (no headless browser solving challenges, no reuse of Cloudflare clearance cookies, no browser impersonation). §4.2–4.3 assumed scripted login and must be revisited once the guest-access checks below are done:
+
+- Whether board and topic pages load as a guest: `pnpm ddu-probe --anonymous --url <board url> --url <topic url>`.
+- Whether DDU publishes the phpBB feeds: `--anonymous --url 'https://ddunlimited.net/feed.php?f=110'`.
 
 ### Legacy behaviour found (all pinned by golden masters)
 

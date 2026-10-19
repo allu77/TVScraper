@@ -87,6 +87,15 @@ describe('probe', () => {
     expect(pages.get('https://ddu.test/board')).toContain('https://ddu.test/board');
   });
 
+  it('fetches pages as a guest without logging in', async () => {
+    const { fetchFn, calls } = fakeDdu();
+    const { report } = await probe({ username: '', password: '', urls: ['https://ddu.test/board'], anonymous: true, fetch: fetchFn });
+
+    expect(report).toMatchObject({ ok: true, loggedIn: false });
+    expect(report.steps).toMatchObject([{ step: 'page', needsLogin: true, blocked: null }]);
+    expect(calls.map((c) => c.method)).toEqual(['GET']);
+  });
+
   it('reports a failed login', async () => {
     const { fetchFn } = fakeDdu();
     const { report } = await probe({ username: 'mario', password: 'wrong', urls: ['https://ddu.test/board'], loginUrl: 'https://ddu.test/ucp.php?mode=login', fetch: fetchFn });

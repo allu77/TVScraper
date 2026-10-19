@@ -8,6 +8,8 @@ export type ProbeOptions = {
   password: string;
   /** Pages to fetch after login, in order. */
   urls: string[];
+  /** Skip the login and fetch the pages as a guest. */
+  anonymous?: boolean;
   loginUrl?: string;
   fetch?: typeof fetch;
   now?: () => number;
@@ -144,6 +146,15 @@ export async function probe(opts: ProbeOptions): Promise<ProbeResult> {
   });
 
   try {
+    if (opts.anonymous) {
+      for (const url of opts.urls) {
+        pages.set(url, await request('page', url));
+        const last = steps.at(-1)!;
+        if (last.blocked) return report({ error: `Blocked on ${url}: ${last.blocked}` });
+      }
+      return report({ ok: true });
+    }
+
     const form = await request('login-form', loginUrl);
     if (steps.at(-1)!.blocked) return report({ error: `Blocked on login form: ${steps.at(-1)!.blocked}` });
 

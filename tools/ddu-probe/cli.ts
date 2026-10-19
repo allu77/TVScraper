@@ -5,6 +5,9 @@
 //     [--topic 'https://ddunlimited.net/viewtopic.php?t=NNN' --season N] \
 //     [--name case-name] [--report-only]
 //
+//   node tools/ddu-probe/cli.ts --anonymous --url <url> [--url <url> ...]
+//     fetches the given pages as a guest, without logging in, and only prints the report.
+//
 // Without --report-only, pages are written to characterization/fixtures/ddu/<name>-board and <name>-topic.
 // Review the saved HTML before committing it: redaction covers the username, session ids, form tokens and
 // e-mail addresses, nothing else.
@@ -28,8 +31,21 @@ const { values: args } = parseArgs({
     season: { type: 'string' },
     name: { type: 'string', default: 'real' },
     'report-only': { type: 'boolean', default: false },
+    anonymous: { type: 'boolean', default: false },
+    url: { type: 'string', multiple: true },
   },
 });
+
+if (args.anonymous) {
+  if (!args.url?.length) {
+    console.error('--anonymous needs at least one --url');
+    process.exit(2);
+  }
+  const { report, lastPage } = await probe({ username: '', password: '', urls: args.url, anonymous: true });
+  console.log(JSON.stringify(report, null, 2));
+  if (lastPage !== undefined) writeFileSync(resolve('ddu-probe-last-response.html'), lastPage);
+  process.exit(report.ok ? 0 : 1);
+}
 
 const username = process.env.DDU_USERNAME ?? process.env.TVSCRAPER_BROWSER_DDU_LOGIN;
 const password = process.env.DDU_PASSWORD ?? process.env.TVSCRAPER_BROWSER_DDU_PASSWORD;

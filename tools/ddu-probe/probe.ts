@@ -19,6 +19,7 @@ export type StepReport = {
   status: number;
   ms: number;
   bytes: number;
+  title: string | null;
   needsLogin: boolean;
   blocked: string | null;
 };
@@ -30,7 +31,8 @@ export type ProbeReport = {
   error?: string;
 };
 
-export type ProbeResult = { report: ProbeReport; pages: Map<string, string> };
+/** lastPage is the body of the last response, kept to diagnose failures. */
+export type ProbeResult = { report: ProbeReport; pages: Map<string, string>; lastPage?: string };
 
 /** Same check as DDUBrowser::needsLogin: a "Login" link inside div#page-header. */
 export function needsLogin(html: string): boolean {
@@ -38,12 +40,20 @@ export function needsLogin(html: string): boolean {
   return /<a\b[^>]*title=["']Login["']/i.test(header);
 }
 
-/** Recognizes pages that are not DDU content: HTTP errors and common anti-bot interstitials. */
+/**
+ * Recognizes pages that are not DDU content: HTTP errors, Cloudflare interstitials and captchas.
+ * The /cdn-cgi/challenge-platform/ script alone is not a block: Cloudflare injects it into ordinary pages too.
+ */
 export function detectBlock(status: number, html: string): string | null {
+  const challenge = /<title>\s*Just a moment\.\.\.\s*<\/title>|window\._cf_chl_opt|cf-chl-widget|cf-turnstile/i.test(html);
+  if (challenge) return status >= 400 ? `Cloudflare challenge (HTTP ${status})` : 'Cloudflare challenge';
   if (status === 403 || status === 429 || status === 503) return `HTTP ${status}`;
-  if (/cf-chl-|challenge-platform|Just a moment\.\.\./i.test(html)) return 'Cloudflare challenge';
-  if (/g-recaptcha|h-captcha|cf-turnstile/i.test(html)) return 'captcha';
+  if (/g-recaptcha|h-captcha/i.test(html)) return 'captcha';
   return null;
+}
+
+export function pageTitle(html: string): string | null {
+  return html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1].trim() ?? null;
 }
 
 function attr(tag: string, name: string): string | null {
@@ -96,6 +106,7 @@ export async function probe(opts: ProbeOptions): Promise<ProbeResult> {
   const jar = new CookieJar();
   const steps: StepReport[] = [];
   const pages = new Map<string, string>();
+  let lastPage: string | undefined;
 
   // Redirects are followed by hand so that cookies set on intermediate responses are kept.
   async function request(step: string, url: string, body?: URLSearchParams): Promise<string> {
@@ -112,12 +123,14 @@ export async function probe(opts: ProbeOptions): Promise<ProbeResult> {
       init = { method: 'GET', redirect: 'manual' };
     }
     const html = await res.text();
+    lastPage = html;
     steps.push({
       step,
       url,
       status: res.status,
       ms: now() - start,
       bytes: html.length,
+      title: pageTitle(html),
       needsLogin: needsLogin(html),
       blocked: detectBlock(res.status, html),
     });
@@ -127,6 +140,7 @@ export async function probe(opts: ProbeOptions): Promise<ProbeResult> {
   const report = (extra: Partial<ProbeReport>): ProbeResult => ({
     report: { ok: false, loggedIn: false, steps, ...extra },
     pages,
+    lastPage,
   });
 
   try {

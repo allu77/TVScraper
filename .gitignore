@@ -2,3 +2,4 @@ config.php
 .project
 .settings
 node_modules/
+ddu-probe-last-response.html

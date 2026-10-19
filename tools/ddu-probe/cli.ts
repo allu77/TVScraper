@@ -54,8 +54,15 @@ if (args.topic && !args.season) {
 const boardUrls = args.board ? [0, 25, 50, 75].map((o) => `${args.board}&start=${o}`) : [];
 const topicUrls = args.topic ? [args.topic] : [];
 
-const { report, pages } = await probe({ username, password, urls: [...boardUrls, ...topicUrls] });
+const { report, pages, lastPage } = await probe({ username, password, urls: [...boardUrls, ...topicUrls] });
 console.log(JSON.stringify(report, null, 2));
+
+if (!report.ok && lastPage !== undefined) {
+  // Kept locally (git-ignored) to check by eye what the site actually answered.
+  const file = resolve('ddu-probe-last-response.html');
+  writeFileSync(file, redact(lastPage, username));
+  console.error(`Last response saved to ${file}`);
+}
 
 if (!args['report-only'] && report.ok) {
   const show = { title: args.title ?? 'Unknown', ...(args['alt-title'] ? { alternateTitle: args['alt-title'] } : {}), lang: args.lang, nativeLang: 'eng', res: args.res };

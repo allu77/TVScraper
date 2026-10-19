@@ -65,8 +65,11 @@ describe('detectBlock', () => {
   it.each([
     [403, '', 'HTTP 403'],
     [200, '<title>Just a moment...</title>', 'Cloudflare challenge'],
+    [403, '<title>Just a moment...</title><script>window._cf_chl_opt={}</script>', 'Cloudflare challenge (HTTP 403)'],
+    [200, '<div class="cf-turnstile"></div>', 'Cloudflare challenge'],
     [200, '<div class="g-recaptcha"></div>', 'captcha'],
     [200, LOGGED_IN, null],
+    [200, `${LOGIN_FORM}<script src="/cdn-cgi/challenge-platform/scripts/jsd/main.js"></script>`, null],
   ])('status %i', (status, html, expected) => {
     expect(detectBlock(status, html)).toBe(expected);
   });
@@ -79,6 +82,7 @@ describe('probe', () => {
 
     expect(report).toMatchObject({ ok: true, loggedIn: true });
     expect(report.steps.map((s) => s.step)).toEqual(['login-form', 'login-post', 'page']);
+    expect(report.steps[0].title).toBeNull();
     expect(calls.at(-1)!.cookie).toBe('phpbb_sid=s1');
     expect(pages.get('https://ddu.test/board')).toContain('https://ddu.test/board');
   });
